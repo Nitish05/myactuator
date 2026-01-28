@@ -17,11 +17,12 @@ import curses
 import threading
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 from dataclasses import dataclass
 
 import rclpy
 from rclpy.node import Node
+from ament_index_python.packages import get_package_prefix
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.serialization import serialize_message, deserialize_message
@@ -31,6 +32,8 @@ from std_msgs.msg import String, Bool
 from std_srvs.srv import Trigger
 
 import rosbag2_py
+
+from myactuator_python_driver.config import HysteresisTorqueTrigger, PlaybackTriggerConfig
 from rosidl_runtime_py.utilities import get_message
 
 
@@ -49,10 +52,18 @@ class RecorderTUI:
     """Curses TUI for motor recording and playback."""
 
     SPEEDS = [0.25, 0.5, 1.0, 2.0, 4.0]
-    MODES = ["position", "velocity", "torque", "free", "disabled"]
+    MODES = ["position", "velocity", "torque", "admittance", "free", "disabled"]
 
     def __init__(self):
-        self.recordings_dir = Path.home() / "motor_recordings"
+        # Get workspace-relative recordings directory
+        # Package prefix is <workspace>/install/<package>, so go up 2 levels
+        try:
+            pkg_prefix = Path(get_package_prefix('myactuator_python_driver'))
+            workspace_dir = pkg_prefix.parent.parent
+            self.recordings_dir = workspace_dir / "recordings"
+        except Exception:
+            # Fallback to home directory if package prefix not found
+            self.recordings_dir = Path.home() / "motor_recordings"
         self.recordings_dir.mkdir(parents=True, exist_ok=True)
 
         # State
@@ -75,6 +86,12 @@ class RecorderTUI:
         self._status_message = ""
         self._error_message = ""
         self._show_help = False
+        self._show_trigger_config = False
+
+        # Torque trigger configuration
+        self._triggers: List[HysteresisTorqueTrigger] = []
+        self._trigger_states: Dict[str, dict] = {}  # Received from driver
+        self._trigger_edit_idx = 0  # Currently selected trigger in config UI
 
         # ROS2
         self._node: Optional[Node] = None
@@ -137,6 +154,13 @@ class RecorderTUI:
         self._set_mode_pub = self._node.create_publisher(String, '/motor_driver/set_mode', 10)
         self._set_enabled_pub = self._node.create_publisher(Bool, '/motor_driver/set_enabled', 10)
 
+        # Trigger configuration pub/sub
+        self._trigger_config_pub = self._node.create_publisher(
+            String, '/motor_driver/playback_triggers', 10)
+        self._trigger_state_sub = self._node.create_subscription(
+            String, '/motor_driver/trigger_states',
+            self._trigger_state_cb, 10, callback_group=cb_group)
+
         # Service clients
         self._set_zero_client = self._node.create_client(Trigger, '/motor_driver/set_zero')
         self._estop_client = self._node.create_client(Trigger, '/motor_driver/emergency_stop')
@@ -166,6 +190,15 @@ class RecorderTUI:
         with self._lock:
             self._current_mode = msg.data
 
+    def _trigger_state_cb(self, msg: String):
+        """Receive trigger state updates from driver."""
+        import json
+        try:
+            with self._lock:
+                self._trigger_states = json.loads(msg.data)
+        except Exception:
+            pass
+
     def _refresh_recordings(self):
         """Scan recordings directory and load metadata."""
         recordings = []
@@ -188,7 +221,7 @@ class RecorderTUI:
         """Load recording info from a bag directory."""
         try:
             reader = rosbag2_py.SequentialReader()
-            storage_options = rosbag2_py.StorageOptions(uri=str(bag_path), storage_id='mcap')
+            storage_options = rosbag2_py.StorageOptions(uri=str(bag_path), storage_id='sqlite3')
             converter_options = rosbag2_py.ConverterOptions('', '')
             reader.open(storage_options, converter_options)
 
@@ -235,21 +268,20 @@ class RecorderTUI:
         bag_path = self.recordings_dir / bag_name
 
         try:
-            storage_options = rosbag2_py.StorageOptions(uri=str(bag_path), storage_id='mcap')
+            storage_options = rosbag2_py.StorageOptions(uri=str(bag_path), storage_id='sqlite3')
             converter_options = rosbag2_py.ConverterOptions('', '')
 
             self._bag_writer = rosbag2_py.SequentialWriter()
             self._bag_writer.open(storage_options, converter_options)
 
             topic_info = rosbag2_py.TopicMetadata(
-                id=0,
                 name='/joint_states',
                 type='sensor_msgs/msg/JointState',
                 serialization_format='cdr'
             )
             self._bag_writer.create_topic(topic_info)
 
-            self._set_mode("free")
+            self._set_mode("admittance")
 
             with self._lock:
                 self._recording = True
@@ -289,6 +321,11 @@ class RecorderTUI:
                 return
             recording = self._recordings[self._selected_idx]
 
+        # Send trigger configuration to driver BEFORE starting playback
+        if self._triggers:
+            self._send_trigger_config()
+            time.sleep(0.1)  # Brief delay to ensure config is received
+
         self._set_mode("position")
 
         with self._lock:
@@ -306,6 +343,10 @@ class RecorderTUI:
         with self._lock:
             self._playing = False
             self._paused = False
+            self._trigger_states = {}
+
+        # Clear triggers on driver
+        self._clear_trigger_config()
 
     def _toggle_pause(self):
         """Toggle playback pause."""
@@ -313,12 +354,28 @@ class RecorderTUI:
             if self._playing:
                 self._paused = not self._paused
 
+    def _send_trigger_config(self):
+        """Send trigger configuration to driver."""
+        import json
+        config = PlaybackTriggerConfig(triggers=self._triggers)
+        msg = String()
+        msg.data = json.dumps(config.to_dict())
+        self._trigger_config_pub.publish(msg)
+        self._status_message = f"Sent {len(self._triggers)} trigger(s) to driver"
+
+    def _clear_trigger_config(self):
+        """Clear triggers on driver."""
+        import json
+        msg = String()
+        msg.data = json.dumps({'triggers': []})
+        self._trigger_config_pub.publish(msg)
+
     def _playback_worker(self, bag_path: Path):
         """Playback thread worker."""
         try:
             while True:
                 reader = rosbag2_py.SequentialReader()
-                storage_options = rosbag2_py.StorageOptions(uri=str(bag_path), storage_id='mcap')
+                storage_options = rosbag2_py.StorageOptions(uri=str(bag_path), storage_id='sqlite3')
                 converter_options = rosbag2_py.ConverterOptions('', '')
                 reader.open(storage_options, converter_options)
 
@@ -483,6 +540,220 @@ class RecorderTUI:
             curses.noecho()
             curses.curs_set(0)
 
+    # === Trigger Configuration ===
+
+    def _draw_trigger_config(self, stdscr, h, w):
+        """Draw trigger configuration screen."""
+        stdscr.addstr(0, 0, " " * w, curses.color_pair(6))
+        stdscr.addstr(0, 0, " Playback Trigger Configuration", curses.color_pair(6) | curses.A_BOLD)
+
+        row = 2
+        stdscr.addstr(row, 2, "Configure per-joint torque overrides with hysteresis", curses.A_DIM)
+        row += 2
+
+        # Get available joints and their current positions
+        with self._lock:
+            if self._last_joint_state:
+                joint_names = list(self._last_joint_state.name)
+                joint_positions = list(self._last_joint_state.position)
+            else:
+                joint_names = []
+                joint_positions = []
+
+        if not joint_names:
+            stdscr.addstr(row, 2, "No joints detected. Start driver first.", curses.color_pair(4))
+            row += 2
+        else:
+            # Show current joint positions (live from robot)
+            stdscr.addstr(row, 2, "Current Joint Positions (live):", curses.A_BOLD)
+            row += 1
+            for name, pos in zip(joint_names, joint_positions):
+                stdscr.addstr(row, 4, f"{name}: {pos:.3f} rad", curses.color_pair(2))
+                row += 1
+            row += 1
+
+        # Show existing triggers
+        stdscr.addstr(row, 2, "Configured Triggers:", curses.A_BOLD)
+        row += 1
+
+        if not self._triggers:
+            stdscr.addstr(row, 4, "(none)", curses.A_DIM)
+            row += 1
+        else:
+            for i, trigger in enumerate(self._triggers):
+                line = (f"{trigger.joint_name}: "
+                        f"enter={trigger.enter_threshold_rad:.2f} "
+                        f"exit={trigger.exit_threshold_rad:.2f} "
+                        f"torque={trigger.torque_nm:.2f}Nm "
+                        f"({trigger.direction})")
+
+                if i == self._trigger_edit_idx:
+                    attr = curses.color_pair(5)
+                else:
+                    attr = curses.A_NORMAL
+                stdscr.addstr(row, 4, line[:w - 6], attr)
+                row += 1
+
+        row += 1
+        stdscr.addstr(row, 2, "Commands:", curses.A_BOLD)
+        row += 1
+        stdscr.addstr(row, 4, "a: Add trigger    d: Delete selected    c: Clear all")
+        row += 1
+        stdscr.addstr(row, 4, "UP/DOWN: Select   Enter/Esc: Close")
+
+    def _add_trigger_dialog(self, stdscr):
+        """Interactive dialog to add a new trigger."""
+        h, w = stdscr.getmaxyx()
+
+        # Temporarily disable nodelay/timeout for blocking input
+        stdscr.nodelay(False)
+        stdscr.timeout(-1)
+        curses.echo()
+        curses.curs_set(1)
+
+        try:
+            # Get joint names and positions
+            with self._lock:
+                if self._last_joint_state:
+                    joints = list(self._last_joint_state.name)
+                    positions = list(self._last_joint_state.position)
+                else:
+                    self._error_message = "No joints available"
+                    return
+
+            # Clear entire screen for dialog
+            stdscr.clear()
+
+            row = 1
+            stdscr.addstr(row, 2, "=== Add Torque Trigger ===", curses.A_BOLD)
+            row += 2
+
+            # Show current positions
+            stdscr.addstr(row, 2, "Current joint positions:", curses.A_DIM)
+            row += 1
+            for i, (name, pos) in enumerate(zip(joints, positions)):
+                stdscr.addstr(row, 4, f"[{i}] {name}: {pos:.3f} rad", curses.color_pair(2))
+                row += 1
+            row += 1
+
+            # Joint selection by number or name
+            stdscr.addstr(row, 2, f"Select joint (0-{len(joints)-1} or name) [{joints[0]}]: ")
+            stdscr.refresh()
+            joint_input = stdscr.getstr(row, 45, 30).decode('utf-8').strip()
+
+            if not joint_input:
+                joint_name = joints[0]
+                joint_idx = 0
+            elif joint_input.isdigit():
+                joint_idx = int(joint_input)
+                if joint_idx < 0 or joint_idx >= len(joints):
+                    self._error_message = f"Invalid index: {joint_idx}"
+                    return
+                joint_name = joints[joint_idx]
+            elif joint_input in joints:
+                joint_name = joint_input
+                joint_idx = joints.index(joint_name)
+            else:
+                self._error_message = f"Invalid joint: {joint_input}"
+                return
+
+            current_pos = positions[joint_idx]
+            row += 1
+            stdscr.addstr(row, 2, f"Selected: {joint_name} (currently at {current_pos:.3f} rad)", curses.color_pair(3))
+            row += 2
+
+            # Explain thresholds
+            stdscr.addstr(row, 2, "Thresholds define when to switch to/from torque mode:", curses.A_DIM)
+            row += 1
+            stdscr.addstr(row, 2, "  Enter = switch TO torque, Exit = switch BACK to position", curses.A_DIM)
+            row += 1
+            stdscr.addstr(row, 2, "  (Exit must be between current pos and Enter for hysteresis)", curses.A_DIM)
+            row += 2
+
+            # Enter threshold
+            stdscr.addstr(row, 2, f"Enter threshold (rad): ")
+            stdscr.refresh()
+            enter_str = stdscr.getstr(row, 25, 15).decode('utf-8').strip()
+            if not enter_str:
+                self._error_message = "Enter threshold required"
+                return
+            enter_threshold = float(enter_str)
+            row += 1
+
+            # Exit threshold
+            stdscr.addstr(row, 2, f"Exit threshold (rad):  ")
+            stdscr.refresh()
+            exit_str = stdscr.getstr(row, 25, 15).decode('utf-8').strip()
+            if not exit_str:
+                self._error_message = "Exit threshold required"
+                return
+            exit_threshold = float(exit_str)
+            row += 1
+
+            # Auto-detect direction based on thresholds
+            if enter_threshold > exit_threshold:
+                direction = "rising"
+                stdscr.addstr(row, 2, f"Direction: rising (torque when angle > {enter_threshold:.3f})", curses.color_pair(2))
+            else:
+                direction = "falling"
+                stdscr.addstr(row, 2, f"Direction: falling (torque when angle < {enter_threshold:.3f})", curses.color_pair(2))
+            row += 2
+
+            # Torque
+            stdscr.addstr(row, 2, "Torque to apply (Nm):  ")
+            stdscr.refresh()
+            torque_str = stdscr.getstr(row, 25, 15).decode('utf-8').strip()
+            if not torque_str:
+                self._error_message = "Torque value required"
+                return
+            torque = float(torque_str)
+            row += 2
+
+            # Confirm
+            stdscr.addstr(row, 2, "Press Enter to confirm, or 'q' to cancel: ", curses.A_BOLD)
+            stdscr.refresh()
+            confirm = stdscr.getch()
+            if confirm == ord('q'):
+                self._status_message = "Cancelled"
+                return
+
+            # Create trigger
+            trigger = HysteresisTorqueTrigger(
+                joint_name=joint_name,
+                enter_threshold_rad=enter_threshold,
+                exit_threshold_rad=exit_threshold,
+                torque_nm=torque,
+                direction=direction
+            )
+
+            self._triggers.append(trigger)
+            self._status_message = f"Added trigger: {joint_name} -> {torque}Nm when {direction} past {enter_threshold:.3f} rad"
+
+        except ValueError as e:
+            self._error_message = f"Invalid number: {e}"
+        except Exception as e:
+            self._error_message = f"Error: {e}"
+        finally:
+            curses.noecho()
+            curses.curs_set(0)
+            # Restore nodelay/timeout for main loop
+            stdscr.nodelay(True)
+            stdscr.timeout(100)
+
+    def _delete_trigger(self):
+        """Delete the selected trigger."""
+        if self._triggers and 0 <= self._trigger_edit_idx < len(self._triggers):
+            deleted = self._triggers.pop(self._trigger_edit_idx)
+            self._status_message = f"Deleted trigger for {deleted.joint_name}"
+            if self._trigger_edit_idx >= len(self._triggers) and self._triggers:
+                self._trigger_edit_idx = len(self._triggers) - 1
+
+    def _clear_triggers(self):
+        """Clear all triggers."""
+        self._triggers.clear()
+        self._trigger_edit_idx = 0
+        self._status_message = "Cleared all triggers"
+
     # === TUI ===
 
     def _run_tui(self, stdscr):
@@ -520,6 +791,8 @@ class RecorderTUI:
 
         if self._show_help:
             self._draw_help(stdscr, h, w)
+        elif self._show_trigger_config:
+            self._draw_trigger_config(stdscr, h, w)
         else:
             self._draw_header(stdscr, w)
             self._draw_recordings(stdscr, h, w)
@@ -538,7 +811,7 @@ class RecorderTUI:
             mode = self._current_mode
         if mode == "position":
             mode_color = curses.color_pair(2)
-        elif mode == "free":
+        elif mode in ("free", "admittance"):
             mode_color = curses.color_pair(3)
         elif mode in ("disabled", "torque"):
             mode_color = curses.color_pair(4)
@@ -664,6 +937,28 @@ class RecorderTUI:
             loop_color = curses.color_pair(2) if self._loop else curses.A_DIM
             stdscr.addstr(row, state_x, f"Loop: {'ON' if self._loop else 'OFF'}", loop_color)
 
+            # Show configured triggers
+            row += 2
+            if self._triggers:
+                stdscr.addstr(row, state_x, f"Triggers: {len(self._triggers)}", curses.A_BOLD)
+                row += 1
+                with self._lock:
+                    trigger_states = self._trigger_states.copy()
+                for trigger in self._triggers:
+                    state_info = trigger_states.get(trigger.joint_name, {})
+                    state = state_info.get('state', 'inactive')
+                    if state == 'active':
+                        stdscr.addstr(row, state_x + 2,
+                                      f"{trigger.joint_name}: TORQUE ({trigger.torque_nm:.1f}Nm)",
+                                      curses.color_pair(3) | curses.A_BOLD)
+                    else:
+                        stdscr.addstr(row, state_x + 2,
+                                      f"{trigger.joint_name}: position",
+                                      curses.A_DIM)
+                    row += 1
+            else:
+                stdscr.addstr(row, state_x, "Triggers: (none)", curses.A_DIM)
+
         except curses.error:
             pass
 
@@ -686,7 +981,7 @@ class RecorderTUI:
 
     def _draw_help_bar(self, stdscr, h, w):
         """Draw help bar at bottom."""
-        help_text = " r:Rec  p:Play  Space:Pause  []:Speed  l:Loop  z:Zero  0:GoZero  m:Mode  e:Enable  Esc:E-Stop  d:Del  n:Rename  ?:Help  q:Quit "
+        help_text = " r:Rec  p:Play  Space:Pause  []:Speed  l:Loop  t:Triggers  z:Zero  0:GoZero  m:Mode  e:Enable  Esc:E-Stop  d:Del  ?:Help  q:Quit "
 
         try:
             stdscr.addstr(h - 2, 0, " " * w, curses.color_pair(5))
@@ -707,6 +1002,13 @@ class RecorderTUI:
             "    SPACE   Pause/Resume playback",
             "    [ / ]   Decrease/Increase speed",
             "    l       Toggle loop",
+            "    t       Configure torque triggers",
+            "",
+            "  Torque Triggers:",
+            "    Configure per-joint torque override during playback.",
+            "    When joint crosses enter threshold, switches to torque.",
+            "    When it crosses exit threshold, returns to position.",
+            "    (Hysteresis prevents oscillation near threshold)",
             "",
             "  Motor Control:",
             "    z       Set zero (current pos = 0)",
@@ -744,8 +1046,28 @@ class RecorderTUI:
         h, _ = stdscr.getmaxyx()
         max_rows = h - 8
 
+        # Handle trigger config screen keys
+        if self._show_trigger_config:
+            if key == ord('a'):
+                self._add_trigger_dialog(stdscr)
+            elif key == ord('d'):
+                self._delete_trigger()
+            elif key == ord('c'):
+                self._clear_triggers()
+            elif key == curses.KEY_UP:
+                if self._trigger_edit_idx > 0:
+                    self._trigger_edit_idx -= 1
+            elif key == curses.KEY_DOWN:
+                if self._trigger_edit_idx < len(self._triggers) - 1:
+                    self._trigger_edit_idx += 1
+            elif key in (ord('\n'), ord('\r'), 27, ord('t')):  # Enter, Esc, or t
+                self._show_trigger_config = False
+            return
+
         if key == ord('q'):
             self._running = False
+        elif key == ord('t'):
+            self._show_trigger_config = True
         elif key == ord('r'):
             if self._recording:
                 self._stop_recording()

@@ -27,6 +27,61 @@ class TorqueRule:
 
 
 @dataclass
+class HysteresisTorqueTrigger:
+    """
+    Hysteresis-based torque override trigger for playback.
+
+    When joint angle crosses enter_threshold, switches to torque control.
+    When joint angle crosses exit_threshold (in opposite direction),
+    returns to position control. The hysteresis gap prevents oscillation.
+
+    Example (rising direction):
+        enter_threshold_rad = 1.5  # switch to torque when angle > 1.5
+        exit_threshold_rad = 1.3   # switch back to position when angle < 1.3
+        torque_nm = 5.0            # apply 5 Nm when in torque mode
+    """
+    joint_name: str
+    enter_threshold_rad: float
+    exit_threshold_rad: float
+    torque_nm: float
+    direction: str = "rising"  # "rising" or "falling"
+    enabled: bool = True
+
+    def __post_init__(self):
+        if self.direction == "rising":
+            if self.exit_threshold_rad >= self.enter_threshold_rad:
+                raise ValueError("For rising: exit_threshold must be < enter_threshold")
+        elif self.direction == "falling":
+            if self.exit_threshold_rad <= self.enter_threshold_rad:
+                raise ValueError("For falling: exit_threshold must be > enter_threshold")
+        else:
+            raise ValueError("direction must be 'rising' or 'falling'")
+
+
+@dataclass
+class PlaybackTriggerConfig:
+    """Configuration for all triggers during playback."""
+    triggers: List['HysteresisTorqueTrigger'] = field(default_factory=list)
+
+    def get_trigger_for_joint(self, joint_name: str) -> Optional['HysteresisTorqueTrigger']:
+        """Get trigger config for a specific joint."""
+        for t in self.triggers:
+            if t.joint_name == joint_name and t.enabled:
+                return t
+        return None
+
+    def to_dict(self) -> dict:
+        """Serialize for JSON/ROS message."""
+        return {'triggers': [asdict(t) for t in self.triggers]}
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'PlaybackTriggerConfig':
+        """Deserialize from JSON/ROS message."""
+        triggers = [HysteresisTorqueTrigger(**t) for t in data.get('triggers', [])]
+        return cls(triggers=triggers)
+
+
+@dataclass
 class MotorConfig:
     """Configuration for a single motor."""
     can_id: int = 1
@@ -47,7 +102,7 @@ class DriverConfig:
     """Main driver configuration."""
     can_interface: str = "can0"
     motors: List[MotorConfig] = field(default_factory=list)
-    publish_rate: float = 100.0  # Hz
+    publish_rate: float = 500.0  # Hz - higher for smoother admittance control
     control_mode: str = "position"  # "position", "velocity", "torque"
     timeout_ms: int = 0  # Communication timeout (0 = disabled)
 

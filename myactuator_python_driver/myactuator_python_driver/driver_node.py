@@ -19,7 +19,9 @@ from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64MultiArray, String, Bool
 from std_srvs.srv import Trigger, SetBool
 
-from myactuator_python_driver.config import DriverConfig, MotorConfig
+from myactuator_python_driver.config import (
+    DriverConfig, MotorConfig, HysteresisTorqueTrigger, PlaybackTriggerConfig
+)
 from myactuator_python_driver.motor_wrapper import MotorWrapper, MotorState, RMD_AVAILABLE
 
 if RMD_AVAILABLE:
@@ -70,11 +72,21 @@ class MotorDriverNode(Node):
         # Control mode state
         self._torque_mode = False
         self._free_mode = False  # When True, motors are free to move by hand
+        self._admittance_mode = False  # When True, use admittance control (easy to move by hand)
         self._enabled = True  # When False, motors are disabled (no commands sent)
         self._control_positions: Dict[str, float] = {}
         self._control_velocities: Dict[str, float] = {}
         self._control_efforts: Dict[str, float] = {}
-        
+
+        # Admittance control parameters
+        self._admittance_gain = 100000.0  # rad/s per Nm - how fast to move per unit torque
+        self._admittance_deadband = 0.000001  # Nm - minimum torque to trigger movement
+        self._admittance_max_vel = 50.0  # rad/s - maximum velocity in admittance mode
+
+        # Per-joint torque override triggers (for hybrid playback)
+        self._active_triggers: Dict[str, HysteresisTorqueTrigger] = {}  # joint_name -> trigger
+        self._trigger_states: Dict[str, str] = {}  # joint_name -> "inactive"/"active"
+
         # Initialize control values for configured joints
         for motor_cfg in self.config.motors:
             self._control_positions[motor_cfg.joint_name] = 0.0
@@ -118,7 +130,14 @@ class MotorDriverNode(Node):
             Bool, '~/set_enabled',
             self._set_enabled_callback, 10,
             callback_group=self.callback_group)
-        
+        self.trigger_config_sub = self.create_subscription(
+            String, '~/playback_triggers',
+            self._trigger_config_callback, 10,
+            callback_group=self.callback_group)
+
+        # Trigger state publisher (feedback for TUI)
+        self.trigger_state_pub = self.create_publisher(String, '~/trigger_states', 10)
+
         # Services
         self.set_zero_srv = self.create_service(
             Trigger, '~/set_zero', self._set_zero_callback,
@@ -147,7 +166,7 @@ class MotorDriverNode(Node):
         """Load configuration from ROS parameters."""
         # Declare parameters
         self.declare_parameter('can_interface', 'can0')
-        self.declare_parameter('publish_rate', 100.0)
+        self.declare_parameter('publish_rate', 500.0)
         self.declare_parameter('control_mode', 'position')
         self.declare_parameter('config_file', '')
         
@@ -242,6 +261,8 @@ class MotorDriverNode(Node):
             return "disabled"
         elif self._free_mode:
             return "free"
+        elif self._admittance_mode:
+            return "admittance"
         elif self._torque_mode:
             return "torque"
         else:
@@ -302,6 +323,29 @@ class MotorDriverNode(Node):
                         # Free mode: release motor and just read state
                         motor.release()
                         state = motor.get_state()
+                    elif self._admittance_mode:
+                        # Admittance mode: velocity control based on external force
+                        # First read current state to get effort
+                        state = motor.get_state()
+
+                        # Measured effort is the torque motor produces
+                        # External torque is opposite: if motor pushes +, user is pushing -
+                        external_torque = -state.effort_nm
+
+                        # Calculate velocity command proportional to external torque
+                        if abs(external_torque) > self._admittance_deadband:
+                            velocity = self._admittance_gain * external_torque
+                            # Clamp to max velocity
+                            velocity = max(-self._admittance_max_vel,
+                                         min(self._admittance_max_vel, velocity))
+                        else:
+                            velocity = 0.0
+
+                        # Send velocity command directly - much smoother than position steps
+                        state = motor.send_velocity(velocity)
+
+                        # Update position tracking for when we exit admittance mode
+                        self._control_positions[joint_name] = state.position_rad
                     elif self._torque_mode:
                         effort = self._control_efforts.get(joint_name, 0.0)
                         state = motor.send_torque(effort)
@@ -309,8 +353,18 @@ class MotorDriverNode(Node):
                         velocity = self._control_velocities.get(joint_name, 0.0)
                         state = motor.send_velocity(velocity)
                     elif self.config.control_mode == 'position':
+                        # Get commanded position from playback
                         position = self._control_positions.get(joint_name, 0.0)
-                        state = motor.send_position(position)
+
+                        # Check for per-joint torque override (hybrid playback)
+                        # Use the RECORDED position (not real robot) to decide when to trigger
+                        trigger = self._active_triggers.get(joint_name)
+                        if trigger and self._evaluate_trigger(joint_name, position):
+                            # This joint is in torque override mode
+                            state = motor.send_torque(trigger.torque_nm)
+                        else:
+                            # Normal position control
+                            state = motor.send_position(position)
                     else:
                         # Read-only mode
                         state = motor.get_state()
@@ -336,6 +390,9 @@ class MotorDriverNode(Node):
         if status_data:
             status_msg.data = status_data
             self.motor_status_pub.publish(status_msg)
+
+        # Publish trigger states for TUI feedback
+        self._publish_trigger_states()
 
     def _joint_ctrl_callback(self, msg: JointState):
         """Handle position/velocity control commands."""
@@ -396,10 +453,11 @@ class MotorDriverNode(Node):
     def _enable_torque_callback(self, request, response):
         """Enable or disable torque mode."""
         with self._lock:
-            if request.data and self._free_mode:
+            if request.data and (self._free_mode or self._admittance_mode):
                 self._capture_positions_locked()
             self._torque_mode = request.data
             self._free_mode = False  # Exit free mode when enabling torque control
+            self._admittance_mode = False  # Exit admittance mode too
             self._enabled = True
             if not request.data:
                 # Reset efforts when disabling
@@ -419,6 +477,7 @@ class MotorDriverNode(Node):
             if request.data:
                 # Disable other control modes when entering free mode
                 self._torque_mode = False
+                self._admittance_mode = False
                 self.get_logger().info("Free mode enabled - motors can be moved by hand")
             else:
                 # When exiting free mode, read current positions as new setpoints
@@ -445,28 +504,42 @@ class MotorDriverNode(Node):
             if mode == "free":
                 if not self._free_mode:
                     self._free_mode = True
+                    self._admittance_mode = False
                     self._torque_mode = False
                     self._enabled = True
                     self.get_logger().info("Mode changed to: free")
+            elif mode == "admittance":
+                if not self._admittance_mode:
+                    # Capture current positions before entering admittance mode
+                    if self._free_mode:
+                        self._capture_positions_locked()
+                    self._admittance_mode = True
+                    self._free_mode = False
+                    self._torque_mode = False
+                    self._enabled = True
+                    self.get_logger().info("Mode changed to: admittance (easy to move by hand)")
             elif mode == "torque":
-                if self._free_mode:
+                if self._free_mode or self._admittance_mode:
                     self._capture_positions_locked()
                 self._free_mode = False
+                self._admittance_mode = False
                 self._torque_mode = True
                 self._enabled = True
                 self.get_logger().info("Mode changed to: torque")
             elif mode == "position":
-                if self._free_mode:
+                if self._free_mode or self._admittance_mode:
                     self._capture_positions_locked()
                 self._free_mode = False
+                self._admittance_mode = False
                 self._torque_mode = False
                 self._enabled = True
                 self.config.control_mode = "position"
                 self.get_logger().info("Mode changed to: position")
             elif mode == "velocity":
-                if self._free_mode:
+                if self._free_mode or self._admittance_mode:
                     self._capture_positions_locked()
                 self._free_mode = False
+                self._admittance_mode = False
                 self._torque_mode = False
                 self._enabled = True
                 self.config.control_mode = "velocity"
@@ -474,6 +547,7 @@ class MotorDriverNode(Node):
             elif mode == "disabled" or mode == "disable":
                 self._enabled = False
                 self._free_mode = False
+                self._admittance_mode = False
                 self._torque_mode = False
                 self.get_logger().info("Motors disabled")
             else:
@@ -498,6 +572,106 @@ class MotorDriverNode(Node):
                 self.get_logger().info("Motors disabled")
         
         self._publish_mode()
+
+    def _trigger_config_callback(self, msg: String):
+        """Handle playback trigger configuration from recorder TUI."""
+        import json
+        try:
+            data = json.loads(msg.data)
+            config = PlaybackTriggerConfig.from_dict(data)
+
+            with self._lock:
+                # Clear existing triggers
+                self._active_triggers.clear()
+                self._trigger_states.clear()
+
+                # Set up new triggers
+                for trigger in config.triggers:
+                    if trigger.joint_name in self.motors and trigger.enabled:
+                        self._active_triggers[trigger.joint_name] = trigger
+                        self._trigger_states[trigger.joint_name] = "inactive"
+                        self.get_logger().info(
+                            f"Trigger configured for {trigger.joint_name}: "
+                            f"enter={trigger.enter_threshold_rad:.2f}, "
+                            f"exit={trigger.exit_threshold_rad:.2f}, "
+                            f"torque={trigger.torque_nm:.2f}Nm")
+
+            if config.triggers:
+                self.get_logger().info(f"Configured {len(config.triggers)} playback trigger(s)")
+            else:
+                self.get_logger().info("Cleared all playback triggers")
+
+        except Exception as e:
+            self.get_logger().error(f"Failed to parse trigger config: {e}")
+
+    def _evaluate_trigger(self, joint_name: str, current_angle_rad: float) -> bool:
+        """
+        Evaluate hysteresis trigger for a joint.
+
+        Returns True if joint should be in torque override mode.
+        Updates internal trigger state.
+        """
+        trigger = self._active_triggers.get(joint_name)
+        if trigger is None:
+            return False
+
+        current_state = self._trigger_states.get(joint_name, "inactive")
+
+        if trigger.direction == "rising":
+            # Rising: enter torque mode when angle rises above enter_threshold
+            #         exit torque mode when angle falls below exit_threshold
+            if current_state == "inactive":
+                if current_angle_rad > trigger.enter_threshold_rad:
+                    self._trigger_states[joint_name] = "active"
+                    self.get_logger().info(
+                        f"Trigger ACTIVATED for {joint_name} at {current_angle_rad:.3f} rad "
+                        f"(threshold: {trigger.enter_threshold_rad:.3f})")
+                    return True
+                return False
+            else:  # active
+                if current_angle_rad < trigger.exit_threshold_rad:
+                    self._trigger_states[joint_name] = "inactive"
+                    self.get_logger().info(
+                        f"Trigger DEACTIVATED for {joint_name} at {current_angle_rad:.3f} rad "
+                        f"(threshold: {trigger.exit_threshold_rad:.3f})")
+                    return False
+                return True
+        else:  # falling
+            # Falling: enter torque mode when angle falls below enter_threshold
+            #          exit torque mode when angle rises above exit_threshold
+            if current_state == "inactive":
+                if current_angle_rad < trigger.enter_threshold_rad:
+                    self._trigger_states[joint_name] = "active"
+                    self.get_logger().info(
+                        f"Trigger ACTIVATED for {joint_name} at {current_angle_rad:.3f} rad "
+                        f"(threshold: {trigger.enter_threshold_rad:.3f})")
+                    return True
+                return False
+            else:  # active
+                if current_angle_rad > trigger.exit_threshold_rad:
+                    self._trigger_states[joint_name] = "inactive"
+                    self.get_logger().info(
+                        f"Trigger DEACTIVATED for {joint_name} at {current_angle_rad:.3f} rad "
+                        f"(threshold: {trigger.exit_threshold_rad:.3f})")
+                    return False
+                return True
+
+    def _publish_trigger_states(self):
+        """Publish current trigger states for TUI feedback."""
+        if not self._active_triggers:
+            return
+
+        import json
+        state_dict = {}
+        for joint_name, trigger in self._active_triggers.items():
+            state_dict[joint_name] = {
+                'state': self._trigger_states.get(joint_name, 'inactive'),
+                'torque_nm': trigger.torque_nm,
+            }
+
+        msg = String()
+        msg.data = json.dumps(state_dict)
+        self.trigger_state_pub.publish(msg)
 
     def _capture_positions_locked(self):
         """Capture current motor positions as setpoints. Must be called with lock held."""
