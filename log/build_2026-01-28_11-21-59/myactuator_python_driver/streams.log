@@ -1,0 +1,58 @@
+[1.026s] Invoking command in '/home/nitish/work/myactuator/myactuator_python_driver': DEBUGINFOD_URLS=https://debuginfod.archlinux.org https://debuginfod.cachyos.org PS1=[\u@\h \W]\$ PYTHONPATH=/home/nitish/work/myactuator/build/myactuator_python_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/myactuator_python_driver build --build-base /home/nitish/work/myactuator/build/myactuator_python_driver/build install --record /home/nitish/work/myactuator/build/myactuator_python_driver/install.log --single-version-externally-managed install_data
+[1.315s] running egg_info
+[1.316s] creating ../build/myactuator_python_driver/myactuator_python_driver.egg-info
+[1.331s] writing ../build/myactuator_python_driver/myactuator_python_driver.egg-info/PKG-INFO
+[1.332s] writing dependency_links to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/dependency_links.txt
+[1.332s] writing entry points to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/entry_points.txt
+[1.332s] writing requirements to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/requires.txt
+[1.332s] writing top-level names to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/top_level.txt
+[1.333s] writing manifest file '../build/myactuator_python_driver/myactuator_python_driver.egg-info/SOURCES.txt'
+[1.365s] reading manifest file '../build/myactuator_python_driver/myactuator_python_driver.egg-info/SOURCES.txt'
+[1.366s] writing manifest file '../build/myactuator_python_driver/myactuator_python_driver.egg-info/SOURCES.txt'
+[1.366s] running build
+[1.367s] running build_py
+[1.367s] creating /home/nitish/work/myactuator/build/myactuator_python_driver/build
+[1.367s] creating /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib
+[1.367s] creating /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+[1.367s] copying myactuator_python_driver/__init__.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+[1.368s] copying myactuator_python_driver/config.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+[1.368s] copying myactuator_python_driver/motor_wrapper.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+[1.368s] copying myactuator_python_driver/can_utils.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+[1.369s] copying myactuator_python_driver/driver_node.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+[1.369s] copying myactuator_python_driver/setup_tui.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+[1.369s] copying myactuator_python_driver/recorder_tui.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+[1.369s] running install
+[1.377s] running install_lib
+[1.394s] creating /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+[1.394s] copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/__init__.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+[1.394s] copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/config.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+[1.395s] copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/motor_wrapper.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+[1.395s] copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/can_utils.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+[1.395s] copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/driver_node.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+[1.395s] copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/setup_tui.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+[1.395s] copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/recorder_tui.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+[1.396s] byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/__init__.py to __init__.cpython-312.pyc
+[1.396s] byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/config.py to config.cpython-312.pyc
+[1.398s] byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/motor_wrapper.py to motor_wrapper.cpython-312.pyc
+[1.400s] byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/can_utils.py to can_utils.cpython-312.pyc
+[1.403s] byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/driver_node.py to driver_node.cpython-312.pyc
+[1.408s] byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/setup_tui.py to setup_tui.cpython-312.pyc
+[1.411s] byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/recorder_tui.py to recorder_tui.cpython-312.pyc
+[1.421s] running install_data
+[1.421s] creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index
+[1.421s] creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index/resource_index
+[1.422s] creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index/resource_index/packages
+[1.422s] copying resource/myactuator_python_driver -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index/resource_index/packages
+[1.422s] copying package.xml -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver
+[1.422s] creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/launch
+[1.423s] copying launch/driver.launch.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/launch
+[1.423s] creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/config
+[1.423s] copying config/driver_config.yaml -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/config
+[1.423s] running install_egg_info
+[1.442s] Copying ../build/myactuator_python_driver/myactuator_python_driver.egg-info to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver-1.0.0-py3.12.egg-info
+[1.442s] running install_scripts
+[1.572s] Installing driver_node script to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/myactuator_python_driver
+[1.572s] Installing recorder_tui script to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/myactuator_python_driver
+[1.573s] Installing setup_tui script to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/myactuator_python_driver
+[1.573s] writing list of installed files to '/home/nitish/work/myactuator/build/myactuator_python_driver/install.log'
+[1.626s] Invoked command in '/home/nitish/work/myactuator/myactuator_python_driver' returned '0': DEBUGINFOD_URLS=https://debuginfod.archlinux.org https://debuginfod.cachyos.org PS1=[\u@\h \W]\$ PYTHONPATH=/home/nitish/work/myactuator/build/myactuator_python_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/myactuator_python_driver build --build-base /home/nitish/work/myactuator/build/myactuator_python_driver/build install --record /home/nitish/work/myactuator/build/myactuator_python_driver/install.log --single-version-externally-managed install_data

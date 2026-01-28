@@ -1,0 +1,416 @@
+[0.000000] (-) TimerEvent: {}
+[0.000406] (TandP_URDF_description) JobQueued: {'identifier': 'TandP_URDF_description', 'dependencies': OrderedDict()}
+[0.000742] (myactuator_rmd) JobQueued: {'identifier': 'myactuator_rmd', 'dependencies': OrderedDict()}
+[0.001108] (myactuator_python_driver) JobQueued: {'identifier': 'myactuator_python_driver', 'dependencies': OrderedDict({'myactuator_rmd': '/home/nitish/work/myactuator/install/myactuator_rmd'})}
+[0.001173] (myactuator_rmd) JobStarted: {'identifier': 'myactuator_rmd'}
+[0.011684] (TandP_URDF_description) JobStarted: {'identifier': 'TandP_URDF_description'}
+[0.019893] (myactuator_rmd) JobProgress: {'identifier': 'myactuator_rmd', 'progress': 'cmake'}
+[0.020512] (myactuator_rmd) Command: {'cmd': ['/usr/bin/cmake', '/home/nitish/work/myactuator/myactuator_rmd', '-DCMAKE_INSTALL_PREFIX=/home/nitish/work/myactuator/install/myactuator_rmd'], 'cwd': '/home/nitish/work/myactuator/build/myactuator_rmd', 'env': OrderedDict({'KDE_FULL_SESSION': 'true', 'RUSTICL_ENABLE': 'iris', 'ATUIN_SESSION': '019c0557152a77a2adde1e961e9b1df8', 'MAIL': '/var/spool/mail/nitish', 'GZ_SIM_RESOURCE_PATH': '/opt/ros/jazzy/share', 'GHOSTTY_RESOURCES_DIR': '/usr/share/ghostty', 'USER': 'nitish', 'PAM_KWALLET5_LOGIN': '/run/user/1000/kwallet5.socket', 'LC_TIME': 'en_US.UTF-8', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor/share/gz:/opt/ros/jazzy/opt/sdformat_vendor/share/gz:/opt/ros/jazzy/opt/gz_gui_vendor/share/gz:/opt/ros/jazzy/opt/gz_transport_vendor/share/gz:/opt/ros/jazzy/opt/gz_rendering_vendor/share/gz:/opt/ros/jazzy/opt/gz_plugin_vendor/share/gz:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/share/gz:/opt/ros/jazzy/opt/gz_msgs_vendor/share/gz:/opt/ros/jazzy/opt/gz_common_vendor/share/gz', 'HOSTNAME': 'slate', 'XDG_SESSION_TYPE': 'wayland', 'BUN_INSTALL': '/home/nitish/.bun', 'XDG_CACHE_HOME': '/home/nitish/.cache', 'QT_WAYLAND_RECONNECT': '1', 'SHLVL': '4', 'LD_LIBRARY_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd/lib:/opt/ros/jazzy/opt/gz_sim_vendor/lib:/opt/ros/jazzy/opt/gz_sensors_vendor/lib:/opt/ros/jazzy/opt/gz_physics_vendor/lib:/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_gui_vendor/lib:/opt/ros/jazzy/opt/gz_transport_vendor/lib:/opt/ros/jazzy/opt/gz_rendering_vendor/lib:/opt/ros/jazzy/opt/gz_plugin_vendor/lib:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/lib:/opt/ros/jazzy/opt/gz_msgs_vendor/lib:/opt/ros/jazzy/opt/gz_common_vendor/lib:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_ogre_next_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'MOTD_SHOWN': 'pam', 'HOME': '/home/nitish', 'TERMINFO': '/usr/share/terminfo', 'CONDA_SHLVL': '0', 'KDE_APPLICATIONS_AS_SCOPE': '1', 'TERM_PROGRAM_VERSION': '1.2.3-arch2.1', 'DESKTOP_SESSION': 'plasma', 'MANROFFOPT': '-c', 'NVM_BIN': '/home/nitish/.config/nvm/versions/node/v22.22.0/bin', 'NVM_INC': '/home/nitish/.config/nvm/versions/node/v22.22.0/include/node', 'ROS_PYTHON_VERSION': '3', 'GTK_RC_FILES': '/etc/gtk/gtkrc:/home/nitish/.gtkrc:/home/nitish/.config/gtkrc', 'KDE_SESSION_VERSION': '6', 'PS1': '[\\u@\\h \\W]\\$', 'FNM_ARCH': 'x64', 'LC_MONETARY': 'en_US.UTF-8', 'MANAGERPID': '1108', 'DISTROBOX_ENTER_PATH': '/usr/bin/distrobox-enter', 'SYSTEMD_EXEC_PID': '1870', 'XDG_STATE_HOME': '/home/nitish/.local/state', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', 'container': 'podman', 'NVM_DIR': '/home/nitish/.config/nvm', 'DEBUGINFOD_URLS': 'https://debuginfod.archlinux.org https://debuginfod.cachyos.org', 'WAYLAND_DISPLAY': 'wayland-0', 'COLCON_PREFIX_PATH': '/home/nitish/work/myactuator/install', 'XKB_DEFAULT_LAYOUT': 'us', 'FNM_VERSION_FILE_STRATEGY': 'local', 'ATUIN_PREEXEC_BACKEND': '4:bash-preexec', 'ROS_DISTRO': 'jazzy', 'FNM_LOGLEVEL': 'info', 'LOGNAME': 'nitish', 'FNM_NODE_DIST_MIRROR': 'https://nodejs.org/dist', 'CONTEXT7_API_KEY': 'ctx7sk-3268e0b8-1d4d-4f06-82be-afe2941b720e', 'MANAGERPIDFDID': '1109', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'MEMORY_PRESSURE_WATCH': '/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-com.mitchellh.ghostty.service/memory.pressure', 'XDG_SESSION_CLASS': 'user', 'TERMINFO_DIRS': '/usr/share/terminfo:/run/host/usr/share/terminfo', 'ATUIN_HISTORY_ID': '019c056966b87a51a12f9ef2df6c9db8', 'TERM': 'xterm-ghostty', 'XDG_SESSION_ID': '2', 'HISTCONTROL': '', 'GTK2_RC_FILES': '/etc/gtk-2.0/gtkrc:/home/nitish/.gtkrc-2.0:/home/nitish/.config/gtkrc-2.0', 'PATH': '/home/nitish/.bun/bin:/opt/ros/jazzy/opt/gz_msgs_vendor/bin:/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/opt/gz_ogre_next_vendor/bin:/opt/ros/jazzy/bin:/home/nitish/micromamba/condabin:/home/nitish/.config/nvm/versions/node/v22.22.0/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/11993_1769616117371/bin:/home/nitish/.local/share/fnm:/home/nitish/.opencode/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/1233_1769614535819/bin:/home/nitish/.local/share/fnm:/home/nitish/.local/share/../bin:/home/nitish/.atuin/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/sbin:/sbin:/bin', 'SESSION_MANAGER': 'local/slate:@/tmp/.ICE-unix/1395,unix/slate:/tmp/.ICE-unix/1395', 'XDG_SESSION_PATH': '/org/freedesktop/DisplayManager/Session1', 'XDG_MENU_PREFIX': 'plasma-', 'LC_ADDRESS': 'en_US.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'ICEAUTHORITY': '/run/user/1000/iceauth_zRrWqh', 'MAMBA_ROOT_PREFIX': '/home/nitish/micromamba', 'DISPLAY': ':0', 'GHOSTTY_SHELL_FEATURES': 'cursor,path,title', 'LANG': 'en_US.UTF-8', 'XDG_CURRENT_DESKTOP': 'KDE', 'LC_TELEPHONE': 'en_US.UTF-8', 'XDG_DATA_HOME': '/home/nitish/.local/share', 'XDG_CONFIG_HOME': '/home/nitish/.config', 'XDG_SESSION_DESKTOP': 'KDE', 'XAUTHORITY': '/run/user/1000/xauth_bgQgzK', 'MANPAGER': "sh -c 'col -bx | bat -l man -p'", 'FNM_DIR': '/home/nitish/.local/share/fnm', 'TERM_PROGRAM': 'ghostty', 'ROS_DOMAIN_ID': '42', 'AMENT_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_python_driver:/home/nitish/work/myactuator/install/myactuator_rmd:/home/nitish/work/myactuator/install/TandP_URDF_description:/opt/ros/jazzy', 'FNM_RESOLVE_ENGINES': 'true', 'SHELL': '/bin/bash', 'GHOSTTY_BIN_DIR': '/usr/bin', 'LC_NAME': 'en_US.UTF-8', 'LC_MEASUREMENT': 'en_US.UTF-8', 'MAMBA_EXE': '/home/nitish/.local/bin/micromamba', 'LC_IDENTIFICATION': 'en_US.UTF-8', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/home/nitish/work/myactuator/build/myactuator_rmd', 'CONTAINER_ID': 'ros2-jazzy', 'LC_ALL': 'C.UTF-8', 'FNM_MULTISHELL_PATH': '/run/user/1000/fnm_multishells/11993_1769616117371', 'XDG_CONFIG_DIRS': '/home/nitish/.config/kdedefaults:/etc/xdg', 'VIRTUAL_ENV_DISABLE_PROMPT': '1', 'NVM_CD_FLAGS': '', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share', 'PYTHONPATH': '/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'LC_NUMERIC': 'en_US.UTF-8', 'LC_PAPER': 'en_US.UTF-8', 'FNM_COREPACK_ENABLED': 'false', 'KDE_SESSION_UID': '1000', 'COLCON': '1', 'MEMORY_PRESSURE_WRITE': 'c29tZSAyMDAwMDAgMjAwMDAwMAA=', 'CMAKE_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd:/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/home/nitish/work/myactuator/install/myactuator_python_driver:/home/nitish/work/myactuator/install/TandP_URDF_description:/opt/ros/jazzy'}), 'shell': False}
+[0.099632] (-) TimerEvent: {}
+[0.122830] (myactuator_rmd) StdoutLine: {'line': b'-- The C compiler identification is GNU 13.3.0\n'}
+[0.199794] (-) TimerEvent: {}
+[0.200348] (myactuator_rmd) StdoutLine: {'line': b'-- The CXX compiler identification is GNU 13.3.0\n'}
+[0.228448] (myactuator_rmd) StdoutLine: {'line': b'-- Detecting C compiler ABI info\n'}
+[0.299914] (-) TimerEvent: {}
+[0.384458] (myactuator_rmd) StdoutLine: {'line': b'-- Detecting C compiler ABI info - done\n'}
+[0.400032] (-) TimerEvent: {}
+[0.406739] (myactuator_rmd) StdoutLine: {'line': b'-- Check for working C compiler: /usr/bin/cc - skipped\n'}
+[0.407293] (myactuator_rmd) StdoutLine: {'line': b'-- Detecting C compile features\n'}
+[0.408188] (myactuator_rmd) StdoutLine: {'line': b'-- Detecting C compile features - done\n'}
+[0.428425] (myactuator_rmd) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info\n'}
+[0.500156] (-) TimerEvent: {}
+[0.600681] (-) TimerEvent: {}
+[0.628373] (myactuator_rmd) StdoutLine: {'line': b'-- Detecting CXX compiler ABI info - done\n'}
+[0.650846] (myactuator_rmd) StdoutLine: {'line': b'-- Check for working CXX compiler: /usr/bin/c++ - skipped\n'}
+[0.651534] (myactuator_rmd) StdoutLine: {'line': b'-- Detecting CXX compile features\n'}
+[0.652655] (myactuator_rmd) StdoutLine: {'line': b'-- Detecting CXX compile features - done\n'}
+[0.700821] (-) TimerEvent: {}
+[0.801240] (-) TimerEvent: {}
+[0.901658] (-) TimerEvent: {}
+[0.995873] (myactuator_rmd) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Interpreter \n'}
+[1.001783] (-) TimerEvent: {}
+[1.049183] (TandP_URDF_description) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../build/TandP_URDF_description', 'build', '--build-base', '/home/nitish/work/myactuator/build/TandP_URDF_description/build', 'install', '--record', '/home/nitish/work/myactuator/build/TandP_URDF_description/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/home/nitish/work/myactuator/TandP_URDF_description', 'env': {'KDE_FULL_SESSION': 'true', 'RUSTICL_ENABLE': 'iris', 'ATUIN_SESSION': '019c0557152a77a2adde1e961e9b1df8', 'MAIL': '/var/spool/mail/nitish', 'GZ_SIM_RESOURCE_PATH': '/opt/ros/jazzy/share', 'GHOSTTY_RESOURCES_DIR': '/usr/share/ghostty', 'USER': 'nitish', 'PAM_KWALLET5_LOGIN': '/run/user/1000/kwallet5.socket', 'LC_TIME': 'en_US.UTF-8', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor/share/gz:/opt/ros/jazzy/opt/sdformat_vendor/share/gz:/opt/ros/jazzy/opt/gz_gui_vendor/share/gz:/opt/ros/jazzy/opt/gz_transport_vendor/share/gz:/opt/ros/jazzy/opt/gz_rendering_vendor/share/gz:/opt/ros/jazzy/opt/gz_plugin_vendor/share/gz:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/share/gz:/opt/ros/jazzy/opt/gz_msgs_vendor/share/gz:/opt/ros/jazzy/opt/gz_common_vendor/share/gz', 'HOSTNAME': 'slate', 'XDG_SESSION_TYPE': 'wayland', 'BUN_INSTALL': '/home/nitish/.bun', 'XDG_CACHE_HOME': '/home/nitish/.cache', 'QT_WAYLAND_RECONNECT': '1', 'SHLVL': '4', 'LD_LIBRARY_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd/lib:/opt/ros/jazzy/opt/gz_sim_vendor/lib:/opt/ros/jazzy/opt/gz_sensors_vendor/lib:/opt/ros/jazzy/opt/gz_physics_vendor/lib:/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_gui_vendor/lib:/opt/ros/jazzy/opt/gz_transport_vendor/lib:/opt/ros/jazzy/opt/gz_rendering_vendor/lib:/opt/ros/jazzy/opt/gz_plugin_vendor/lib:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/lib:/opt/ros/jazzy/opt/gz_msgs_vendor/lib:/opt/ros/jazzy/opt/gz_common_vendor/lib:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_ogre_next_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'MOTD_SHOWN': 'pam', 'HOME': '/home/nitish', 'TERMINFO': '/usr/share/terminfo', 'CONDA_SHLVL': '0', 'KDE_APPLICATIONS_AS_SCOPE': '1', 'TERM_PROGRAM_VERSION': '1.2.3-arch2.1', 'DESKTOP_SESSION': 'plasma', 'MANROFFOPT': '-c', 'NVM_BIN': '/home/nitish/.config/nvm/versions/node/v22.22.0/bin', 'NVM_INC': '/home/nitish/.config/nvm/versions/node/v22.22.0/include/node', 'ROS_PYTHON_VERSION': '3', 'GTK_RC_FILES': '/etc/gtk/gtkrc:/home/nitish/.gtkrc:/home/nitish/.config/gtkrc', 'KDE_SESSION_VERSION': '6', 'PS1': '[\\u@\\h \\W]\\$', 'FNM_ARCH': 'x64', 'LC_MONETARY': 'en_US.UTF-8', 'MANAGERPID': '1108', 'DISTROBOX_ENTER_PATH': '/usr/bin/distrobox-enter', 'SYSTEMD_EXEC_PID': '1870', 'XDG_STATE_HOME': '/home/nitish/.local/state', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', 'container': 'podman', 'NVM_DIR': '/home/nitish/.config/nvm', 'DEBUGINFOD_URLS': 'https://debuginfod.archlinux.org https://debuginfod.cachyos.org', 'WAYLAND_DISPLAY': 'wayland-0', 'COLCON_PREFIX_PATH': '/home/nitish/work/myactuator/install', 'XKB_DEFAULT_LAYOUT': 'us', 'FNM_VERSION_FILE_STRATEGY': 'local', 'ATUIN_PREEXEC_BACKEND': '4:bash-preexec', 'ROS_DISTRO': 'jazzy', 'FNM_LOGLEVEL': 'info', 'LOGNAME': 'nitish', 'FNM_NODE_DIST_MIRROR': 'https://nodejs.org/dist', 'CONTEXT7_API_KEY': 'ctx7sk-3268e0b8-1d4d-4f06-82be-afe2941b720e', 'MANAGERPIDFDID': '1109', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'MEMORY_PRESSURE_WATCH': '/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-com.mitchellh.ghostty.service/memory.pressure', 'XDG_SESSION_CLASS': 'user', 'TERMINFO_DIRS': '/usr/share/terminfo:/run/host/usr/share/terminfo', 'ATUIN_HISTORY_ID': '019c056966b87a51a12f9ef2df6c9db8', 'TERM': 'xterm-ghostty', 'XDG_SESSION_ID': '2', 'HISTCONTROL': '', 'GTK2_RC_FILES': '/etc/gtk-2.0/gtkrc:/home/nitish/.gtkrc-2.0:/home/nitish/.config/gtkrc-2.0', 'PATH': '/home/nitish/.bun/bin:/opt/ros/jazzy/opt/gz_msgs_vendor/bin:/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/opt/gz_ogre_next_vendor/bin:/opt/ros/jazzy/bin:/home/nitish/micromamba/condabin:/home/nitish/.config/nvm/versions/node/v22.22.0/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/11993_1769616117371/bin:/home/nitish/.local/share/fnm:/home/nitish/.opencode/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/1233_1769614535819/bin:/home/nitish/.local/share/fnm:/home/nitish/.local/share/../bin:/home/nitish/.atuin/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/sbin:/sbin:/bin', 'SESSION_MANAGER': 'local/slate:@/tmp/.ICE-unix/1395,unix/slate:/tmp/.ICE-unix/1395', 'XDG_SESSION_PATH': '/org/freedesktop/DisplayManager/Session1', 'XDG_MENU_PREFIX': 'plasma-', 'LC_ADDRESS': 'en_US.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'ICEAUTHORITY': '/run/user/1000/iceauth_zRrWqh', 'MAMBA_ROOT_PREFIX': '/home/nitish/micromamba', 'DISPLAY': ':0', 'GHOSTTY_SHELL_FEATURES': 'cursor,path,title', 'LANG': 'en_US.UTF-8', 'XDG_CURRENT_DESKTOP': 'KDE', 'LC_TELEPHONE': 'en_US.UTF-8', 'XDG_DATA_HOME': '/home/nitish/.local/share', 'XDG_CONFIG_HOME': '/home/nitish/.config', 'XDG_SESSION_DESKTOP': 'KDE', 'XAUTHORITY': '/run/user/1000/xauth_bgQgzK', 'MANPAGER': "sh -c 'col -bx | bat -l man -p'", 'FNM_DIR': '/home/nitish/.local/share/fnm', 'TERM_PROGRAM': 'ghostty', 'ROS_DOMAIN_ID': '42', 'AMENT_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_python_driver:/home/nitish/work/myactuator/install/myactuator_rmd:/home/nitish/work/myactuator/install/TandP_URDF_description:/opt/ros/jazzy', 'FNM_RESOLVE_ENGINES': 'true', 'SHELL': '/bin/bash', 'GHOSTTY_BIN_DIR': '/usr/bin', 'LC_NAME': 'en_US.UTF-8', 'LC_MEASUREMENT': 'en_US.UTF-8', 'MAMBA_EXE': '/home/nitish/.local/bin/micromamba', 'LC_IDENTIFICATION': 'en_US.UTF-8', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/home/nitish/work/myactuator/build/TandP_URDF_description', 'CONTAINER_ID': 'ros2-jazzy', 'LC_ALL': 'C.UTF-8', 'FNM_MULTISHELL_PATH': '/run/user/1000/fnm_multishells/11993_1769616117371', 'XDG_CONFIG_DIRS': '/home/nitish/.config/kdedefaults:/etc/xdg', 'VIRTUAL_ENV_DISABLE_PROMPT': '1', 'NVM_CD_FLAGS': '', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share', 'PYTHONPATH': '/home/nitish/work/myactuator/build/TandP_URDF_description/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'LC_NUMERIC': 'en_US.UTF-8', 'LC_PAPER': 'en_US.UTF-8', 'FNM_COREPACK_ENABLED': 'false', 'KDE_SESSION_UID': '1000', 'COLCON': '1', 'MEMORY_PRESSURE_WRITE': 'c29tZSAyMDAwMDAgMjAwMDAwMAA=', 'CMAKE_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd:/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor'}, 'shell': False}
+[1.101909] (-) TimerEvent: {}
+[1.202410] (-) TimerEvent: {}
+[1.252386] (myactuator_rmd) StdoutLine: {'line': b'-- Ament CMake detected.\n'}
+[1.302534] (-) TimerEvent: {}
+[1.355725] (TandP_URDF_description) StdoutLine: {'line': b'running egg_info\n'}
+[1.356241] (TandP_URDF_description) StdoutLine: {'line': b'creating ../build/TandP_URDF_description/TandP_URDF_description.egg-info\n'}
+[1.371700] (TandP_URDF_description) StdoutLine: {'line': b'writing ../build/TandP_URDF_description/TandP_URDF_description.egg-info/PKG-INFO\n'}
+[1.372253] (TandP_URDF_description) StdoutLine: {'line': b'writing dependency_links to ../build/TandP_URDF_description/TandP_URDF_description.egg-info/dependency_links.txt\n'}
+[1.372488] (TandP_URDF_description) StdoutLine: {'line': b'writing requirements to ../build/TandP_URDF_description/TandP_URDF_description.egg-info/requires.txt\n'}
+[1.372809] (TandP_URDF_description) StdoutLine: {'line': b'writing top-level names to ../build/TandP_URDF_description/TandP_URDF_description.egg-info/top_level.txt\n'}
+[1.372991] (TandP_URDF_description) StdoutLine: {'line': b"writing manifest file '../build/TandP_URDF_description/TandP_URDF_description.egg-info/SOURCES.txt'\n"}
+[1.402674] (-) TimerEvent: {}
+[1.405542] (TandP_URDF_description) StdoutLine: {'line': b"reading manifest file '../build/TandP_URDF_description/TandP_URDF_description.egg-info/SOURCES.txt'\n"}
+[1.406446] (TandP_URDF_description) StdoutLine: {'line': b"writing manifest file '../build/TandP_URDF_description/TandP_URDF_description.egg-info/SOURCES.txt'\n"}
+[1.406892] (TandP_URDF_description) StdoutLine: {'line': b'running build\n'}
+[1.407214] (TandP_URDF_description) StdoutLine: {'line': b'running build_py\n'}
+[1.407400] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/build/TandP_URDF_description/build\n'}
+[1.407566] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/build/TandP_URDF_description/build/lib\n'}
+[1.407881] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/build/TandP_URDF_description/build/lib/TandP_URDF_description\n'}
+[1.408066] (TandP_URDF_description) StdoutLine: {'line': b'copying TandP_URDF_description/__init__.py -> /home/nitish/work/myactuator/build/TandP_URDF_description/build/lib/TandP_URDF_description\n'}
+[1.408234] (TandP_URDF_description) StdoutLine: {'line': b'running install\n'}
+[1.415266] (TandP_URDF_description) StdoutLine: {'line': b'running install_lib\n'}
+[1.432940] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages/TandP_URDF_description\n'}
+[1.433427] (TandP_URDF_description) StdoutLine: {'line': b'copying /home/nitish/work/myactuator/build/TandP_URDF_description/build/lib/TandP_URDF_description/__init__.py -> /home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages/TandP_URDF_description\n'}
+[1.433817] (TandP_URDF_description) StdoutLine: {'line': b'byte-compiling /home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages/TandP_URDF_description/__init__.py to __init__.cpython-312.pyc\n'}
+[1.435178] (TandP_URDF_description) StdoutLine: {'line': b'running install_data\n'}
+[1.435539] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/ament_index\n'}
+[1.435888] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/ament_index/resource_index\n'}
+[1.436391] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/ament_index/resource_index/packages\n'}
+[1.436659] (TandP_URDF_description) StdoutLine: {'line': b'copying resource/TandP_URDF_description -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/ament_index/resource_index/packages\n'}
+[1.436857] (TandP_URDF_description) StdoutLine: {'line': b'copying package.xml -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description\n'}
+[1.437055] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/launch\n'}
+[1.437218] (TandP_URDF_description) StdoutLine: {'line': b'copying launch/display.launch.py -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/launch\n'}
+[1.437376] (TandP_URDF_description) StdoutLine: {'line': b'copying launch/gazebo.launch.py -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/launch\n'}
+[1.437539] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf\n'}
+[1.437696] (TandP_URDF_description) StdoutLine: {'line': b'copying urdf/materials.xacro -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf\n'}
+[1.437852] (TandP_URDF_description) StdoutLine: {'line': b'copying urdf/TandP_URDF.gazebo -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf\n'}
+[1.438047] (TandP_URDF_description) StdoutLine: {'line': b'copying urdf/TandP_URDF.trans -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf\n'}
+[1.438230] (TandP_URDF_description) StdoutLine: {'line': b'copying urdf/TandP_URDF.xacro -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf\n'}
+[1.438393] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes\n'}
+[1.438553] (TandP_URDF_description) StdoutLine: {'line': b'copying meshes/A_1.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes\n'}
+[1.439406] (TandP_URDF_description) StdoutLine: {'line': b'copying meshes/base_link.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes\n'}
+[1.441345] (TandP_URDF_description) StdoutLine: {'line': b'copying meshes/B_1.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes\n'}
+[1.446347] (TandP_URDF_description) StdoutLine: {'line': b'copying meshes/C_1.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes\n'}
+[1.449222] (TandP_URDF_description) StdoutLine: {'line': b'copying meshes/jig_1.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes\n'}
+[1.449617] (TandP_URDF_description) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/config\n'}
+[1.449849] (TandP_URDF_description) StdoutLine: {'line': b'copying config/display.rviz -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/config\n'}
+[1.450054] (TandP_URDF_description) StdoutLine: {'line': b'running install_egg_info\n'}
+[1.485545] (TandP_URDF_description) StdoutLine: {'line': b'Copying ../build/TandP_URDF_description/TandP_URDF_description.egg-info to /home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages/TandP_URDF_description-0.0.0-py3.12.egg-info\n'}
+[1.487143] (TandP_URDF_description) StdoutLine: {'line': b'running install_scripts\n'}
+[1.502798] (-) TimerEvent: {}
+[1.603239] (-) TimerEvent: {}
+[1.633750] (myactuator_rmd) StdoutLine: {'line': b'-- Found Python3: /usr/bin/python3 (found version "3.12.3") found components: Development Interpreter Development.Module Development.Embed \n'}
+[1.665186] (TandP_URDF_description) StdoutLine: {'line': b"writing list of installed files to '/home/nitish/work/myactuator/build/TandP_URDF_description/install.log'\n"}
+[1.703356] (-) TimerEvent: {}
+[1.714190] (myactuator_rmd) StdoutLine: {'line': b'-- Performing Test HAS_FLTO\n'}
+[1.722501] (TandP_URDF_description) CommandEnded: {'returncode': 0}
+[1.737273] (TandP_URDF_description) JobEnded: {'identifier': 'TandP_URDF_description', 'rc': 0}
+[1.803505] (-) TimerEvent: {}
+[1.903914] (-) TimerEvent: {}
+[1.932646] (myactuator_rmd) StdoutLine: {'line': b'-- Performing Test HAS_FLTO - Success\n'}
+[1.933775] (myactuator_rmd) StdoutLine: {'line': b'-- Found pybind11: /usr/include (found version "2.11.1")\n'}
+[2.004035] (-) TimerEvent: {}
+[2.104411] (-) TimerEvent: {}
+[2.204796] (-) TimerEvent: {}
+[2.245590] (myactuator_rmd) StdoutLine: {'line': b'-- Configuring done (2.2s)\n'}
+[2.257772] (myactuator_rmd) StdoutLine: {'line': b'-- Generating done (0.0s)\n'}
+[2.261431] (myactuator_rmd) StdoutLine: {'line': b'-- Build files have been written to: /home/nitish/work/myactuator/build/myactuator_rmd\n'}
+[2.270638] (myactuator_rmd) CommandEnded: {'returncode': 0}
+[2.271743] (myactuator_rmd) JobProgress: {'identifier': 'myactuator_rmd', 'progress': 'build'}
+[2.273510] (myactuator_rmd) Command: {'cmd': ['/usr/bin/cmake', '--build', '/home/nitish/work/myactuator/build/myactuator_rmd', '--', '-j12', '-l12'], 'cwd': '/home/nitish/work/myactuator/build/myactuator_rmd', 'env': OrderedDict({'KDE_FULL_SESSION': 'true', 'RUSTICL_ENABLE': 'iris', 'ATUIN_SESSION': '019c0557152a77a2adde1e961e9b1df8', 'MAIL': '/var/spool/mail/nitish', 'GZ_SIM_RESOURCE_PATH': '/opt/ros/jazzy/share', 'GHOSTTY_RESOURCES_DIR': '/usr/share/ghostty', 'USER': 'nitish', 'PAM_KWALLET5_LOGIN': '/run/user/1000/kwallet5.socket', 'LC_TIME': 'en_US.UTF-8', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor/share/gz:/opt/ros/jazzy/opt/sdformat_vendor/share/gz:/opt/ros/jazzy/opt/gz_gui_vendor/share/gz:/opt/ros/jazzy/opt/gz_transport_vendor/share/gz:/opt/ros/jazzy/opt/gz_rendering_vendor/share/gz:/opt/ros/jazzy/opt/gz_plugin_vendor/share/gz:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/share/gz:/opt/ros/jazzy/opt/gz_msgs_vendor/share/gz:/opt/ros/jazzy/opt/gz_common_vendor/share/gz', 'HOSTNAME': 'slate', 'XDG_SESSION_TYPE': 'wayland', 'BUN_INSTALL': '/home/nitish/.bun', 'XDG_CACHE_HOME': '/home/nitish/.cache', 'QT_WAYLAND_RECONNECT': '1', 'SHLVL': '4', 'LD_LIBRARY_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd/lib:/opt/ros/jazzy/opt/gz_sim_vendor/lib:/opt/ros/jazzy/opt/gz_sensors_vendor/lib:/opt/ros/jazzy/opt/gz_physics_vendor/lib:/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_gui_vendor/lib:/opt/ros/jazzy/opt/gz_transport_vendor/lib:/opt/ros/jazzy/opt/gz_rendering_vendor/lib:/opt/ros/jazzy/opt/gz_plugin_vendor/lib:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/lib:/opt/ros/jazzy/opt/gz_msgs_vendor/lib:/opt/ros/jazzy/opt/gz_common_vendor/lib:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_ogre_next_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'MOTD_SHOWN': 'pam', 'HOME': '/home/nitish', 'TERMINFO': '/usr/share/terminfo', 'CONDA_SHLVL': '0', 'KDE_APPLICATIONS_AS_SCOPE': '1', 'TERM_PROGRAM_VERSION': '1.2.3-arch2.1', 'DESKTOP_SESSION': 'plasma', 'MANROFFOPT': '-c', 'NVM_BIN': '/home/nitish/.config/nvm/versions/node/v22.22.0/bin', 'NVM_INC': '/home/nitish/.config/nvm/versions/node/v22.22.0/include/node', 'ROS_PYTHON_VERSION': '3', 'GTK_RC_FILES': '/etc/gtk/gtkrc:/home/nitish/.gtkrc:/home/nitish/.config/gtkrc', 'KDE_SESSION_VERSION': '6', 'PS1': '[\\u@\\h \\W]\\$', 'FNM_ARCH': 'x64', 'LC_MONETARY': 'en_US.UTF-8', 'MANAGERPID': '1108', 'DISTROBOX_ENTER_PATH': '/usr/bin/distrobox-enter', 'SYSTEMD_EXEC_PID': '1870', 'XDG_STATE_HOME': '/home/nitish/.local/state', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', 'container': 'podman', 'NVM_DIR': '/home/nitish/.config/nvm', 'DEBUGINFOD_URLS': 'https://debuginfod.archlinux.org https://debuginfod.cachyos.org', 'WAYLAND_DISPLAY': 'wayland-0', 'COLCON_PREFIX_PATH': '/home/nitish/work/myactuator/install', 'XKB_DEFAULT_LAYOUT': 'us', 'FNM_VERSION_FILE_STRATEGY': 'local', 'ATUIN_PREEXEC_BACKEND': '4:bash-preexec', 'ROS_DISTRO': 'jazzy', 'FNM_LOGLEVEL': 'info', 'LOGNAME': 'nitish', 'FNM_NODE_DIST_MIRROR': 'https://nodejs.org/dist', 'CONTEXT7_API_KEY': 'ctx7sk-3268e0b8-1d4d-4f06-82be-afe2941b720e', 'MANAGERPIDFDID': '1109', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'MEMORY_PRESSURE_WATCH': '/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-com.mitchellh.ghostty.service/memory.pressure', 'XDG_SESSION_CLASS': 'user', 'TERMINFO_DIRS': '/usr/share/terminfo:/run/host/usr/share/terminfo', 'ATUIN_HISTORY_ID': '019c056966b87a51a12f9ef2df6c9db8', 'TERM': 'xterm-ghostty', 'XDG_SESSION_ID': '2', 'HISTCONTROL': '', 'GTK2_RC_FILES': '/etc/gtk-2.0/gtkrc:/home/nitish/.gtkrc-2.0:/home/nitish/.config/gtkrc-2.0', 'PATH': '/home/nitish/.bun/bin:/opt/ros/jazzy/opt/gz_msgs_vendor/bin:/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/opt/gz_ogre_next_vendor/bin:/opt/ros/jazzy/bin:/home/nitish/micromamba/condabin:/home/nitish/.config/nvm/versions/node/v22.22.0/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/11993_1769616117371/bin:/home/nitish/.local/share/fnm:/home/nitish/.opencode/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/1233_1769614535819/bin:/home/nitish/.local/share/fnm:/home/nitish/.local/share/../bin:/home/nitish/.atuin/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/sbin:/sbin:/bin', 'SESSION_MANAGER': 'local/slate:@/tmp/.ICE-unix/1395,unix/slate:/tmp/.ICE-unix/1395', 'XDG_SESSION_PATH': '/org/freedesktop/DisplayManager/Session1', 'XDG_MENU_PREFIX': 'plasma-', 'LC_ADDRESS': 'en_US.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'ICEAUTHORITY': '/run/user/1000/iceauth_zRrWqh', 'MAMBA_ROOT_PREFIX': '/home/nitish/micromamba', 'DISPLAY': ':0', 'GHOSTTY_SHELL_FEATURES': 'cursor,path,title', 'LANG': 'en_US.UTF-8', 'XDG_CURRENT_DESKTOP': 'KDE', 'LC_TELEPHONE': 'en_US.UTF-8', 'XDG_DATA_HOME': '/home/nitish/.local/share', 'XDG_CONFIG_HOME': '/home/nitish/.config', 'XDG_SESSION_DESKTOP': 'KDE', 'XAUTHORITY': '/run/user/1000/xauth_bgQgzK', 'MANPAGER': "sh -c 'col -bx | bat -l man -p'", 'FNM_DIR': '/home/nitish/.local/share/fnm', 'TERM_PROGRAM': 'ghostty', 'ROS_DOMAIN_ID': '42', 'AMENT_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_python_driver:/home/nitish/work/myactuator/install/myactuator_rmd:/home/nitish/work/myactuator/install/TandP_URDF_description:/opt/ros/jazzy', 'FNM_RESOLVE_ENGINES': 'true', 'SHELL': '/bin/bash', 'GHOSTTY_BIN_DIR': '/usr/bin', 'LC_NAME': 'en_US.UTF-8', 'LC_MEASUREMENT': 'en_US.UTF-8', 'MAMBA_EXE': '/home/nitish/.local/bin/micromamba', 'LC_IDENTIFICATION': 'en_US.UTF-8', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/home/nitish/work/myactuator/build/myactuator_rmd', 'CONTAINER_ID': 'ros2-jazzy', 'LC_ALL': 'C.UTF-8', 'FNM_MULTISHELL_PATH': '/run/user/1000/fnm_multishells/11993_1769616117371', 'XDG_CONFIG_DIRS': '/home/nitish/.config/kdedefaults:/etc/xdg', 'VIRTUAL_ENV_DISABLE_PROMPT': '1', 'NVM_CD_FLAGS': '', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share', 'PYTHONPATH': '/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'LC_NUMERIC': 'en_US.UTF-8', 'LC_PAPER': 'en_US.UTF-8', 'FNM_COREPACK_ENABLED': 'false', 'KDE_SESSION_UID': '1000', 'COLCON': '1', 'MEMORY_PRESSURE_WRITE': 'c29tZSAyMDAwMDAgMjAwMDAwMAA=', 'CMAKE_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd:/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/home/nitish/work/myactuator/install/myactuator_python_driver:/home/nitish/work/myactuator/install/TandP_URDF_description:/opt/ros/jazzy'}), 'shell': False}
+[2.304920] (-) TimerEvent: {}
+[2.363047] (myactuator_rmd) StdoutLine: {'line': b'[ 25%] \x1b[32mBuilding CXX object CMakeFiles/myactuator_rmd.dir/src/protocol/requests.cpp.o\x1b[0m\n'}
+[2.363459] (myactuator_rmd) StdoutLine: {'line': b'[ 25%] \x1b[32mBuilding CXX object CMakeFiles/myactuator_rmd.dir/src/can/utilities.cpp.o\x1b[0m\n'}
+[2.364541] (myactuator_rmd) StdoutLine: {'line': b'[ 37%] \x1b[32mBuilding CXX object CMakeFiles/myactuator_rmd.dir/src/can/node.cpp.o\x1b[0m\n'}
+[2.364803] (myactuator_rmd) StdoutLine: {'line': b'[ 50%] \x1b[32mBuilding CXX object CMakeFiles/myactuator_rmd.dir/src/actuator_interface.cpp.o\x1b[0m\n'}
+[2.367282] (myactuator_rmd) StdoutLine: {'line': b'[ 62%] \x1b[32mBuilding CXX object CMakeFiles/myactuator_rmd.dir/src/protocol/responses.cpp.o\x1b[0m\n'}
+[2.370670] (myactuator_rmd) StdoutLine: {'line': b'[ 62%] Built target ament_cmake_python_copy_myactuator_rmd_setup\n'}
+[2.382997] (myactuator_rmd) StdoutLine: {'line': b'[ 62%] Built target ament_cmake_python_copy_myactuator_rmd\n'}
+[2.405435] (-) TimerEvent: {}
+[2.505844] (-) TimerEvent: {}
+[2.606406] (-) TimerEvent: {}
+[2.706815] (-) TimerEvent: {}
+[2.723526] (myactuator_rmd) StderrLine: {'line': b"/usr/lib/python3/dist-packages/setuptools/config/expand.py:134: SetuptoolsWarning: File '/home/nitish/work/myactuator/build/myactuator_rmd/ament_cmake_python/myactuator_rmd/ReadMe.md' cannot be found\n"}
+[2.724129] (myactuator_rmd) StderrLine: {'line': b"  return '\\n'.join(\n"}
+[2.806934] (-) TimerEvent: {}
+[2.896629] (myactuator_rmd) StdoutLine: {'line': b'running egg_info\n'}
+[2.898805] (myactuator_rmd) StdoutLine: {'line': b'creating myactuator_rmd.egg-info\n'}
+[2.907037] (-) TimerEvent: {}
+[2.937502] (myactuator_rmd) StdoutLine: {'line': b'writing myactuator_rmd.egg-info/PKG-INFO\n'}
+[2.938277] (myactuator_rmd) StdoutLine: {'line': b'writing dependency_links to myactuator_rmd.egg-info/dependency_links.txt\n'}
+[2.938799] (myactuator_rmd) StdoutLine: {'line': b'writing top-level names to myactuator_rmd.egg-info/top_level.txt\n'}
+[2.939147] (myactuator_rmd) StdoutLine: {'line': b"writing manifest file 'myactuator_rmd.egg-info/SOURCES.txt'\n"}
+[2.993231] (myactuator_rmd) StdoutLine: {'line': b"reading manifest file 'myactuator_rmd.egg-info/SOURCES.txt'\n"}
+[2.993894] (myactuator_rmd) StdoutLine: {'line': b"writing manifest file 'myactuator_rmd.egg-info/SOURCES.txt'\n"}
+[3.007167] (-) TimerEvent: {}
+[3.060243] (myactuator_rmd) StdoutLine: {'line': b'[ 62%] Built target ament_cmake_python_build_myactuator_rmd_egg\n'}
+[3.107287] (-) TimerEvent: {}
+[3.207678] (-) TimerEvent: {}
+[3.308147] (-) TimerEvent: {}
+[3.363186] (myactuator_rmd) StdoutLine: {'line': b'[ 75%] \x1b[32m\x1b[1mLinking CXX shared library libmyactuator_rmd.so\x1b[0m\n'}
+[3.408263] (-) TimerEvent: {}
+[3.479984] (myactuator_rmd) StdoutLine: {'line': b'[ 75%] Built target myactuator_rmd\n'}
+[3.508389] (-) TimerEvent: {}
+[3.517776] (myactuator_rmd) StdoutLine: {'line': b'[ 87%] \x1b[32mBuilding CXX object CMakeFiles/myactuator_rmd_py.dir/bindings/myactuator_rmd.cpp.o\x1b[0m\n'}
+[3.608513] (-) TimerEvent: {}
+[3.708978] (-) TimerEvent: {}
+[3.809359] (-) TimerEvent: {}
+[3.909745] (-) TimerEvent: {}
+[4.010158] (-) TimerEvent: {}
+[4.110544] (-) TimerEvent: {}
+[4.210998] (-) TimerEvent: {}
+[4.311429] (-) TimerEvent: {}
+[4.411861] (-) TimerEvent: {}
+[4.512335] (-) TimerEvent: {}
+[4.612757] (-) TimerEvent: {}
+[4.713209] (-) TimerEvent: {}
+[4.813598] (-) TimerEvent: {}
+[4.914050] (-) TimerEvent: {}
+[5.014431] (-) TimerEvent: {}
+[5.114808] (-) TimerEvent: {}
+[5.215212] (-) TimerEvent: {}
+[5.315615] (-) TimerEvent: {}
+[5.416034] (-) TimerEvent: {}
+[5.516416] (-) TimerEvent: {}
+[5.616795] (-) TimerEvent: {}
+[5.717227] (-) TimerEvent: {}
+[5.817659] (-) TimerEvent: {}
+[5.918037] (-) TimerEvent: {}
+[6.018418] (-) TimerEvent: {}
+[6.118901] (-) TimerEvent: {}
+[6.219375] (-) TimerEvent: {}
+[6.319790] (-) TimerEvent: {}
+[6.420221] (-) TimerEvent: {}
+[6.520658] (-) TimerEvent: {}
+[6.621045] (-) TimerEvent: {}
+[6.721479] (-) TimerEvent: {}
+[6.821856] (-) TimerEvent: {}
+[6.922331] (-) TimerEvent: {}
+[7.022778] (-) TimerEvent: {}
+[7.123193] (-) TimerEvent: {}
+[7.223581] (-) TimerEvent: {}
+[7.323989] (-) TimerEvent: {}
+[7.424372] (-) TimerEvent: {}
+[7.524790] (-) TimerEvent: {}
+[7.625177] (-) TimerEvent: {}
+[7.725592] (-) TimerEvent: {}
+[7.826013] (-) TimerEvent: {}
+[7.926433] (-) TimerEvent: {}
+[8.026847] (-) TimerEvent: {}
+[8.127231] (-) TimerEvent: {}
+[8.227611] (-) TimerEvent: {}
+[8.328027] (-) TimerEvent: {}
+[8.428413] (-) TimerEvent: {}
+[8.528794] (-) TimerEvent: {}
+[8.629212] (-) TimerEvent: {}
+[8.729591] (-) TimerEvent: {}
+[8.829974] (-) TimerEvent: {}
+[8.930397] (-) TimerEvent: {}
+[9.030769] (-) TimerEvent: {}
+[9.131195] (-) TimerEvent: {}
+[9.231604] (-) TimerEvent: {}
+[9.331992] (-) TimerEvent: {}
+[9.432375] (-) TimerEvent: {}
+[9.532788] (-) TimerEvent: {}
+[9.633186] (-) TimerEvent: {}
+[9.697140] (myactuator_rmd) StdoutLine: {'line': b'[100%] \x1b[32m\x1b[1mLinking CXX shared module myactuator_rmd_py.cpython-312-x86_64-linux-gnu.so\x1b[0m\n'}
+[9.733307] (-) TimerEvent: {}
+[9.833781] (-) TimerEvent: {}
+[9.934228] (-) TimerEvent: {}
+[10.034613] (-) TimerEvent: {}
+[10.135035] (-) TimerEvent: {}
+[10.233541] (myactuator_rmd) StderrLine: {'line': b'\x1b[01m\x1b[Klto-wrapper:\x1b[m\x1b[K \x1b[01;35m\x1b[Kwarning: \x1b[m\x1b[Kusing serial compilation of 2 LTRANS jobs\n'}
+[10.233805] (myactuator_rmd) StderrLine: {'line': b'\x1b[01m\x1b[Klto-wrapper:\x1b[m\x1b[K \x1b[01;36m\x1b[Knote: \x1b[m\x1b[Ksee the \x1b]8;;https://gcc.gnu.org/onlinedocs/gcc/Optimize-Options.html#index-flto\x07\xe2\x80\x98\x1b[01m\x1b[K-flto\x1b[m\x1b[K\xe2\x80\x99 option documentation\x1b]8;;\x07 for more information\n'}
+[10.235091] (-) TimerEvent: {}
+[10.335340] (-) TimerEvent: {}
+[10.435745] (-) TimerEvent: {}
+[10.536176] (-) TimerEvent: {}
+[10.636585] (-) TimerEvent: {}
+[10.737109] (-) TimerEvent: {}
+[10.837557] (-) TimerEvent: {}
+[10.937993] (-) TimerEvent: {}
+[11.038429] (-) TimerEvent: {}
+[11.138895] (-) TimerEvent: {}
+[11.239337] (-) TimerEvent: {}
+[11.339747] (-) TimerEvent: {}
+[11.440169] (-) TimerEvent: {}
+[11.540546] (-) TimerEvent: {}
+[11.640984] (-) TimerEvent: {}
+[11.741365] (-) TimerEvent: {}
+[11.841749] (-) TimerEvent: {}
+[11.942149] (-) TimerEvent: {}
+[12.042536] (-) TimerEvent: {}
+[12.143057] (-) TimerEvent: {}
+[12.243490] (-) TimerEvent: {}
+[12.343913] (-) TimerEvent: {}
+[12.444315] (-) TimerEvent: {}
+[12.544815] (-) TimerEvent: {}
+[12.645211] (-) TimerEvent: {}
+[12.745648] (-) TimerEvent: {}
+[12.846035] (-) TimerEvent: {}
+[12.946455] (-) TimerEvent: {}
+[13.046860] (-) TimerEvent: {}
+[13.147266] (-) TimerEvent: {}
+[13.247674] (-) TimerEvent: {}
+[13.348074] (-) TimerEvent: {}
+[13.448480] (-) TimerEvent: {}
+[13.549014] (-) TimerEvent: {}
+[13.649393] (-) TimerEvent: {}
+[13.749773] (-) TimerEvent: {}
+[13.850167] (-) TimerEvent: {}
+[13.950570] (-) TimerEvent: {}
+[14.051635] (-) TimerEvent: {}
+[14.152056] (-) TimerEvent: {}
+[14.252426] (-) TimerEvent: {}
+[14.352857] (-) TimerEvent: {}
+[14.453268] (-) TimerEvent: {}
+[14.553698] (-) TimerEvent: {}
+[14.654271] (-) TimerEvent: {}
+[14.754693] (-) TimerEvent: {}
+[14.855136] (-) TimerEvent: {}
+[14.955566] (-) TimerEvent: {}
+[15.055995] (-) TimerEvent: {}
+[15.156403] (-) TimerEvent: {}
+[15.256802] (-) TimerEvent: {}
+[15.357454] (-) TimerEvent: {}
+[15.457840] (-) TimerEvent: {}
+[15.558241] (-) TimerEvent: {}
+[15.650275] (myactuator_rmd) StdoutLine: {'line': b'[100%] Built target myactuator_rmd_py\n'}
+[15.658360] (-) TimerEvent: {}
+[15.666791] (myactuator_rmd) CommandEnded: {'returncode': 0}
+[15.667975] (myactuator_rmd) JobProgress: {'identifier': 'myactuator_rmd', 'progress': 'install'}
+[15.682616] (myactuator_rmd) Command: {'cmd': ['/usr/bin/cmake', '--install', '/home/nitish/work/myactuator/build/myactuator_rmd'], 'cwd': '/home/nitish/work/myactuator/build/myactuator_rmd', 'env': OrderedDict({'KDE_FULL_SESSION': 'true', 'RUSTICL_ENABLE': 'iris', 'ATUIN_SESSION': '019c0557152a77a2adde1e961e9b1df8', 'MAIL': '/var/spool/mail/nitish', 'GZ_SIM_RESOURCE_PATH': '/opt/ros/jazzy/share', 'GHOSTTY_RESOURCES_DIR': '/usr/share/ghostty', 'USER': 'nitish', 'PAM_KWALLET5_LOGIN': '/run/user/1000/kwallet5.socket', 'LC_TIME': 'en_US.UTF-8', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor/share/gz:/opt/ros/jazzy/opt/sdformat_vendor/share/gz:/opt/ros/jazzy/opt/gz_gui_vendor/share/gz:/opt/ros/jazzy/opt/gz_transport_vendor/share/gz:/opt/ros/jazzy/opt/gz_rendering_vendor/share/gz:/opt/ros/jazzy/opt/gz_plugin_vendor/share/gz:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/share/gz:/opt/ros/jazzy/opt/gz_msgs_vendor/share/gz:/opt/ros/jazzy/opt/gz_common_vendor/share/gz', 'HOSTNAME': 'slate', 'XDG_SESSION_TYPE': 'wayland', 'BUN_INSTALL': '/home/nitish/.bun', 'XDG_CACHE_HOME': '/home/nitish/.cache', 'QT_WAYLAND_RECONNECT': '1', 'SHLVL': '4', 'LD_LIBRARY_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd/lib:/opt/ros/jazzy/opt/gz_sim_vendor/lib:/opt/ros/jazzy/opt/gz_sensors_vendor/lib:/opt/ros/jazzy/opt/gz_physics_vendor/lib:/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_gui_vendor/lib:/opt/ros/jazzy/opt/gz_transport_vendor/lib:/opt/ros/jazzy/opt/gz_rendering_vendor/lib:/opt/ros/jazzy/opt/gz_plugin_vendor/lib:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/lib:/opt/ros/jazzy/opt/gz_msgs_vendor/lib:/opt/ros/jazzy/opt/gz_common_vendor/lib:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_ogre_next_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'MOTD_SHOWN': 'pam', 'HOME': '/home/nitish', 'TERMINFO': '/usr/share/terminfo', 'CONDA_SHLVL': '0', 'KDE_APPLICATIONS_AS_SCOPE': '1', 'TERM_PROGRAM_VERSION': '1.2.3-arch2.1', 'DESKTOP_SESSION': 'plasma', 'MANROFFOPT': '-c', 'NVM_BIN': '/home/nitish/.config/nvm/versions/node/v22.22.0/bin', 'NVM_INC': '/home/nitish/.config/nvm/versions/node/v22.22.0/include/node', 'ROS_PYTHON_VERSION': '3', 'GTK_RC_FILES': '/etc/gtk/gtkrc:/home/nitish/.gtkrc:/home/nitish/.config/gtkrc', 'KDE_SESSION_VERSION': '6', 'PS1': '[\\u@\\h \\W]\\$', 'FNM_ARCH': 'x64', 'LC_MONETARY': 'en_US.UTF-8', 'MANAGERPID': '1108', 'DISTROBOX_ENTER_PATH': '/usr/bin/distrobox-enter', 'SYSTEMD_EXEC_PID': '1870', 'XDG_STATE_HOME': '/home/nitish/.local/state', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', 'container': 'podman', 'NVM_DIR': '/home/nitish/.config/nvm', 'DEBUGINFOD_URLS': 'https://debuginfod.archlinux.org https://debuginfod.cachyos.org', 'WAYLAND_DISPLAY': 'wayland-0', 'COLCON_PREFIX_PATH': '/home/nitish/work/myactuator/install', 'XKB_DEFAULT_LAYOUT': 'us', 'FNM_VERSION_FILE_STRATEGY': 'local', 'ATUIN_PREEXEC_BACKEND': '4:bash-preexec', 'ROS_DISTRO': 'jazzy', 'FNM_LOGLEVEL': 'info', 'LOGNAME': 'nitish', 'FNM_NODE_DIST_MIRROR': 'https://nodejs.org/dist', 'CONTEXT7_API_KEY': 'ctx7sk-3268e0b8-1d4d-4f06-82be-afe2941b720e', 'MANAGERPIDFDID': '1109', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'MEMORY_PRESSURE_WATCH': '/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-com.mitchellh.ghostty.service/memory.pressure', 'XDG_SESSION_CLASS': 'user', 'TERMINFO_DIRS': '/usr/share/terminfo:/run/host/usr/share/terminfo', 'ATUIN_HISTORY_ID': '019c056966b87a51a12f9ef2df6c9db8', 'TERM': 'xterm-ghostty', 'XDG_SESSION_ID': '2', 'HISTCONTROL': '', 'GTK2_RC_FILES': '/etc/gtk-2.0/gtkrc:/home/nitish/.gtkrc-2.0:/home/nitish/.config/gtkrc-2.0', 'PATH': '/home/nitish/.bun/bin:/opt/ros/jazzy/opt/gz_msgs_vendor/bin:/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/opt/gz_ogre_next_vendor/bin:/opt/ros/jazzy/bin:/home/nitish/micromamba/condabin:/home/nitish/.config/nvm/versions/node/v22.22.0/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/11993_1769616117371/bin:/home/nitish/.local/share/fnm:/home/nitish/.opencode/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/1233_1769614535819/bin:/home/nitish/.local/share/fnm:/home/nitish/.local/share/../bin:/home/nitish/.atuin/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/sbin:/sbin:/bin', 'SESSION_MANAGER': 'local/slate:@/tmp/.ICE-unix/1395,unix/slate:/tmp/.ICE-unix/1395', 'XDG_SESSION_PATH': '/org/freedesktop/DisplayManager/Session1', 'XDG_MENU_PREFIX': 'plasma-', 'LC_ADDRESS': 'en_US.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'ICEAUTHORITY': '/run/user/1000/iceauth_zRrWqh', 'MAMBA_ROOT_PREFIX': '/home/nitish/micromamba', 'DISPLAY': ':0', 'GHOSTTY_SHELL_FEATURES': 'cursor,path,title', 'LANG': 'en_US.UTF-8', 'XDG_CURRENT_DESKTOP': 'KDE', 'LC_TELEPHONE': 'en_US.UTF-8', 'XDG_DATA_HOME': '/home/nitish/.local/share', 'XDG_CONFIG_HOME': '/home/nitish/.config', 'XDG_SESSION_DESKTOP': 'KDE', 'XAUTHORITY': '/run/user/1000/xauth_bgQgzK', 'MANPAGER': "sh -c 'col -bx | bat -l man -p'", 'FNM_DIR': '/home/nitish/.local/share/fnm', 'TERM_PROGRAM': 'ghostty', 'ROS_DOMAIN_ID': '42', 'AMENT_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_python_driver:/home/nitish/work/myactuator/install/myactuator_rmd:/home/nitish/work/myactuator/install/TandP_URDF_description:/opt/ros/jazzy', 'FNM_RESOLVE_ENGINES': 'true', 'SHELL': '/bin/bash', 'GHOSTTY_BIN_DIR': '/usr/bin', 'LC_NAME': 'en_US.UTF-8', 'LC_MEASUREMENT': 'en_US.UTF-8', 'MAMBA_EXE': '/home/nitish/.local/bin/micromamba', 'LC_IDENTIFICATION': 'en_US.UTF-8', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/home/nitish/work/myactuator/build/myactuator_rmd', 'CONTAINER_ID': 'ros2-jazzy', 'LC_ALL': 'C.UTF-8', 'FNM_MULTISHELL_PATH': '/run/user/1000/fnm_multishells/11993_1769616117371', 'XDG_CONFIG_DIRS': '/home/nitish/.config/kdedefaults:/etc/xdg', 'VIRTUAL_ENV_DISABLE_PROMPT': '1', 'NVM_CD_FLAGS': '', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share', 'PYTHONPATH': '/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'LC_NUMERIC': 'en_US.UTF-8', 'LC_PAPER': 'en_US.UTF-8', 'FNM_COREPACK_ENABLED': 'false', 'KDE_SESSION_UID': '1000', 'COLCON': '1', 'MEMORY_PRESSURE_WRITE': 'c29tZSAyMDAwMDAgMjAwMDAwMAA=', 'CMAKE_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd:/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor:/home/nitish/work/myactuator/install/myactuator_python_driver:/home/nitish/work/myactuator/install/TandP_URDF_description:/opt/ros/jazzy'}), 'shell': False}
+[15.697483] (myactuator_rmd) StdoutLine: {'line': b'-- Install configuration: ""\n'}
+[15.697941] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include/\n'}
+[15.698242] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd\n'}
+[15.698587] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state\n'}
+[15.698846] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state/acceleration_type.hpp\n'}
+[15.699073] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state/can_baud_rate.hpp\n'}
+[15.699340] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state/control_mode.hpp\n'}
+[15.699604] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state/error_code.hpp\n'}
+[15.699770] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state/feedback.hpp\n'}
+[15.699928] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state/gains.hpp\n'}
+[15.700106] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state/motor_status_1.hpp\n'}
+[15.700263] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state/motor_status_2.hpp\n'}
+[15.700434] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_state/motor_status_3.hpp\n'}
+[15.700601] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/can\n'}
+[15.700770] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/can/exceptions.hpp\n'}
+[15.700932] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/can/frame.hpp\n'}
+[15.701226] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/can/node.hpp\n'}
+[15.701343] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/can/utilities.hpp\n'}
+[15.701434] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/driver\n'}
+[15.701528] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/driver/can_address_offset.hpp\n'}
+[15.701599] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/driver/can_driver.hpp\n'}
+[15.701664] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/driver/can_node.hpp\n'}
+[15.701732] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/driver/driver.hpp\n'}
+[15.701800] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/protocol\n'}
+[15.701864] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/protocol/command_type.hpp\n'}
+[15.701926] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/protocol/message.hpp\n'}
+[15.702000] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/protocol/requests.hpp\n'}
+[15.702061] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/protocol/responses.hpp\n'}
+[15.702122] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/protocol/single_motor_message.hpp\n'}
+[15.702199] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_constants.hpp\n'}
+[15.702260] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/actuator_interface.hpp\n'}
+[15.702351] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/exceptions.hpp\n'}
+[15.702450] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/io.hpp\n'}
+[15.702563] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/myactuator_rmd.hpp\n'}
+[15.702650] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/include//myactuator_rmd/version.hpp\n'}
+[15.702717] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/libmyactuator_rmd.so\n'}
+[15.702875] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/environment/pythonpath.sh\n'}
+[15.703039] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/environment/pythonpath.dsv\n'}
+[15.703381] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd-0.0.1-py3.12.egg-info\n'}
+[15.703541] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd-0.0.1-py3.12.egg-info/PKG-INFO\n'}
+[15.703812] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd-0.0.1-py3.12.egg-info/not-zip-safe\n'}
+[15.703960] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd-0.0.1-py3.12.egg-info/dependency_links.txt\n'}
+[15.704247] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd-0.0.1-py3.12.egg-info/top_level.txt\n'}
+[15.704470] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd-0.0.1-py3.12.egg-info/SOURCES.txt\n'}
+[15.704756] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd\n'}
+[15.704941] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd/__init__.py\n'}
+[15.758561] (-) TimerEvent: {}
+[15.758984] (myactuator_rmd) StdoutLine: {'line': b"Listing '/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd'...\n"}
+[15.759207] (myactuator_rmd) StdoutLine: {'line': b"Compiling '/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd/__init__.py'...\n"}
+[15.770502] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd/myactuator_rmd_py.cpython-312-x86_64-linux-gnu.so\n'}
+[15.773470] (myactuator_rmd) StdoutLine: {'line': b'-- Set non-toolchain portion of runtime path of "/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages/myactuator_rmd/myactuator_rmd_py.cpython-312-x86_64-linux-gnu.so" to ""\n'}
+[15.773856] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/environment/library_path.sh\n'}
+[15.774245] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/environment/library_path.dsv\n'}
+[15.774671] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/ament_index/resource_index/package_run_dependencies/myactuator_rmd\n'}
+[15.775269] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/ament_index/resource_index/parent_prefix_path/myactuator_rmd\n'}
+[15.775543] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/environment/ament_prefix_path.sh\n'}
+[15.775884] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/environment/ament_prefix_path.dsv\n'}
+[15.776206] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/environment/path.sh\n'}
+[15.776419] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/environment/path.dsv\n'}
+[15.776782] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/local_setup.bash\n'}
+[15.777161] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/local_setup.sh\n'}
+[15.777805] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/local_setup.zsh\n'}
+[15.778091] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/local_setup.dsv\n'}
+[15.778367] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/package.dsv\n'}
+[15.778598] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/ament_index/resource_index/packages/myactuator_rmd\n'}
+[15.778817] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/cmake/myactuator_rmdTargetsExport.cmake\n'}
+[15.779227] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/cmake/myactuator_rmdTargetsExport-noconfig.cmake\n'}
+[15.779508] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/cmake/ament_cmake_export_include_directories-extras.cmake\n'}
+[15.779682] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/cmake/ament_cmake_export_targets-extras.cmake\n'}
+[15.779844] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/cmake/myactuator_rmdConfig.cmake\n'}
+[15.780026] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/cmake/myactuator_rmdConfig-version.cmake\n'}
+[15.780161] (myactuator_rmd) StdoutLine: {'line': b'-- Installing: /home/nitish/work/myactuator/install/myactuator_rmd/share/myactuator_rmd/package.xml\n'}
+[15.783029] (myactuator_rmd) CommandEnded: {'returncode': 0}
+[15.801982] (myactuator_rmd) JobEnded: {'identifier': 'myactuator_rmd', 'rc': 0}
+[15.803220] (myactuator_python_driver) JobStarted: {'identifier': 'myactuator_python_driver'}
+[15.858683] (-) TimerEvent: {}
+[15.959030] (-) TimerEvent: {}
+[16.059356] (-) TimerEvent: {}
+[16.159764] (-) TimerEvent: {}
+[16.260139] (-) TimerEvent: {}
+[16.360645] (-) TimerEvent: {}
+[16.461037] (-) TimerEvent: {}
+[16.561414] (-) TimerEvent: {}
+[16.661839] (-) TimerEvent: {}
+[16.762246] (-) TimerEvent: {}
+[16.827651] (myactuator_python_driver) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'egg_info', '--egg-base', '../build/myactuator_python_driver', 'build', '--build-base', '/home/nitish/work/myactuator/build/myactuator_python_driver/build', 'install', '--record', '/home/nitish/work/myactuator/build/myactuator_python_driver/install.log', '--single-version-externally-managed', 'install_data'], 'cwd': '/home/nitish/work/myactuator/myactuator_python_driver', 'env': {'KDE_FULL_SESSION': 'true', 'RUSTICL_ENABLE': 'iris', 'ATUIN_SESSION': '019c0557152a77a2adde1e961e9b1df8', 'MAIL': '/var/spool/mail/nitish', 'GZ_SIM_RESOURCE_PATH': '/opt/ros/jazzy/share', 'GHOSTTY_RESOURCES_DIR': '/usr/share/ghostty', 'USER': 'nitish', 'PAM_KWALLET5_LOGIN': '/run/user/1000/kwallet5.socket', 'LC_TIME': 'en_US.UTF-8', 'GZ_CONFIG_PATH': '/opt/ros/jazzy/opt/gz_sim_vendor/share/gz:/opt/ros/jazzy/opt/sdformat_vendor/share/gz:/opt/ros/jazzy/opt/gz_gui_vendor/share/gz:/opt/ros/jazzy/opt/gz_transport_vendor/share/gz:/opt/ros/jazzy/opt/gz_rendering_vendor/share/gz:/opt/ros/jazzy/opt/gz_plugin_vendor/share/gz:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/share/gz:/opt/ros/jazzy/opt/gz_msgs_vendor/share/gz:/opt/ros/jazzy/opt/gz_common_vendor/share/gz', 'HOSTNAME': 'slate', 'XDG_SESSION_TYPE': 'wayland', 'BUN_INSTALL': '/home/nitish/.bun', 'XDG_CACHE_HOME': '/home/nitish/.cache', 'QT_WAYLAND_RECONNECT': '1', 'SHLVL': '4', 'LD_LIBRARY_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd/lib:/opt/ros/jazzy/opt/gz_sim_vendor/lib:/opt/ros/jazzy/opt/gz_sensors_vendor/lib:/opt/ros/jazzy/opt/gz_physics_vendor/lib:/opt/ros/jazzy/opt/sdformat_vendor/lib:/opt/ros/jazzy/opt/rviz_ogre_vendor/lib:/opt/ros/jazzy/lib/x86_64-linux-gnu:/opt/ros/jazzy/opt/gz_gui_vendor/lib:/opt/ros/jazzy/opt/gz_transport_vendor/lib:/opt/ros/jazzy/opt/gz_rendering_vendor/lib:/opt/ros/jazzy/opt/gz_plugin_vendor/lib:/opt/ros/jazzy/opt/gz_fuel_tools_vendor/lib:/opt/ros/jazzy/opt/gz_msgs_vendor/lib:/opt/ros/jazzy/opt/gz_common_vendor/lib:/opt/ros/jazzy/opt/gz_math_vendor/lib:/opt/ros/jazzy/opt/gz_utils_vendor/lib:/opt/ros/jazzy/opt/gz_tools_vendor/lib:/opt/ros/jazzy/opt/gz_ogre_next_vendor/lib:/opt/ros/jazzy/opt/gz_dartsim_vendor/lib:/opt/ros/jazzy/opt/gz_cmake_vendor/lib:/opt/ros/jazzy/lib', 'MOTD_SHOWN': 'pam', 'HOME': '/home/nitish', 'TERMINFO': '/usr/share/terminfo', 'CONDA_SHLVL': '0', 'KDE_APPLICATIONS_AS_SCOPE': '1', 'TERM_PROGRAM_VERSION': '1.2.3-arch2.1', 'DESKTOP_SESSION': 'plasma', 'MANROFFOPT': '-c', 'NVM_BIN': '/home/nitish/.config/nvm/versions/node/v22.22.0/bin', 'NVM_INC': '/home/nitish/.config/nvm/versions/node/v22.22.0/include/node', 'ROS_PYTHON_VERSION': '3', 'GTK_RC_FILES': '/etc/gtk/gtkrc:/home/nitish/.gtkrc:/home/nitish/.config/gtkrc', 'KDE_SESSION_VERSION': '6', 'PS1': '[\\u@\\h \\W]\\$', 'FNM_ARCH': 'x64', 'LC_MONETARY': 'en_US.UTF-8', 'MANAGERPID': '1108', 'DISTROBOX_ENTER_PATH': '/usr/bin/distrobox-enter', 'SYSTEMD_EXEC_PID': '1870', 'XDG_STATE_HOME': '/home/nitish/.local/state', 'DBUS_SESSION_BUS_ADDRESS': 'unix:path=/run/user/1000/bus', 'COLORTERM': 'truecolor', 'container': 'podman', 'NVM_DIR': '/home/nitish/.config/nvm', 'DEBUGINFOD_URLS': 'https://debuginfod.archlinux.org https://debuginfod.cachyos.org', 'WAYLAND_DISPLAY': 'wayland-0', 'COLCON_PREFIX_PATH': '/home/nitish/work/myactuator/install', 'XKB_DEFAULT_LAYOUT': 'us', 'FNM_VERSION_FILE_STRATEGY': 'local', 'ATUIN_PREEXEC_BACKEND': '4:bash-preexec', 'ROS_DISTRO': 'jazzy', 'FNM_LOGLEVEL': 'info', 'LOGNAME': 'nitish', 'FNM_NODE_DIST_MIRROR': 'https://nodejs.org/dist', 'CONTEXT7_API_KEY': 'ctx7sk-3268e0b8-1d4d-4f06-82be-afe2941b720e', 'MANAGERPIDFDID': '1109', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'MEMORY_PRESSURE_WATCH': '/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/app.slice/app-com.mitchellh.ghostty.service/memory.pressure', 'XDG_SESSION_CLASS': 'user', 'TERMINFO_DIRS': '/usr/share/terminfo:/run/host/usr/share/terminfo', 'ATUIN_HISTORY_ID': '019c056966b87a51a12f9ef2df6c9db8', 'TERM': 'xterm-ghostty', 'XDG_SESSION_ID': '2', 'HISTCONTROL': '', 'GTK2_RC_FILES': '/etc/gtk-2.0/gtkrc:/home/nitish/.gtkrc-2.0:/home/nitish/.config/gtkrc-2.0', 'PATH': '/home/nitish/.bun/bin:/opt/ros/jazzy/opt/gz_msgs_vendor/bin:/opt/ros/jazzy/opt/gz_tools_vendor/bin:/opt/ros/jazzy/opt/gz_ogre_next_vendor/bin:/opt/ros/jazzy/bin:/home/nitish/micromamba/condabin:/home/nitish/.config/nvm/versions/node/v22.22.0/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/11993_1769616117371/bin:/home/nitish/.local/share/fnm:/home/nitish/.opencode/bin:/home/nitish/.local/bin:/home/nitish/.local/bin:/run/user/1000/fnm_multishells/1233_1769614535819/bin:/home/nitish/.local/share/fnm:/home/nitish/.local/share/../bin:/home/nitish/.atuin/bin:/usr/local/sbin:/usr/local/bin:/usr/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/sbin:/sbin:/bin', 'SESSION_MANAGER': 'local/slate:@/tmp/.ICE-unix/1395,unix/slate:/tmp/.ICE-unix/1395', 'XDG_SESSION_PATH': '/org/freedesktop/DisplayManager/Session1', 'XDG_MENU_PREFIX': 'plasma-', 'LC_ADDRESS': 'en_US.UTF-8', 'XDG_RUNTIME_DIR': '/run/user/1000', 'ICEAUTHORITY': '/run/user/1000/iceauth_zRrWqh', 'MAMBA_ROOT_PREFIX': '/home/nitish/micromamba', 'DISPLAY': ':0', 'GHOSTTY_SHELL_FEATURES': 'cursor,path,title', 'LANG': 'en_US.UTF-8', 'XDG_CURRENT_DESKTOP': 'KDE', 'LC_TELEPHONE': 'en_US.UTF-8', 'XDG_DATA_HOME': '/home/nitish/.local/share', 'XDG_CONFIG_HOME': '/home/nitish/.config', 'XDG_SESSION_DESKTOP': 'KDE', 'XAUTHORITY': '/run/user/1000/xauth_bgQgzK', 'MANPAGER': "sh -c 'col -bx | bat -l man -p'", 'FNM_DIR': '/home/nitish/.local/share/fnm', 'TERM_PROGRAM': 'ghostty', 'ROS_DOMAIN_ID': '42', 'AMENT_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_python_driver:/home/nitish/work/myactuator/install/myactuator_rmd:/home/nitish/work/myactuator/install/TandP_URDF_description:/opt/ros/jazzy', 'FNM_RESOLVE_ENGINES': 'true', 'SHELL': '/bin/bash', 'GHOSTTY_BIN_DIR': '/usr/bin', 'LC_NAME': 'en_US.UTF-8', 'LC_MEASUREMENT': 'en_US.UTF-8', 'MAMBA_EXE': '/home/nitish/.local/bin/micromamba', 'LC_IDENTIFICATION': 'en_US.UTF-8', 'ROS_AUTOMATIC_DISCOVERY_RANGE': 'SUBNET', 'PWD': '/home/nitish/work/myactuator/build/myactuator_python_driver', 'CONTAINER_ID': 'ros2-jazzy', 'LC_ALL': 'C.UTF-8', 'FNM_MULTISHELL_PATH': '/run/user/1000/fnm_multishells/11993_1769616117371', 'XDG_CONFIG_DIRS': '/home/nitish/.config/kdedefaults:/etc/xdg', 'VIRTUAL_ENV_DISABLE_PROMPT': '1', 'NVM_CD_FLAGS': '', 'XDG_DATA_DIRS': '/usr/local/share:/usr/share', 'PYTHONPATH': '/home/nitish/work/myactuator/build/myactuator_python_driver/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_rmd/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages:/home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages:/opt/ros/jazzy/lib/python3.12/site-packages', 'LC_NUMERIC': 'en_US.UTF-8', 'LC_PAPER': 'en_US.UTF-8', 'FNM_COREPACK_ENABLED': 'false', 'KDE_SESSION_UID': '1000', 'COLCON': '1', 'MEMORY_PRESSURE_WRITE': 'c29tZSAyMDAwMDAgMjAwMDAwMAA=', 'CMAKE_PREFIX_PATH': '/home/nitish/work/myactuator/install/myactuator_rmd:/opt/ros/jazzy/opt/gz_sim_vendor:/opt/ros/jazzy/opt/gz_sensors_vendor:/opt/ros/jazzy/opt/gz_physics_vendor:/opt/ros/jazzy/opt/sdformat_vendor:/opt/ros/jazzy/opt/gz_gui_vendor:/opt/ros/jazzy/opt/gz_transport_vendor:/opt/ros/jazzy/opt/gz_rendering_vendor:/opt/ros/jazzy/opt/gz_plugin_vendor:/opt/ros/jazzy/opt/gz_fuel_tools_vendor:/opt/ros/jazzy/opt/gz_msgs_vendor:/opt/ros/jazzy/opt/gz_common_vendor:/opt/ros/jazzy/opt/gz_math_vendor:/opt/ros/jazzy/opt/gz_utils_vendor:/opt/ros/jazzy/opt/gz_tools_vendor:/opt/ros/jazzy/opt/gz_ogre_next_vendor:/opt/ros/jazzy/opt/gz_dartsim_vendor:/opt/ros/jazzy/opt/gz_cmake_vendor'}, 'shell': False}
+[16.862362] (-) TimerEvent: {}
+[16.962750] (-) TimerEvent: {}
+[17.063142] (-) TimerEvent: {}
+[17.118242] (myactuator_python_driver) StdoutLine: {'line': b'running egg_info\n'}
+[17.118725] (myactuator_python_driver) StdoutLine: {'line': b'creating ../build/myactuator_python_driver/myactuator_python_driver.egg-info\n'}
+[17.134378] (myactuator_python_driver) StdoutLine: {'line': b'writing ../build/myactuator_python_driver/myactuator_python_driver.egg-info/PKG-INFO\n'}
+[17.134743] (myactuator_python_driver) StdoutLine: {'line': b'writing dependency_links to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/dependency_links.txt\n'}
+[17.134940] (myactuator_python_driver) StdoutLine: {'line': b'writing entry points to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/entry_points.txt\n'}
+[17.135281] (myactuator_python_driver) StdoutLine: {'line': b'writing requirements to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/requires.txt\n'}
+[17.135465] (myactuator_python_driver) StdoutLine: {'line': b'writing top-level names to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/top_level.txt\n'}
+[17.135626] (myactuator_python_driver) StdoutLine: {'line': b"writing manifest file '../build/myactuator_python_driver/myactuator_python_driver.egg-info/SOURCES.txt'\n"}
+[17.163259] (-) TimerEvent: {}
+[17.168137] (myactuator_python_driver) StdoutLine: {'line': b"reading manifest file '../build/myactuator_python_driver/myactuator_python_driver.egg-info/SOURCES.txt'\n"}
+[17.169062] (myactuator_python_driver) StdoutLine: {'line': b"writing manifest file '../build/myactuator_python_driver/myactuator_python_driver.egg-info/SOURCES.txt'\n"}
+[17.169378] (myactuator_python_driver) StdoutLine: {'line': b'running build\n'}
+[17.169653] (myactuator_python_driver) StdoutLine: {'line': b'running build_py\n'}
+[17.169835] (myactuator_python_driver) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/build/myactuator_python_driver/build\n'}
+[17.170061] (myactuator_python_driver) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib\n'}
+[17.170270] (myactuator_python_driver) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver\n'}
+[17.170450] (myactuator_python_driver) StdoutLine: {'line': b'copying myactuator_python_driver/__init__.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver\n'}
+[17.170657] (myactuator_python_driver) StdoutLine: {'line': b'copying myactuator_python_driver/config.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver\n'}
+[17.170914] (myactuator_python_driver) StdoutLine: {'line': b'copying myactuator_python_driver/motor_wrapper.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver\n'}
+[17.171111] (myactuator_python_driver) StdoutLine: {'line': b'copying myactuator_python_driver/can_utils.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver\n'}
+[17.171643] (myactuator_python_driver) StdoutLine: {'line': b'copying myactuator_python_driver/driver_node.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver\n'}
+[17.171804] (myactuator_python_driver) StdoutLine: {'line': b'copying myactuator_python_driver/setup_tui.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver\n'}
+[17.171969] (myactuator_python_driver) StdoutLine: {'line': b'copying myactuator_python_driver/recorder_tui.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver\n'}
+[17.172124] (myactuator_python_driver) StdoutLine: {'line': b'running install\n'}
+[17.179648] (myactuator_python_driver) StdoutLine: {'line': b'running install_lib\n'}
+[17.196892] (myactuator_python_driver) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver\n'}
+[17.197233] (myactuator_python_driver) StdoutLine: {'line': b'copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/__init__.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver\n'}
+[17.197528] (myactuator_python_driver) StdoutLine: {'line': b'copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/config.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver\n'}
+[17.197761] (myactuator_python_driver) StdoutLine: {'line': b'copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/motor_wrapper.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver\n'}
+[17.197937] (myactuator_python_driver) StdoutLine: {'line': b'copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/can_utils.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver\n'}
+[17.198111] (myactuator_python_driver) StdoutLine: {'line': b'copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/driver_node.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver\n'}
+[17.198259] (myactuator_python_driver) StdoutLine: {'line': b'copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/setup_tui.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver\n'}
+[17.198530] (myactuator_python_driver) StdoutLine: {'line': b'copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/recorder_tui.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver\n'}
+[17.198788] (myactuator_python_driver) StdoutLine: {'line': b'byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/__init__.py to __init__.cpython-312.pyc\n'}
+[17.198987] (myactuator_python_driver) StdoutLine: {'line': b'byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/config.py to config.cpython-312.pyc\n'}
+[17.200862] (myactuator_python_driver) StdoutLine: {'line': b'byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/motor_wrapper.py to motor_wrapper.cpython-312.pyc\n'}
+[17.203108] (myactuator_python_driver) StdoutLine: {'line': b'byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/can_utils.py to can_utils.cpython-312.pyc\n'}
+[17.205658] (myactuator_python_driver) StdoutLine: {'line': b'byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/driver_node.py to driver_node.cpython-312.pyc\n'}
+[17.211030] (myactuator_python_driver) StdoutLine: {'line': b'byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/setup_tui.py to setup_tui.cpython-312.pyc\n'}
+[17.214251] (myactuator_python_driver) StdoutLine: {'line': b'byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/recorder_tui.py to recorder_tui.cpython-312.pyc\n'}
+[17.224016] (myactuator_python_driver) StdoutLine: {'line': b'running install_data\n'}
+[17.224295] (myactuator_python_driver) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index\n'}
+[17.224386] (myactuator_python_driver) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index/resource_index\n'}
+[17.224660] (myactuator_python_driver) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index/resource_index/packages\n'}
+[17.224838] (myactuator_python_driver) StdoutLine: {'line': b'copying resource/myactuator_python_driver -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index/resource_index/packages\n'}
+[17.225418] (myactuator_python_driver) StdoutLine: {'line': b'copying package.xml -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver\n'}
+[17.225608] (myactuator_python_driver) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/launch\n'}
+[17.225690] (myactuator_python_driver) StdoutLine: {'line': b'copying launch/driver.launch.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/launch\n'}
+[17.225766] (myactuator_python_driver) StdoutLine: {'line': b'creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/config\n'}
+[17.225839] (myactuator_python_driver) StdoutLine: {'line': b'copying config/driver_config.yaml -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/config\n'}
+[17.225964] (myactuator_python_driver) StdoutLine: {'line': b'running install_egg_info\n'}
+[17.244791] (myactuator_python_driver) StdoutLine: {'line': b'Copying ../build/myactuator_python_driver/myactuator_python_driver.egg-info to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver-1.0.0-py3.12.egg-info\n'}
+[17.245532] (myactuator_python_driver) StdoutLine: {'line': b'running install_scripts\n'}
+[17.263375] (-) TimerEvent: {}
+[17.363805] (-) TimerEvent: {}
+[17.374864] (myactuator_python_driver) StdoutLine: {'line': b'Installing driver_node script to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/myactuator_python_driver\n'}
+[17.375539] (myactuator_python_driver) StdoutLine: {'line': b'Installing recorder_tui script to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/myactuator_python_driver\n'}
+[17.375718] (myactuator_python_driver) StdoutLine: {'line': b'Installing setup_tui script to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/myactuator_python_driver\n'}
+[17.376011] (myactuator_python_driver) StdoutLine: {'line': b"writing list of installed files to '/home/nitish/work/myactuator/build/myactuator_python_driver/install.log'\n"}
+[17.428853] (myactuator_python_driver) CommandEnded: {'returncode': 0}
+[17.441187] (myactuator_python_driver) JobEnded: {'identifier': 'myactuator_python_driver', 'rc': 0}
+[17.442471] (-) EventReactorShutdown: {}

@@ -1,0 +1,7 @@
+Metadata-Version: 2.1
+Name: myactuator-python-driver
+Version: 1.0.0
+Summary: Python ROS2 driver for MyActuator RMD motors with TUI setup and recording/playback
+Maintainer: Nitish
+Maintainer-email: nitish@example.com
+License: MIT

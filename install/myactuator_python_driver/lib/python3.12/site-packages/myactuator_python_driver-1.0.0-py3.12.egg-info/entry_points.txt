@@ -1,0 +1,4 @@
+[console_scripts]
+driver_node = myactuator_python_driver.driver_node:main
+recorder_tui = myactuator_python_driver.recorder_tui:main
+setup_tui = myactuator_python_driver.setup_tui:main

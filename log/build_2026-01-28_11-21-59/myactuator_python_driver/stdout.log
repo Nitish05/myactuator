@@ -1,0 +1,56 @@
+running egg_info
+creating ../build/myactuator_python_driver/myactuator_python_driver.egg-info
+writing ../build/myactuator_python_driver/myactuator_python_driver.egg-info/PKG-INFO
+writing dependency_links to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/dependency_links.txt
+writing entry points to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/entry_points.txt
+writing requirements to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/requires.txt
+writing top-level names to ../build/myactuator_python_driver/myactuator_python_driver.egg-info/top_level.txt
+writing manifest file '../build/myactuator_python_driver/myactuator_python_driver.egg-info/SOURCES.txt'
+reading manifest file '../build/myactuator_python_driver/myactuator_python_driver.egg-info/SOURCES.txt'
+writing manifest file '../build/myactuator_python_driver/myactuator_python_driver.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/nitish/work/myactuator/build/myactuator_python_driver/build
+creating /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib
+creating /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+copying myactuator_python_driver/__init__.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+copying myactuator_python_driver/config.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+copying myactuator_python_driver/motor_wrapper.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+copying myactuator_python_driver/can_utils.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+copying myactuator_python_driver/driver_node.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+copying myactuator_python_driver/setup_tui.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+copying myactuator_python_driver/recorder_tui.py -> /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver
+running install
+running install_lib
+creating /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/__init__.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/config.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/motor_wrapper.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/can_utils.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/driver_node.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/setup_tui.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+copying /home/nitish/work/myactuator/build/myactuator_python_driver/build/lib/myactuator_python_driver/recorder_tui.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver
+byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/__init__.py to __init__.cpython-312.pyc
+byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/config.py to config.cpython-312.pyc
+byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/motor_wrapper.py to motor_wrapper.cpython-312.pyc
+byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/can_utils.py to can_utils.cpython-312.pyc
+byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/driver_node.py to driver_node.cpython-312.pyc
+byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/setup_tui.py to setup_tui.cpython-312.pyc
+byte-compiling /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver/recorder_tui.py to recorder_tui.cpython-312.pyc
+running install_data
+creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index
+creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index/resource_index
+creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index/resource_index/packages
+copying resource/myactuator_python_driver -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/ament_index/resource_index/packages
+copying package.xml -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver
+creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/launch
+copying launch/driver.launch.py -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/launch
+creating /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/config
+copying config/driver_config.yaml -> /home/nitish/work/myactuator/install/myactuator_python_driver/share/myactuator_python_driver/config
+running install_egg_info
+Copying ../build/myactuator_python_driver/myactuator_python_driver.egg-info to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/python3.12/site-packages/myactuator_python_driver-1.0.0-py3.12.egg-info
+running install_scripts
+Installing driver_node script to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/myactuator_python_driver
+Installing recorder_tui script to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/myactuator_python_driver
+Installing setup_tui script to /home/nitish/work/myactuator/install/myactuator_python_driver/lib/myactuator_python_driver
+writing list of installed files to '/home/nitish/work/myactuator/build/myactuator_python_driver/install.log'

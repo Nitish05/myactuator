@@ -1,0 +1,23 @@
+can_interface: can0
+publish_rate: 1000.0
+control_mode: position
+timeout_ms: 0
+motors:
+- can_id: 1
+  joint_name: base_joint
+  torque_constant: 2.1
+  max_velocity: 918.0
+  position_offset: 0.0
+  inverted: false
+- can_id: 2
+  joint_name: linear_joint
+  torque_constant: 1.9
+  max_velocity: 498.0
+  position_offset: 0.0
+  inverted: false
+- can_id: 3
+  joint_name: revolute_joint
+  torque_constant: 0.8
+  max_velocity: 1428.0
+  position_offset: 0.0
+  inverted: false

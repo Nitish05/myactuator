@@ -1,0 +1,46 @@
+running egg_info
+creating ../build/TandP_URDF_description/TandP_URDF_description.egg-info
+writing ../build/TandP_URDF_description/TandP_URDF_description.egg-info/PKG-INFO
+writing dependency_links to ../build/TandP_URDF_description/TandP_URDF_description.egg-info/dependency_links.txt
+writing requirements to ../build/TandP_URDF_description/TandP_URDF_description.egg-info/requires.txt
+writing top-level names to ../build/TandP_URDF_description/TandP_URDF_description.egg-info/top_level.txt
+writing manifest file '../build/TandP_URDF_description/TandP_URDF_description.egg-info/SOURCES.txt'
+reading manifest file '../build/TandP_URDF_description/TandP_URDF_description.egg-info/SOURCES.txt'
+writing manifest file '../build/TandP_URDF_description/TandP_URDF_description.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/nitish/work/myactuator/build/TandP_URDF_description/build
+creating /home/nitish/work/myactuator/build/TandP_URDF_description/build/lib
+creating /home/nitish/work/myactuator/build/TandP_URDF_description/build/lib/TandP_URDF_description
+copying TandP_URDF_description/__init__.py -> /home/nitish/work/myactuator/build/TandP_URDF_description/build/lib/TandP_URDF_description
+running install
+running install_lib
+creating /home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages/TandP_URDF_description
+copying /home/nitish/work/myactuator/build/TandP_URDF_description/build/lib/TandP_URDF_description/__init__.py -> /home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages/TandP_URDF_description
+byte-compiling /home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages/TandP_URDF_description/__init__.py to __init__.cpython-312.pyc
+running install_data
+creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/ament_index
+creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/ament_index/resource_index
+creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/ament_index/resource_index/packages
+copying resource/TandP_URDF_description -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/ament_index/resource_index/packages
+copying package.xml -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description
+creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/launch
+copying launch/display.launch.py -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/launch
+copying launch/gazebo.launch.py -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/launch
+creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf
+copying urdf/materials.xacro -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf
+copying urdf/TandP_URDF.gazebo -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf
+copying urdf/TandP_URDF.trans -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf
+copying urdf/TandP_URDF.xacro -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/urdf
+creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes
+copying meshes/A_1.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes
+copying meshes/base_link.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes
+copying meshes/B_1.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes
+copying meshes/C_1.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes
+copying meshes/jig_1.stl -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/meshes
+creating /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/config
+copying config/display.rviz -> /home/nitish/work/myactuator/install/TandP_URDF_description/share/TandP_URDF_description/config
+running install_egg_info
+Copying ../build/TandP_URDF_description/TandP_URDF_description.egg-info to /home/nitish/work/myactuator/install/TandP_URDF_description/lib/python3.12/site-packages/TandP_URDF_description-0.0.0-py3.12.egg-info
+running install_scripts
+writing list of installed files to '/home/nitish/work/myactuator/build/TandP_URDF_description/install.log'
