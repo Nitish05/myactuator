@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QListWidgetItem, QProgressBar
 )
 
-from myactuator_python_driver.config import HysteresisTorqueTrigger, PlaybackTriggerConfig
+from myactuator_python_driver.config import HysteresisTorqueTrigger, PlaybackTriggerConfig, TriggerStore
 from myactuator_python_driver.studio.recording_manager import RecordingInfo
 
 
@@ -38,6 +38,7 @@ class PlaybackTab(QWidget):
     loop_changed = pyqtSignal(bool)
     triggers_changed = pyqtSignal(object)  # PlaybackTriggerConfig
     configure_triggers_requested = pyqtSignal()
+    trigger_removed = pyqtSignal(object)  # HysteresisTorqueTrigger
 
     SPEEDS = [0.25, 0.5, 1.0, 2.0, 4.0]
 
@@ -191,6 +192,8 @@ class PlaybackTab(QWidget):
         else:
             self._selected_recording = None
             self._info_label.setText("No recording selected")
+        # Refresh trigger list to update which triggers apply
+        self._update_trigger_list()
 
     def _on_play_clicked(self):
         """Handle play button click."""
@@ -221,12 +224,15 @@ class PlaybackTab(QWidget):
         """Remove the selected trigger."""
         row = self._trigger_list.currentRow()
         if 0 <= row < len(self._triggers):
-            self._triggers.pop(row)
+            trigger = self._triggers.pop(row)
+            self.trigger_removed.emit(trigger)  # Signal for persistent removal
             self._update_trigger_list()
             self._emit_triggers()
 
     def _clear_triggers(self):
         """Clear all triggers."""
+        for trigger in self._triggers:
+            self.trigger_removed.emit(trigger)
         self._triggers.clear()
         self._update_trigger_list()
         self._emit_triggers()
@@ -234,15 +240,29 @@ class PlaybackTab(QWidget):
     def _update_trigger_list(self):
         """Update the trigger list display."""
         self._trigger_list.clear()
+        selected_recording = self._selected_recording.name if self._selected_recording else ""
+
         for trigger in self._triggers:
+            # Check if trigger applies to current recording
+            applies = (not trigger.recording_name or
+                       trigger.recording_name == selected_recording)
+
             state = self._trigger_states.get(trigger.joint_name, "inactive")
             state_text = " [ACTIVE]" if state == "active" else ""
+
+            # Show trigger name and details
+            name = trigger.name or "(unnamed)"
+            recording_info = f" [{trigger.recording_name}]" if trigger.recording_name else ""
             item = QListWidgetItem(
-                f"{trigger.joint_name}: {trigger.enter_threshold_rad:.2f} rad -> "
-                f"{trigger.torque_nm:.1f} Nm{state_text}"
+                f"{name}: {trigger.joint_name} < {trigger.enter_threshold_rad:.3f} rad → "
+                f"{trigger.torque_nm:.1f} Nm{recording_info}{state_text}"
             )
+
             if state == "active":
                 item.setForeground(Qt.GlobalColor.yellow)
+            elif not applies:
+                item.setForeground(Qt.GlobalColor.gray)
+
             self._trigger_list.addItem(item)
 
     def _emit_triggers(self):

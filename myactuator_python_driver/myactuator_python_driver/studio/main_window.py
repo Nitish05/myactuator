@@ -17,7 +17,7 @@ from PyQt6.QtGui import QAction, QKeySequence
 
 from sensor_msgs.msg import JointState
 
-from myactuator_python_driver.config import PlaybackTriggerConfig
+from myactuator_python_driver.config import PlaybackTriggerConfig, TriggerStore
 
 from .ros_bridge import RosBridge
 from .recording_manager import RecordingManager
@@ -50,6 +50,7 @@ class MainWindow(QMainWindow):
         # Core components
         self._ros_bridge = RosBridge(self)
         self._recording_manager = RecordingManager(self)
+        self._trigger_store = TriggerStore(self._recording_manager.recordings_dir)
 
         # State
         self._connected = False
@@ -255,6 +256,7 @@ class MainWindow(QMainWindow):
         self._playback_tab.pause_requested.connect(self._toggle_pause)
         self._playback_tab.triggers_changed.connect(self._on_triggers_changed)
         self._playback_tab.configure_triggers_requested.connect(self._show_trigger_dialog)
+        self._playback_tab.trigger_removed.connect(self._on_trigger_removed)
 
         # Browse tab signals
         self._browse_tab.refresh_requested.connect(self._refresh_recordings)
@@ -405,10 +407,14 @@ class MainWindow(QMainWindow):
             # Update triggers during playback
             self._ros_bridge.set_trigger_config(config)
 
+    def _on_trigger_removed(self, trigger):
+        """Handle trigger removal - remove from persistent store."""
+        self._trigger_store.remove(trigger)
+        self._show_status_message(f"Trigger '{trigger.name}' removed")
+
     def _show_trigger_dialog(self):
         """Show the trigger configuration dialog."""
         joint_names = self._joint_monitor.get_joint_names()
-        joint_positions = self._joint_monitor.get_joint_positions()
 
         if not joint_names:
             QMessageBox.warning(
@@ -417,13 +423,21 @@ class MainWindow(QMainWindow):
             )
             return
 
+        # Get recording names for pairing
+        recordings = self._recording_manager.get_recordings()
+        recording_names = [r.name for r in recordings]
+
         # Pass callback for live position updates
         trigger = TriggerDialog.create_trigger(
-            joint_names, joint_positions, self,
+            joint_names, recording_names, self,
             position_callback=self._joint_monitor.get_joint_positions
         )
         if trigger:
+            # Save to persistent store
+            self._trigger_store.add(trigger)
+            # Add to playback tab
             self._playback_tab.add_trigger(trigger)
+            self._show_status_message(f"Trigger '{trigger.name}' saved")
 
     # === Browse Handlers ===
 
@@ -432,6 +446,8 @@ class MainWindow(QMainWindow):
         recordings = self._recording_manager.get_recordings()
         self._browse_tab.set_recordings(recordings)
         self._playback_tab.set_recordings(recordings)
+        # Load all saved triggers
+        self._playback_tab.set_triggers(self._trigger_store.get_all())
 
     def _delete_recording(self, recording):
         """Delete a recording."""

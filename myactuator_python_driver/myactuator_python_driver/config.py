@@ -46,6 +46,8 @@ class HysteresisTorqueTrigger:
     torque_nm: float
     direction: str = "rising"  # "rising" or "falling"
     enabled: bool = True
+    name: str = ""  # Optional trigger name
+    recording_name: str = ""  # Recording this trigger is paired with
 
     def __post_init__(self):
         if self.direction == "rising":
@@ -56,6 +58,21 @@ class HysteresisTorqueTrigger:
                 raise ValueError("For falling: exit_threshold must be > enter_threshold")
         else:
             raise ValueError("direction must be 'rising' or 'falling'")
+
+    @classmethod
+    def create_falling(cls, name: str, joint_name: str, threshold_rad: float,
+                       torque_nm: float, recording_name: str = "",
+                       hysteresis: float = 0.1) -> 'HysteresisTorqueTrigger':
+        """Create a falling trigger (activates when position goes below threshold)."""
+        return cls(
+            name=name,
+            joint_name=joint_name,
+            enter_threshold_rad=threshold_rad,
+            exit_threshold_rad=threshold_rad + hysteresis,
+            torque_nm=torque_nm,
+            direction="falling",
+            recording_name=recording_name,
+        )
 
 
 @dataclass
@@ -227,3 +244,68 @@ def get_torque_constant(motor_model: str) -> float:
         if key.upper().replace('_', '') in model:
             return value
     return 0.21  # Default to X8 series
+
+
+class TriggerStore:
+    """Persistent storage for torque triggers."""
+
+    def __init__(self, storage_dir: Path):
+        self.storage_dir = storage_dir
+        self.storage_file = storage_dir / "triggers.json"
+        self._triggers: List[HysteresisTorqueTrigger] = []
+        self.load()
+
+    def load(self):
+        """Load triggers from disk."""
+        import json
+        self._triggers = []
+        if self.storage_file.exists():
+            try:
+                with open(self.storage_file, 'r') as f:
+                    data = json.load(f)
+                for t in data.get('triggers', []):
+                    try:
+                        self._triggers.append(HysteresisTorqueTrigger(**t))
+                    except (TypeError, ValueError):
+                        pass  # Skip invalid triggers
+            except Exception:
+                pass
+
+    def save(self):
+        """Save triggers to disk."""
+        import json
+        self.storage_dir.mkdir(parents=True, exist_ok=True)
+        data = {'triggers': [asdict(t) for t in self._triggers]}
+        with open(self.storage_file, 'w') as f:
+            json.dump(data, f, indent=2)
+
+    def get_all(self) -> List[HysteresisTorqueTrigger]:
+        """Get all triggers."""
+        return list(self._triggers)
+
+    def get_for_recording(self, recording_name: str) -> List[HysteresisTorqueTrigger]:
+        """Get triggers paired with a specific recording."""
+        return [t for t in self._triggers if t.recording_name == recording_name]
+
+    def add(self, trigger: HysteresisTorqueTrigger):
+        """Add a trigger and save."""
+        self._triggers.append(trigger)
+        self.save()
+
+    def remove(self, trigger: HysteresisTorqueTrigger):
+        """Remove a trigger and save."""
+        self._triggers = [t for t in self._triggers if not (
+            t.name == trigger.name and t.joint_name == trigger.joint_name
+            and t.recording_name == trigger.recording_name
+        )]
+        self.save()
+
+    def remove_by_name(self, name: str):
+        """Remove trigger by name and save."""
+        self._triggers = [t for t in self._triggers if t.name != name]
+        self.save()
+
+    def update(self, old_trigger: HysteresisTorqueTrigger, new_trigger: HysteresisTorqueTrigger):
+        """Update a trigger and save."""
+        self.remove(old_trigger)
+        self.add(new_trigger)
