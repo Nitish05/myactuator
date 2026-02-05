@@ -324,7 +324,7 @@ class MotorDriverNode(Node):
                         motor.release()
                         state = motor.get_state()
                     elif self._admittance_mode:
-                        # Admittance mode: velocity control based on external force
+                        # Admittance mode: free when idle, assist when pushed
                         # First read current state to get effort
                         state = motor.get_state()
 
@@ -338,11 +338,11 @@ class MotorDriverNode(Node):
                             # Clamp to max velocity
                             velocity = max(-self._admittance_max_vel,
                                          min(self._admittance_max_vel, velocity))
+                            # User is pushing - assist with velocity command
+                            state = motor.send_velocity(velocity)
                         else:
-                            velocity = 0.0
-
-                        # Send velocity command directly - much smoother than position steps
-                        state = motor.send_velocity(velocity)
+                            # No user input - stay free (zero torque), not holding
+                            state = motor.send_torque(0.0)
 
                         # Update position tracking for when we exit admittance mode
                         self._control_positions[joint_name] = state.position_rad

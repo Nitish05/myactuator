@@ -281,7 +281,7 @@ class RecorderTUI:
             )
             self._bag_writer.create_topic(topic_info)
 
-            self._set_mode("admittance")
+            self._set_mode("free")
 
             with self._lock:
                 self._recording = True

@@ -15,7 +15,12 @@ setup(
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
-    install_requires=['setuptools', 'rich'],
+    install_requires=[
+        'setuptools',
+        'rich',
+        'PyQt6>=6.4.0',
+        'qt-material>=2.14',
+    ],
     zip_safe=True,
     maintainer='Nitish',
     maintainer_email='nitish@example.com',
@@ -27,6 +32,7 @@ setup(
             'driver_node = myactuator_python_driver.driver_node:main',
             'recorder_tui = myactuator_python_driver.recorder_tui:main',
             'setup_tui = myactuator_python_driver.setup_tui:main',
+            'motor_studio = myactuator_python_driver.studio.main:main',
         ],
     },
 )

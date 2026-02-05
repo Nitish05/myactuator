@@ -1,8 +1,0 @@
-setup.cfg
-setup.py
-myactuator_rmd/__init__.py
-myactuator_rmd.egg-info/PKG-INFO
-myactuator_rmd.egg-info/SOURCES.txt
-myactuator_rmd.egg-info/dependency_links.txt
-myactuator_rmd.egg-info/not-zip-safe
-myactuator_rmd.egg-info/top_level.txt

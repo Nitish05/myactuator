@@ -1,0 +1,111 @@
+/* Custom CSS overrides for Motor Recording Studio */
+
+/* E-Stop button styling */
+QPushButton#estopButton {
+    background-color: #d32f2f;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+    border-radius: 8px;
+    padding: 12px;
+    min-height: 50px;
+}
+
+QPushButton#estopButton:hover {
+    background-color: #f44336;
+}
+
+QPushButton#estopButton:pressed {
+    background-color: #b71c1c;
+}
+
+/* Record button styling */
+QPushButton#recordButton {
+    font-weight: bold;
+    font-size: 13px;
+    min-height: 40px;
+}
+
+QPushButton#recordButton[recording="true"] {
+    background-color: #d32f2f;
+    color: white;
+}
+
+/* Play button styling */
+QPushButton#playButton {
+    font-weight: bold;
+    font-size: 13px;
+    min-height: 40px;
+}
+
+QPushButton#playButton[playing="true"] {
+    background-color: #388e3c;
+    color: white;
+}
+
+/* LED indicator styling */
+QLabel#ledIndicator {
+    min-width: 16px;
+    max-width: 16px;
+    min-height: 16px;
+    max-height: 16px;
+    border-radius: 8px;
+}
+
+QLabel#ledIndicator[state="on"] {
+    background-color: #4caf50;
+}
+
+QLabel#ledIndicator[state="off"] {
+    background-color: #616161;
+}
+
+QLabel#ledIndicator[state="warning"] {
+    background-color: #ff9800;
+}
+
+QLabel#ledIndicator[state="error"] {
+    background-color: #f44336;
+}
+
+/* Joint monitor table styling */
+QTableView#jointMonitorTable {
+    gridline-color: #424242;
+    selection-background-color: #1976d2;
+}
+
+QTableView#jointMonitorTable::item {
+    padding: 4px;
+}
+
+/* Section headers */
+QLabel.sectionHeader {
+    font-weight: bold;
+    font-size: 12px;
+    color: #90caf9;
+    padding-top: 8px;
+    padding-bottom: 4px;
+}
+
+/* Status bar sections */
+QLabel#statusMode {
+    font-weight: bold;
+}
+
+QLabel#statusConnection {
+    color: #81c784;
+}
+
+QLabel#statusConnection[connected="false"] {
+    color: #ef5350;
+}
+
+/* Trigger active indicator */
+QLabel#triggerIndicator[active="true"] {
+    color: #ffb74d;
+    font-weight: bold;
+}
+
+QLabel#triggerIndicator[active="false"] {
+    color: #757575;
+}
