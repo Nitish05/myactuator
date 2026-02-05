@@ -185,11 +185,22 @@ class RecordingManager(QObject):
             self._bag_writer = rosbag2_py.SequentialWriter()
             self._bag_writer.open(storage_options, converter_options)
 
-            topic_info = rosbag2_py.TopicMetadata(
-                name='/joint_states',
-                type='sensor_msgs/msg/JointState',
-                serialization_format='cdr'
-            )
+            # Jazzy requires id parameter, Humble doesn't
+            try:
+                # Try Jazzy API first (with id parameter)
+                topic_info = rosbag2_py.TopicMetadata(
+                    id=0,
+                    name='/joint_states',
+                    type='sensor_msgs/msg/JointState',
+                    serialization_format='cdr'
+                )
+            except TypeError:
+                # Fall back to Humble API (without id)
+                topic_info = rosbag2_py.TopicMetadata(
+                    name='/joint_states',
+                    type='sensor_msgs/msg/JointState',
+                    serialization_format='cdr'
+                )
             self._bag_writer.create_topic(topic_info)
 
             with self._lock:
