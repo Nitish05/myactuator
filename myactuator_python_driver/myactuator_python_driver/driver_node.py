@@ -73,6 +73,8 @@ class MotorDriverNode(Node):
         self._torque_mode = False
         self._free_mode = False  # When True, motors are free to move by hand
         self._admittance_mode = False  # When True, use admittance control (easy to move by hand)
+        self._force_position_mode = False  # When True, use force-controlled position (limited torque)
+        self._force_torque_limit = 50.0  # Maximum torque percentage for force_position mode
         self._enabled = True  # When False, motors are disabled (no commands sent)
         self._control_positions: Dict[str, float] = {}
         self._control_velocities: Dict[str, float] = {}
@@ -218,7 +220,14 @@ class MotorDriverNode(Node):
         
         try:
             self.driver = rmd.CanDriver(self.config.can_interface)
-            
+
+            # Create raw CAN node for V4 commands (force position)
+            try:
+                self._can_node = rmd.can.Node(self.config.can_interface)
+            except Exception:
+                self._can_node = None
+                self.get_logger().warn("Could not create CAN node for V4 commands")
+
             for motor_cfg in self.config.motors:
                 wrapper = MotorWrapper(
                     driver=self.driver,
@@ -228,8 +237,11 @@ class MotorDriverNode(Node):
                     position_offset=motor_cfg.position_offset,
                     inverted=motor_cfg.inverted,
                 )
+                # Set CAN node for V4 commands
+                if self._can_node:
+                    wrapper.set_can_node(self._can_node)
                 self.motors[motor_cfg.joint_name] = wrapper
-                
+
                 # Get motor model
                 try:
                     model = wrapper.get_model()
@@ -263,6 +275,8 @@ class MotorDriverNode(Node):
             return "free"
         elif self._admittance_mode:
             return "admittance"
+        elif self._force_position_mode:
+            return "force_position"
         elif self._torque_mode:
             return "torque"
         else:
@@ -346,6 +360,10 @@ class MotorDriverNode(Node):
 
                         # Update position tracking for when we exit admittance mode
                         self._control_positions[joint_name] = state.position_rad
+                    elif self._force_position_mode:
+                        # Force position mode: position control with limited torque
+                        position = self._control_positions.get(joint_name, 0.0)
+                        state = motor.send_force_position(position, self._force_torque_limit)
                     elif self._torque_mode:
                         effort = self._control_efforts.get(joint_name, 0.0)
                         state = motor.send_torque(effort)
@@ -421,18 +439,21 @@ class MotorDriverNode(Node):
 
     def _set_zero_callback(self, request, response):
         """Set current position as zero for all motors."""
+        errors = []
         with self._lock:
-            for motor in self.motors.values():
+            for joint_name, motor in self.motors.items():
                 try:
                     motor.set_zero()
                 except Exception as e:
-                    response.success = False
-                    response.message = f"Failed: {e}"
-                    return response
-        
-        response.success = True
-        response.message = "All motors zeroed"
-        self.get_logger().info("All motors zeroed")
+                    errors.append(f"{joint_name}: {e}")
+
+        if errors:
+            response.success = False
+            response.message = f"Failed: {'; '.join(errors)}"
+        else:
+            response.success = True
+            response.message = "Zeroed. RESTART motors for new zero to take effect."
+            self.get_logger().warn("Motors zeroed - RESTART required!")
         return response
 
     def _emergency_stop_callback(self, request, response):
@@ -505,6 +526,7 @@ class MotorDriverNode(Node):
                 if not self._free_mode:
                     self._free_mode = True
                     self._admittance_mode = False
+                    self._force_position_mode = False
                     self._torque_mode = False
                     self._enabled = True
                     self.get_logger().info("Mode changed to: free")
@@ -515,14 +537,31 @@ class MotorDriverNode(Node):
                         self._capture_positions_locked()
                     self._admittance_mode = True
                     self._free_mode = False
+                    self._force_position_mode = False
                     self._torque_mode = False
                     self._enabled = True
                     self.get_logger().info("Mode changed to: admittance (easy to move by hand)")
+            elif mode.startswith("force_position"):
+                # Parse torque limit: "force_position:75" or just "force_position"
+                if ":" in mode:
+                    try:
+                        self._force_torque_limit = float(mode.split(":")[1])
+                    except (ValueError, IndexError):
+                        pass
+                if self._free_mode or self._admittance_mode:
+                    self._capture_positions_locked()
+                self._force_position_mode = True
+                self._free_mode = False
+                self._admittance_mode = False
+                self._torque_mode = False
+                self._enabled = True
+                self.get_logger().info(f"Mode changed to: force_position (torque limit: {self._force_torque_limit}%)")
             elif mode == "torque":
                 if self._free_mode or self._admittance_mode:
                     self._capture_positions_locked()
                 self._free_mode = False
                 self._admittance_mode = False
+                self._force_position_mode = False
                 self._torque_mode = True
                 self._enabled = True
                 self.get_logger().info("Mode changed to: torque")
@@ -531,6 +570,7 @@ class MotorDriverNode(Node):
                     self._capture_positions_locked()
                 self._free_mode = False
                 self._admittance_mode = False
+                self._force_position_mode = False
                 self._torque_mode = False
                 self._enabled = True
                 self.config.control_mode = "position"
@@ -540,6 +580,7 @@ class MotorDriverNode(Node):
                     self._capture_positions_locked()
                 self._free_mode = False
                 self._admittance_mode = False
+                self._force_position_mode = False
                 self._torque_mode = False
                 self._enabled = True
                 self.config.control_mode = "velocity"
@@ -548,10 +589,11 @@ class MotorDriverNode(Node):
                 self._enabled = False
                 self._free_mode = False
                 self._admittance_mode = False
+                self._force_position_mode = False
                 self._torque_mode = False
                 self.get_logger().info("Motors disabled")
             else:
-                self.get_logger().warn(f"Unknown mode: {mode}. Valid: position, velocity, torque, free, disabled")
+                self.get_logger().warn(f"Unknown mode: {mode}. Valid: position, velocity, torque, force_position, free, disabled")
                 return
         
         self._publish_mode()

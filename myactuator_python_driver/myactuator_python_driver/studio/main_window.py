@@ -298,9 +298,14 @@ class MainWindow(QMainWindow):
         if connected:
             self._connection_label.setText("Connected")
             self._connection_label.setStyleSheet("color: #81c784;")
+            # Set up direct publisher for low-latency playback
+            pub = self._ros_bridge.get_joint_ctrl_publisher()
+            if pub:
+                self._recording_manager.set_direct_publisher(pub)
         else:
             self._connection_label.setText("Disconnected")
             self._connection_label.setStyleSheet("color: #ef5350;")
+            self._recording_manager.set_direct_publisher(None)
 
         self._control_panel.set_connection_status(connected)
 
@@ -412,7 +417,11 @@ class MainWindow(QMainWindow):
             )
             return
 
-        trigger = TriggerDialog.create_trigger(joint_names, joint_positions, self)
+        # Pass callback for live position updates
+        trigger = TriggerDialog.create_trigger(
+            joint_names, joint_positions, self,
+            position_callback=self._joint_monitor.get_joint_positions
+        )
         if trigger:
             self._playback_tab.add_trigger(trigger)
 
@@ -456,6 +465,9 @@ class MainWindow(QMainWindow):
 
     def _go_to_zero(self):
         """Go to zero position."""
+        if not self._ros_bridge.joint_names:
+            self._show_error_message("No joints detected - connect to driver first")
+            return
         self._ros_bridge.go_to_zero()
 
     # === UI Helpers ===

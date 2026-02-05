@@ -9,7 +9,7 @@ from typing import List
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
-    QPushButton, QFrame, QSizePolicy
+    QPushButton, QFrame, QSizePolicy, QDoubleSpinBox
 )
 
 from myactuator_python_driver.can_utils import CANScanner
@@ -35,7 +35,7 @@ class ControlPanel(QWidget):
     go_to_zero_requested = pyqtSignal()
     emergency_stop_requested = pyqtSignal()
 
-    MODES = ["position", "velocity", "torque", "admittance", "free", "disabled"]
+    MODES = ["position", "velocity", "torque", "force_position", "admittance", "free", "disabled"]
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -71,6 +71,23 @@ class ControlPanel(QWidget):
         self._mode_combo.addItems(self.MODES)
         self._mode_combo.currentTextChanged.connect(self._on_mode_changed)
         layout.addWidget(self._mode_combo)
+
+        # Torque limit (for force_position mode)
+        self._torque_limit_widget = QWidget()
+        tl_layout = QHBoxLayout(self._torque_limit_widget)
+        tl_layout.setContentsMargins(0, 4, 0, 0)
+        tl_layout.addWidget(QLabel("Max Torque:"))
+
+        self._torque_limit_spin = QDoubleSpinBox()
+        self._torque_limit_spin.setRange(5.0, 100.0)
+        self._torque_limit_spin.setValue(50.0)
+        self._torque_limit_spin.setSuffix(" %")
+        self._torque_limit_spin.setDecimals(0)
+        self._torque_limit_spin.valueChanged.connect(self._on_torque_limit_changed)
+        tl_layout.addWidget(self._torque_limit_spin)
+
+        self._torque_limit_widget.setVisible(False)
+        layout.addWidget(self._torque_limit_widget)
 
         # Enable section
         layout.addWidget(self._create_section_label("Motor Control"))
@@ -174,9 +191,17 @@ class ControlPanel(QWidget):
 
     def _on_mode_changed(self, mode: str):
         """Handle mode combo change."""
+        self._torque_limit_widget.setVisible(mode == "force_position")
         if mode != self._current_mode:
             self._current_mode = mode
+            if mode == "force_position":
+                mode = f"force_position:{self._torque_limit_spin.value()}"
             self.mode_requested.emit(mode)
+
+    def _on_torque_limit_changed(self, value: float):
+        """Handle torque limit spinbox change."""
+        if self._current_mode == "force_position":
+            self.mode_requested.emit(f"force_position:{value}")
 
     def _on_enable_clicked(self):
         """Handle enable button click."""
@@ -207,12 +232,25 @@ class ControlPanel(QWidget):
 
     def set_mode(self, mode: str):
         """Set the current mode (from external source)."""
+        # Handle force_position with torque limit
+        if mode.startswith("force_position"):
+            if ":" in mode:
+                try:
+                    limit = float(mode.split(":")[1])
+                    self._torque_limit_spin.blockSignals(True)
+                    self._torque_limit_spin.setValue(limit)
+                    self._torque_limit_spin.blockSignals(False)
+                except (ValueError, IndexError):
+                    pass
+            mode = "force_position"
+
         if mode in self.MODES:
             self._current_mode = mode
             # Block signals to avoid feedback loop
             self._mode_combo.blockSignals(True)
             self._mode_combo.setCurrentText(mode)
             self._mode_combo.blockSignals(False)
+            self._torque_limit_widget.setVisible(mode == "force_position")
 
             # Update enable state based on mode
             if mode == "disabled":

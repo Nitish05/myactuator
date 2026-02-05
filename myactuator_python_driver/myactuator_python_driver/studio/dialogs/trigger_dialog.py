@@ -4,9 +4,9 @@ Trigger configuration dialog for Motor Recording Studio.
 Modal dialog for configuring hysteresis torque triggers.
 """
 
-from typing import Dict, List, Optional
+from typing import Callable, Dict, List, Optional
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel,
     QComboBox, QDoubleSpinBox, QPushButton, QGroupBox, QMessageBox
@@ -27,10 +27,12 @@ class TriggerDialog(QDialog):
     """
 
     def __init__(self, joint_names: List[str], joint_positions: Dict[str, float],
-                 parent=None, existing_trigger: Optional[HysteresisTorqueTrigger] = None):
+                 parent=None, existing_trigger: Optional[HysteresisTorqueTrigger] = None,
+                 position_callback: Optional[Callable[[], Dict[str, float]]] = None):
         super().__init__(parent)
         self._joint_names = joint_names
         self._joint_positions = joint_positions
+        self._position_callback = position_callback
         self._existing = existing_trigger
         self._result: Optional[HysteresisTorqueTrigger] = None
 
@@ -40,6 +42,12 @@ class TriggerDialog(QDialog):
 
         if existing_trigger:
             self._load_existing(existing_trigger)
+
+        # Timer for live position updates
+        if position_callback:
+            self._update_timer = QTimer(self)
+            self._update_timer.timeout.connect(self._refresh_positions)
+            self._update_timer.start(50)  # 20Hz updates
 
     def _setup_ui(self):
         """Set up the UI components."""
@@ -77,25 +85,37 @@ class TriggerDialog(QDialog):
         threshold_group = QGroupBox("Thresholds")
         threshold_layout = QFormLayout(threshold_group)
 
+        enter_layout = QHBoxLayout()
         self._enter_spin = QDoubleSpinBox()
         self._enter_spin.setRange(-100.0, 100.0)
         self._enter_spin.setDecimals(3)
         self._enter_spin.setSingleStep(0.1)
         self._enter_spin.setSuffix(" rad")
         self._enter_spin.valueChanged.connect(self._update_direction)
-        threshold_layout.addRow("Enter Threshold:", self._enter_spin)
+        enter_layout.addWidget(self._enter_spin)
+        self._enter_use_btn = QPushButton("Use Current")
+        self._enter_use_btn.setMaximumWidth(90)
+        self._enter_use_btn.clicked.connect(self._use_current_for_enter)
+        enter_layout.addWidget(self._enter_use_btn)
+        threshold_layout.addRow("Enter Threshold:", enter_layout)
 
         enter_help = QLabel("Position at which to switch TO torque mode")
         enter_help.setStyleSheet("color: #757575; font-size: 10px;")
         threshold_layout.addRow("", enter_help)
 
+        exit_layout = QHBoxLayout()
         self._exit_spin = QDoubleSpinBox()
         self._exit_spin.setRange(-100.0, 100.0)
         self._exit_spin.setDecimals(3)
         self._exit_spin.setSingleStep(0.1)
         self._exit_spin.setSuffix(" rad")
         self._exit_spin.valueChanged.connect(self._update_direction)
-        threshold_layout.addRow("Exit Threshold:", self._exit_spin)
+        exit_layout.addWidget(self._exit_spin)
+        self._exit_use_btn = QPushButton("Use Current")
+        self._exit_use_btn.setMaximumWidth(90)
+        self._exit_use_btn.clicked.connect(self._use_current_for_exit)
+        exit_layout.addWidget(self._exit_use_btn)
+        threshold_layout.addRow("Exit Threshold:", exit_layout)
 
         exit_help = QLabel("Position at which to switch BACK to position mode")
         exit_help.setStyleSheet("color: #757575; font-size: 10px;")
@@ -143,6 +163,12 @@ class TriggerDialog(QDialog):
         # Initial update
         self._update_position_display()
 
+    def _refresh_positions(self):
+        """Refresh positions from callback and update display."""
+        if self._position_callback:
+            self._joint_positions = self._position_callback()
+        self._update_position_display()
+
     def _update_position_display(self):
         """Update the current position display for selected joint."""
         joint = self._joint_combo.currentText()
@@ -151,6 +177,18 @@ class TriggerDialog(QDialog):
             self._position_label.setText(f"{pos:.4f} rad")
         else:
             self._position_label.setText("--")
+
+    def _use_current_for_enter(self):
+        """Set enter threshold to current joint position."""
+        joint = self._joint_combo.currentText()
+        if joint in self._joint_positions:
+            self._enter_spin.setValue(self._joint_positions[joint])
+
+    def _use_current_for_exit(self):
+        """Set exit threshold to current joint position."""
+        joint = self._joint_combo.currentText()
+        if joint in self._joint_positions:
+            self._exit_spin.setValue(self._joint_positions[joint])
 
     def _update_direction(self):
         """Update the direction indicator based on thresholds."""
@@ -216,13 +254,22 @@ class TriggerDialog(QDialog):
 
     @staticmethod
     def create_trigger(joint_names: List[str], joint_positions: Dict[str, float],
-                       parent=None) -> Optional[HysteresisTorqueTrigger]:
+                       parent=None,
+                       position_callback: Optional[Callable[[], Dict[str, float]]] = None
+                       ) -> Optional[HysteresisTorqueTrigger]:
         """
         Static convenience method to show dialog and return trigger.
 
+        Args:
+            joint_names: List of joint names
+            joint_positions: Initial dict of joint positions
+            parent: Parent widget
+            position_callback: Optional callback to get live positions (called at 20Hz)
+
         Returns the trigger if user clicked OK, None if cancelled.
         """
-        dialog = TriggerDialog(joint_names, joint_positions, parent)
+        dialog = TriggerDialog(joint_names, joint_positions, parent,
+                               position_callback=position_callback)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             return dialog.get_trigger()
         return None
@@ -230,13 +277,23 @@ class TriggerDialog(QDialog):
     @staticmethod
     def edit_trigger(trigger: HysteresisTorqueTrigger,
                      joint_names: List[str], joint_positions: Dict[str, float],
-                     parent=None) -> Optional[HysteresisTorqueTrigger]:
+                     parent=None,
+                     position_callback: Optional[Callable[[], Dict[str, float]]] = None
+                     ) -> Optional[HysteresisTorqueTrigger]:
         """
         Static convenience method to edit an existing trigger.
 
+        Args:
+            trigger: Existing trigger to edit
+            joint_names: List of joint names
+            joint_positions: Initial dict of joint positions
+            parent: Parent widget
+            position_callback: Optional callback to get live positions (called at 20Hz)
+
         Returns the updated trigger if user clicked OK, None if cancelled.
         """
-        dialog = TriggerDialog(joint_names, joint_positions, parent, trigger)
+        dialog = TriggerDialog(joint_names, joint_positions, parent, trigger,
+                               position_callback=position_callback)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             return dialog.get_trigger()
         return None

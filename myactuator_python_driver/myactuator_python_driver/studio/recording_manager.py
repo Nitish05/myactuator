@@ -83,6 +83,9 @@ class RecordingManager(QObject):
         # Clock for timestamps
         self._clock = None
 
+        # Direct ROS publisher for low-latency playback (bypasses Qt signals)
+        self._direct_publisher = None
+
         # Lock for thread safety
         self._lock = threading.Lock()
 
@@ -100,6 +103,14 @@ class RecordingManager(QObject):
     def set_clock(self, clock):
         """Set the ROS clock for timestamps."""
         self._clock = clock
+
+    def set_direct_publisher(self, publisher):
+        """Set direct ROS publisher for low-latency playback.
+
+        When set, playback publishes directly to ROS from the playback thread,
+        bypassing Qt signal overhead for better timing accuracy.
+        """
+        self._direct_publisher = publisher
 
     def get_recordings(self) -> List[RecordingInfo]:
         """Get list of all recordings."""
@@ -339,30 +350,43 @@ class RecordingManager(QObject):
     def _playback_worker(self, bag_path: Path, total_duration: float):
         """Playback thread worker."""
         try:
+            # Pre-load and deserialize all messages ONCE before playback
+            # This avoids deserialization overhead in the timing-critical loop
+            reader = rosbag2_py.SequentialReader()
+            storage_options = rosbag2_py.StorageOptions(
+                uri=str(bag_path), storage_id='sqlite3')
+            converter_options = rosbag2_py.ConverterOptions('', '')
+            reader.open(storage_options, converter_options)
+
+            first_ts = None
+            messages = []
+
+            while reader.has_next():
+                topic, data, ts = reader.read_next()
+                if topic == '/joint_states':
+                    if first_ts is None:
+                        first_ts = ts
+                    # Pre-deserialize to avoid overhead during playback
+                    msg = deserialize_message(data, JointState)
+                    messages.append((ts - first_ts, msg))
+
+            if not messages:
+                self._playing = False
+                self.playback_stopped.emit()
+                return
+
+            # Use direct publisher if available (bypasses Qt signal overhead)
+            direct_pub = self._direct_publisher
+
             while True:
-                reader = rosbag2_py.SequentialReader()
-                storage_options = rosbag2_py.StorageOptions(
-                    uri=str(bag_path), storage_id='sqlite3')
-                converter_options = rosbag2_py.ConverterOptions('', '')
-                reader.open(storage_options, converter_options)
-
-                first_ts = None
-                messages = []
-
-                # Load all messages
-                while reader.has_next():
-                    topic, data, ts = reader.read_next()
-                    if topic == '/joint_states':
-                        if first_ts is None:
-                            first_ts = ts
-                        messages.append((ts - first_ts, data))
-
-                if not messages:
-                    break
+                # Cache speed at start of each loop iteration
+                with self._lock:
+                    speed = self.SPEEDS[self._speed_idx]
 
                 # Play messages
                 start_time = time.time()
-                for rel_ts_ns, data in messages:
+                frame_idx = 0
+                for rel_ts_ns, msg in messages:
                     if not self._playing:
                         return
 
@@ -374,9 +398,9 @@ class RecordingManager(QObject):
                         time.sleep(0.05)
                     if pause_start:
                         start_time += time.time() - pause_start
-
-                    with self._lock:
-                        speed = self.SPEEDS[self._speed_idx]
+                        # Re-check speed after pause
+                        with self._lock:
+                            speed = self.SPEEDS[self._speed_idx]
 
                     target_time = start_time + (rel_ts_ns / 1e9) / speed
 
@@ -384,13 +408,23 @@ class RecordingManager(QObject):
                     if target_time > now:
                         time.sleep(target_time - now)
 
-                    # Emit progress
-                    current_sec = rel_ts_ns / 1e9
-                    self.playback_progress.emit(current_sec, total_duration)
+                    # Publish frame (timing critical)
+                    if direct_pub is not None:
+                        # Direct ROS publish - bypasses Qt thread crossing
+                        direct_pub.publish(msg)
+                    else:
+                        # Fallback to Qt signal (slower)
+                        self.playback_frame.emit(msg)
 
-                    # Emit frame
-                    msg = deserialize_message(data, JointState)
-                    self.playback_frame.emit(msg)
+                    # Emit progress every 20 frames (~10Hz at 200Hz playback)
+                    frame_idx += 1
+                    if frame_idx % 20 == 0:
+                        current_sec = rel_ts_ns / 1e9
+                        self.playback_progress.emit(current_sec, total_duration)
+
+                # Final progress update
+                if messages:
+                    self.playback_progress.emit(total_duration, total_duration)
 
                 # Check loop
                 with self._lock:

@@ -223,6 +223,12 @@ class RosBridgeWorker(QObject):
             msg.header.stamp = self._node.get_clock().now().to_msg()
             self._joint_ctrl_pub.publish(msg)
 
+    def get_joint_ctrl_publisher(self):
+        """Get the joint control publisher for direct publishing."""
+        if self._node and self._running:
+            return self._joint_ctrl_pub
+        return None
+
     def set_trigger_config(self, config: PlaybackTriggerConfig):
         """Send trigger configuration to driver."""
         if self._node and self._running:
@@ -349,8 +355,11 @@ class RosBridge(QObject):
 
     def go_to_zero(self):
         """Go to zero position."""
-        if self._worker and self._joint_names:
-            self._worker.go_to_zero(self._joint_names)
+        if self._worker:
+            if self._joint_names:
+                self._worker.go_to_zero(self._joint_names)
+            else:
+                self.error_message.emit("No joints detected - is driver connected?")
 
     def send_joint_command(self, msg: JointState):
         """Send a joint command."""
@@ -366,3 +375,9 @@ class RosBridge(QObject):
         """Clear trigger configuration."""
         if self._worker:
             self._worker.clear_trigger_config()
+
+    def get_joint_ctrl_publisher(self):
+        """Get the joint control publisher for direct publishing (bypasses Qt signals)."""
+        if self._worker:
+            return self._worker.get_joint_ctrl_publisher()
+        return None
