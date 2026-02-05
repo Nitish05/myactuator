@@ -354,11 +354,19 @@ class MainWindow(QMainWindow):
 
     def _start_playback(self, recording):
         """Start playback."""
-        # Send trigger config first
-        triggers = self._playback_tab.get_triggers()
-        if triggers:
-            config = PlaybackTriggerConfig(triggers=triggers)
+        # Send trigger config first - only triggers for this recording
+        all_triggers = self._playback_tab.get_triggers()
+        # Filter: triggers with no recording_name (global) OR matching this recording
+        matching_triggers = [
+            t for t in all_triggers
+            if not t.recording_name or t.recording_name == recording.name
+        ]
+        if matching_triggers:
+            config = PlaybackTriggerConfig(triggers=matching_triggers)
             self._ros_bridge.set_trigger_config(config)
+        else:
+            # Clear any triggers from previous playback
+            self._ros_bridge.clear_trigger_config()
 
         # Switch to position mode
         self._ros_bridge.set_mode("position")
@@ -390,6 +398,8 @@ class MainWindow(QMainWindow):
         self._playback_tab.set_playing(False)
         self._recording_label.setText("Idle")
         self._playing = False
+        # Clear triggers when playback ends (natural stop or loop end)
+        self._ros_bridge.clear_trigger_config()
 
     def _on_playback_progress(self, current_sec: float, total_sec: float):
         """Handle playback progress update."""
