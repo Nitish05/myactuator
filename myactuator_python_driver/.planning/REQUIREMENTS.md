@@ -93,41 +93,41 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CONN-01 | Phase ? | Pending |
-| CONN-02 | Phase ? | Pending |
-| SAFE-01 | Phase ? | Pending |
-| SAFE-02 | Phase ? | Pending |
-| INPT-01 | Phase ? | Pending |
-| INPT-02 | Phase ? | Pending |
-| INPT-03 | Phase ? | Pending |
-| INPT-04 | Phase ? | Pending |
-| INPT-05 | Phase ? | Pending |
-| CALB-01 | Phase ? | Pending |
-| CALB-02 | Phase ? | Pending |
-| CALB-03 | Phase ? | Pending |
-| CALB-04 | Phase ? | Pending |
-| CALB-05 | Phase ? | Pending |
-| CALB-06 | Phase ? | Pending |
-| DISP-01 | Phase ? | Pending |
-| DISP-02 | Phase ? | Pending |
-| DISP-03 | Phase ? | Pending |
-| TRIG-01 | Phase ? | Pending |
-| TRIG-02 | Phase ? | Pending |
-| TRIG-03 | Phase ? | Pending |
-| TRIG-04 | Phase ? | Pending |
-| TRIG-05 | Phase ? | Pending |
-| TRIG-06 | Phase ? | Pending |
-| INFR-01 | Phase ? | Pending |
-| INFR-02 | Phase ? | Pending |
-| INFR-03 | Phase ? | Pending |
-| INFR-04 | Phase ? | Pending |
-| INFR-05 | Phase ? | Pending |
+| CONN-01 | Phase 1 | Pending |
+| CONN-02 | Phase 1 | Pending |
+| SAFE-01 | Phase 1 | Pending |
+| SAFE-02 | Phase 1 | Pending |
+| INPT-01 | Phase 2 | Pending |
+| INPT-02 | Phase 2 | Pending |
+| INPT-03 | Phase 2 | Pending |
+| INPT-04 | Phase 2 | Pending |
+| INPT-05 | Phase 2 | Pending |
+| CALB-01 | Phase 2 | Pending |
+| CALB-02 | Phase 1 | Pending |
+| CALB-03 | Phase 1 | Pending |
+| CALB-04 | Phase 1 | Pending |
+| CALB-05 | Phase 2 | Pending |
+| CALB-06 | Phase 1 | Pending |
+| DISP-01 | Phase 2 | Pending |
+| DISP-02 | Phase 2 | Pending |
+| DISP-03 | Phase 2 | Pending |
+| TRIG-01 | Phase 3 | Pending |
+| TRIG-02 | Phase 3 | Pending |
+| TRIG-03 | Phase 3 | Pending |
+| TRIG-04 | Phase 3 | Pending |
+| TRIG-05 | Phase 3 | Pending |
+| TRIG-06 | Phase 3 | Pending |
+| INFR-01 | Phase 2 | Pending |
+| INFR-02 | Phase 1 | Pending |
+| INFR-03 | Phase 1 | Pending |
+| INFR-04 | Phase 1 | Pending |
+| INFR-05 | Phase 2 | Pending |
 
 **Coverage:**
 - v1 requirements: 29 total
-- Mapped to phases: 0
-- Unmapped: 29 ⚠️
+- Mapped to phases: 29
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-09 after initial definition*
+*Last updated: 2026-02-09 after roadmap creation*
