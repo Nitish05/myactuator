@@ -33,6 +33,7 @@ setup(
             'recorder_tui = myactuator_python_driver.recorder_tui:main',
             'setup_tui = myactuator_python_driver.setup_tui:main',
             'motor_studio = myactuator_python_driver.studio.main:main',
+            'calibrator_cli = myactuator_python_driver.calibrator.main:main',
         ],
     },
 )
