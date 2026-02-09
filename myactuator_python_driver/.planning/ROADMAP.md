@@ -44,10 +44,10 @@ Plans:
   3. User can start calibration with Record button and stop manually with Stop button
   4. App displays live joint position and running max position during active calibration at ~20Hz
   5. App prevents calibration when driver node is not connected via visible status indicator
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 02-01: TBD during planning
+- [ ] 02-01-PLAN.md -- CalibrationWindow GUI, entry point, and setup.py registration
 
 ### Phase 3: Trigger Management & Output
 **Goal**: User can review computed trigger parameters before saving and triggers persist to TriggerStore for use in Motor Studio

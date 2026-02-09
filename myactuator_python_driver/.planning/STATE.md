@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Automatically discover the correct trigger threshold for a recording by applying torque and measuring the result — eliminating manual guesswork from the trigger configuration process.
-**Current focus:** Phase 1 - Safety Infrastructure & Core Controller (complete, pending verification)
+**Current focus:** Phase 2 - UI Shell & Basic Calibration (plan 1 complete)
 
 ## Current Position
 
-Phase: 1 of 3 (Safety Infrastructure & Core Controller)
-Plan: 2 of 2 complete
-Status: Phase execution complete, pending verification
-Last activity: 2026-02-09 — Completed 01-02-PLAN.md (Headless CLI & Hardware Verification)
+Phase: 2 of 3 (UI Shell & Basic Calibration)
+Plan: 1 of 1 complete
+Status: Phase execution complete
+Last activity: 2026-02-09 — Completed 02-01-PLAN.md (Calibration GUI Window)
 
-Progress: [██████████] 100% (2/2 plans in phase 1)
+Progress: [██████████] 100% (1/1 plans in phase 2)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: ~9min
-- Total execution time: ~0.3 hours
+- Total plans completed: 3
+- Average duration: ~11min
+- Total execution time: ~0.55 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 2 | ~18min | ~9min |
+| 02 | 1 | ~15min | ~15min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3min), 01-02 (15min incl. hardware verification)
-- Trend: N/A (need more data)
+- Last 5 plans: 01-01 (3min), 01-02 (15min incl. hardware verification), 02-01 (~15min incl. checkpoint verification)
+- Trend: Stable
 
 *Updated after each plan completion*
 
@@ -52,6 +53,8 @@ Recent decisions affecting current work:
 - Free mode on stop instead of position mode — Position hold PID applies unwanted torque (01-02)
 - Two-phase threshold tracking with settle window — Captures dwelling position at bottom, not full comeback peak (01-02)
 - 1-degree reversal threshold — Filters noise before entering threshold tracking phase (01-02)
+- Settle time spinbox added to GUI during hardware verification — Exposes existing CalibrationConfig.settle_time_sec parameter in the UI (02-01)
+- RecordingManager.error_occurred wired to window error handler — Makes bag writer errors visible to the user (02-01)
 
 ### Pending Todos
 
@@ -63,6 +66,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (phase 1 execution complete)
-Stopped at: All plans complete, ready for phase verification
+Last session: 2026-02-09 (phase 2 plan 1 execution complete)
+Stopped at: Completed 02-01-PLAN.md (Calibration GUI Window)
 Resume file: None
