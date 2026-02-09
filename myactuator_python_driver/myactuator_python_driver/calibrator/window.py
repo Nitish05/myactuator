@@ -94,6 +94,14 @@ class CalibrationWindow(QMainWindow):
         self._offset_spin.setValue(0.5)
         config_layout.addRow("Threshold Offset:", self._offset_spin)
 
+        self._settle_spin = QDoubleSpinBox()
+        self._settle_spin.setRange(0.5, 30.0)
+        self._settle_spin.setDecimals(1)
+        self._settle_spin.setSingleStep(0.5)
+        self._settle_spin.setSuffix(" sec")
+        self._settle_spin.setValue(3.0)
+        config_layout.addRow("Settle Time:", self._settle_spin)
+
         self._name_edit = QLineEdit()
         self._name_edit.setPlaceholderText("Auto-generated if empty")
         config_layout.addRow("Recording Name:", self._name_edit)
@@ -165,6 +173,9 @@ class CalibrationWindow(QMainWindow):
             self._on_calibration_complete
         )
 
+        # RecordingManager errors (shows actual exception details)
+        self._recording_manager.error_occurred.connect(self._on_error)
+
         # Widget signals
         self._torque_spin.valueChanged.connect(self._on_torque_changed)
         self._record_btn.clicked.connect(self._on_record_clicked)
@@ -202,6 +213,7 @@ class CalibrationWindow(QMainWindow):
         self._joint_combo.setEnabled(not is_active)
         self._torque_spin.setEnabled(not is_active)
         self._offset_spin.setEnabled(not is_active)
+        self._settle_spin.setEnabled(not is_active)
         self._name_edit.setEnabled(not is_active)
 
         # Update record button appearance
@@ -268,6 +280,7 @@ class CalibrationWindow(QMainWindow):
                 joint_name=self._joint_combo.currentText(),
                 torque_nm=self._torque_spin.value(),
                 offset_deg=self._offset_spin.value(),
+                settle_time_sec=self._settle_spin.value(),
                 recording_name=self._name_edit.text().strip(),
             )
             self._controller.start_calibration(config)
