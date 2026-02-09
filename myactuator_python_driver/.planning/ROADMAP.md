@@ -28,10 +28,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Controller detects when driver node connection is lost and aborts calibration
   4. Max position tracking accurately captures the highest position reached during torque application
   5. ROS 2 bag recording runs simultaneously with torque application
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 01-01: TBD during planning
+- [ ] 01-01-PLAN.md -- CalibrationController core: data models, state machine, torque orchestration, safety logic
+- [ ] 01-02-PLAN.md -- Headless CLI entry point, setup.py registration, end-to-end hardware verification
 
 ### Phase 2: UI Shell & Basic Calibration
 **Goal**: User can launch the calibration app, configure parameters, and execute calibrations through a graphical interface
@@ -66,10 +67,10 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Safety Infrastructure & Core Controller | 0/? | Not started | - |
+| 1. Safety Infrastructure & Core Controller | 0/2 | Not started | - |
 | 2. UI Shell & Basic Calibration | 0/? | Not started | - |
 | 3. Trigger Management & Output | 0/? | Not started | - |
