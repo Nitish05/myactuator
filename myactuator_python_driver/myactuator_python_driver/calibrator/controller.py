@@ -8,6 +8,7 @@ RecordingManager (no new ROS nodes or driver modifications).
 All ROS communication goes through RosBridge. Do NOT import rclpy directly.
 """
 
+import math
 import time
 from datetime import datetime
 from typing import Optional
@@ -16,6 +17,10 @@ from PyQt6.QtCore import QObject, QTimer, pyqtSignal
 from sensor_msgs.msg import JointState
 
 from .config import CalibrationConfig, CalibrationResult, CalibrationState
+
+# Position must reverse by this much from the extreme before we
+# switch to threshold tracking (avoids noise triggering phase 2).
+_REVERSAL_THRESHOLD_RAD = math.radians(1.0)
 
 
 class CalibrationController(QObject):
@@ -39,6 +44,8 @@ class CalibrationController(QObject):
     position_updated = pyqtSignal(float)
     error_occurred = pyqtSignal(str)
     calibration_complete = pyqtSignal(object)
+    reversal_detected = pyqtSignal(float)  # extreme position when reversal occurs
+    threshold_locked = pyqtSignal(float)   # threshold frozen after settle window
 
     def __init__(self, ros_bridge, recording_manager, parent=None):
         super().__init__(parent)
@@ -48,7 +55,10 @@ class CalibrationController(QObject):
 
         self._state = CalibrationState.IDLE
         self._config: Optional[CalibrationConfig] = None
-        self._max_position_rad: Optional[float] = None
+        self._extreme_position_rad: Optional[float] = None
+        self._threshold_position_rad: Optional[float] = None
+        self._reversal_detected: bool = False
+        self._threshold_frozen: bool = False
         self._start_time: float = 0.0
         self._effort_timer: Optional[QTimer] = None
 
@@ -94,7 +104,10 @@ class CalibrationController(QObject):
             return False
 
         self._config = config
-        self._max_position_rad = None  # Initialize from first joint state
+        self._extreme_position_rad = None  # Initialize from first joint state
+        self._threshold_position_rad = None
+        self._reversal_detected = False
+        self._threshold_frozen = False
         self._start_time = time.time()
 
         # Generate recording name if not provided
@@ -147,27 +160,33 @@ class CalibrationController(QObject):
             self._effort_timer.deleteLater()
             self._effort_timer = None
 
-        # Step 2: Zero all efforts
-        msg = JointState()
-        msg.name = list(self._ros_bridge.joint_names)
-        msg.effort = [0.0] * len(msg.name)
-        self._ros_bridge.send_joint_command(msg)
-
-        # Step 3: Switch to position mode (safe)
-        self._ros_bridge.set_mode("position")
+        # Step 2: Zero all efforts and switch to free mode (no torque)
+        try:
+            msg = JointState()
+            msg.name = list(self._ros_bridge.joint_names)
+            msg.effort = [0.0] * len(msg.name)
+            self._ros_bridge.send_joint_command(msg)
+            # Step 3: Switch to free mode so motors stop applying any torque
+            self._ros_bridge.set_mode("free")
+        except Exception:
+            pass  # ROS handle may be destroyed during shutdown
 
         # Step 4: Stop recording
         self._recording_manager.stop_recording()
 
         # Step 5: Build result
+        # Use threshold if reversal was detected, otherwise fall back to extreme
+        extreme = self._extreme_position_rad if self._extreme_position_rad is not None else 0.0
+        if self._reversal_detected and self._threshold_position_rad is not None:
+            threshold = self._threshold_position_rad
+        else:
+            threshold = extreme
+
         result = CalibrationResult(
             recording_name=self._config.recording_name,
             joint_name=self._config.joint_name,
-            max_position_rad=(
-                self._max_position_rad
-                if self._max_position_rad is not None
-                else 0.0
-            ),
+            max_position_rad=threshold,
+            extreme_position_rad=extreme,
             torque_nm=self._config.torque_nm,
             duration_sec=time.time() - self._start_time,
         )
@@ -187,7 +206,10 @@ class CalibrationController(QObject):
         because e-stop is an intentional user action.
         """
         # 1. Driver emergency stop FIRST (immediate motor safety)
-        self._ros_bridge.emergency_stop()
+        try:
+            self._ros_bridge.emergency_stop()
+        except Exception:
+            pass  # ROS handle may already be destroyed during shutdown
 
         # 2. Stop effort refresh timer
         if self._effort_timer is not None:
@@ -221,13 +243,20 @@ class CalibrationController(QObject):
             self._config.torque_nm if name == self._config.joint_name else 0.0
             for name in msg.name
         ]
-        self._ros_bridge.send_joint_command(msg)
+        try:
+            self._ros_bridge.send_joint_command(msg)
+        except Exception:
+            pass  # ROS handle may be destroyed during shutdown
 
     def _on_joint_state(self, msg):
         """Handle incoming joint state during calibration.
 
-        Updates position tracking, max position tracking (direction-aware),
-        and records the frame to the bag.
+        Two-phase position tracking:
+          Phase 1: Track extreme position in torque direction (arm pressing down).
+          Phase 2: After reversal detected (user rotating part), track the peak
+                   position going back — this becomes the trigger threshold.
+
+        Also records each frame to the bag.
         """
         if self._state != CalibrationState.RECORDING:
             return
@@ -244,24 +273,57 @@ class CalibrationController(QObject):
         position = msg.position[idx]
         self.position_updated.emit(position)
 
-        # Max position tracking with direction awareness
-        if self._max_position_rad is None:
-            # Initialize from first reading (Pitfall 4 from research)
-            self._max_position_rad = position
-            self.max_position_updated.emit(self._max_position_rad)
-        elif self._config.torque_nm >= 0:
-            # Positive torque: track maximum position
-            if position > self._max_position_rad:
-                self._max_position_rad = position
-                self.max_position_updated.emit(self._max_position_rad)
-        else:
-            # Negative torque: track minimum position
-            if position < self._max_position_rad:
-                self._max_position_rad = position
-                self.max_position_updated.emit(self._max_position_rad)
+        positive_torque = self._config.torque_nm >= 0
+
+        if self._extreme_position_rad is None:
+            # First reading — initialize extreme
+            self._extreme_position_rad = position
+            self.max_position_updated.emit(self._extreme_position_rad)
+
+        elif not self._reversal_detected:
+            # Phase 1: track extreme in torque direction
+            if positive_torque:
+                if position > self._extreme_position_rad:
+                    self._extreme_position_rad = position
+                    self.max_position_updated.emit(self._extreme_position_rad)
+                elif position < self._extreme_position_rad - _REVERSAL_THRESHOLD_RAD:
+                    self._start_threshold_tracking(position)
+            else:
+                if position < self._extreme_position_rad:
+                    self._extreme_position_rad = position
+                    self.max_position_updated.emit(self._extreme_position_rad)
+                elif position > self._extreme_position_rad + _REVERSAL_THRESHOLD_RAD:
+                    self._start_threshold_tracking(position)
+
+        elif not self._threshold_frozen:
+            # Phase 2: track peak in opposite direction until settle window expires
+            if positive_torque:
+                if position < self._threshold_position_rad:
+                    self._threshold_position_rad = position
+                    self.max_position_updated.emit(self._threshold_position_rad)
+            else:
+                if position > self._threshold_position_rad:
+                    self._threshold_position_rad = position
+                    self.max_position_updated.emit(self._threshold_position_rad)
 
         # Record frame to bag
         self._recording_manager.record_frame(msg, int(time.time() * 1e9))
+
+    def _start_threshold_tracking(self, position):
+        """Begin phase 2: track threshold for the settle window, then freeze."""
+        self._reversal_detected = True
+        self._threshold_position_rad = position
+        self.reversal_detected.emit(self._extreme_position_rad)
+
+        # Freeze threshold after settle window
+        settle_ms = int(self._config.settle_time_sec * 1000)
+        QTimer.singleShot(settle_ms, self._freeze_threshold)
+
+    def _freeze_threshold(self):
+        """Lock threshold after settle window expires."""
+        if self._threshold_position_rad is not None and not self._threshold_frozen:
+            self._threshold_frozen = True
+            self.threshold_locked.emit(self._threshold_position_rad)
 
     def _on_connection_changed(self, connected: bool):
         """Handle connection status changes from RosBridge.

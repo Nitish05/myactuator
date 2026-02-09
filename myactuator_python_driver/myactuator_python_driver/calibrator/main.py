@@ -79,6 +79,12 @@ def main():
         default=0.5,
         help="Threshold offset in degrees (default: 0.5)",
     )
+    parser.add_argument(
+        "--settle-time",
+        type=float,
+        default=3.0,
+        help="Seconds to track threshold after reversal before locking (default: 3.0)",
+    )
     args = parser.parse_args()
 
     # --- Application setup ---
@@ -101,6 +107,7 @@ def main():
         torque_nm=args.torque,
         recording_name=args.name,
         offset_deg=args.offset,
+        settle_time_sec=args.settle_time,
     )
 
     # --- Wire signals ---
@@ -116,21 +123,34 @@ def main():
     def on_complete(result):
         print(f"\n[calibrator] === Calibration Complete ===")
         print(f"  Joint:        {result.joint_name}")
-        print(f"  Max position: {result.max_position_rad:.4f} rad "
+        print(f"  Threshold:    {result.max_position_rad:.4f} rad "
               f"({math.degrees(result.max_position_rad):.2f} deg)")
+        print(f"  Extreme:      {result.extreme_position_rad:.4f} rad "
+              f"({math.degrees(result.extreme_position_rad):.2f} deg)")
         print(f"  Torque:       {result.torque_nm:.3f} Nm")
         print(f"  Duration:     {result.duration_sec:.1f} s")
         print(f"  Recording:    {result.recording_name}")
         QTimer.singleShot(100, app.quit)
 
     def on_max_position(pos):
-        print(f"[calibrator] Max position: {pos:.4f} rad "
+        print(f"[calibrator] Position: {pos:.4f} rad "
               f"({math.degrees(pos):.2f} deg)")
+
+    def on_reversal(extreme):
+        print(f"[calibrator] Reversal detected at {extreme:.4f} rad "
+              f"({math.degrees(extreme):.2f} deg) — tracking threshold "
+              f"for {args.settle_time:.0f}s")
+
+    def on_threshold_locked(threshold):
+        print(f"[calibrator] Threshold locked: {threshold:.4f} rad "
+              f"({math.degrees(threshold):.2f} deg)")
 
     controller.state_changed.connect(on_state_changed)
     controller.error_occurred.connect(on_error)
     controller.calibration_complete.connect(on_complete)
     controller.max_position_updated.connect(on_max_position)
+    controller.reversal_detected.connect(on_reversal)
+    controller.threshold_locked.connect(on_threshold_locked)
 
     # --- Connection handling ---
     calibration_started = False
@@ -167,20 +187,23 @@ def main():
     ros_bridge.connection_status_changed.connect(on_connection_changed)
 
     # --- Signal handling (Ctrl+C) ---
+    # All prints scheduled on Qt event loop to avoid reentrant stdout writes
     stop_requested = False
 
     def sigint_handler(signum, frame):
         nonlocal stop_requested
         if not stop_requested and controller.is_active:
             stop_requested = True
-            print("\n[calibrator] Stopping gracefully... (press Ctrl+C again to e-stop)")
-            # Schedule stop on the Qt event loop thread
-            QTimer.singleShot(0, controller.stop_calibration)
+            def _graceful():
+                print("\n[calibrator] Stopping gracefully... (press Ctrl+C again to e-stop)")
+                controller.stop_calibration()
+            QTimer.singleShot(0, _graceful)
         else:
-            print("\n[calibrator] EMERGENCY STOP!")
-            # Schedule emergency stop on the Qt event loop thread
-            QTimer.singleShot(0, controller.emergency_stop)
-            QTimer.singleShot(200, app.quit)
+            def _estop():
+                print("\n[calibrator] EMERGENCY STOP!")
+                controller.emergency_stop()
+                QTimer.singleShot(200, app.quit)
+            QTimer.singleShot(0, _estop)
 
     signal.signal(signal.SIGINT, sigint_handler)
 
