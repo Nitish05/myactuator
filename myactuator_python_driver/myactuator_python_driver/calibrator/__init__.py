@@ -8,10 +8,12 @@ RosBridge and RecordingManager components.
 
 from .config import CalibrationConfig, CalibrationResult, CalibrationState
 from .controller import CalibrationController
+from .window import CalibrationWindow
 
 __all__ = [
     "CalibrationConfig",
     "CalibrationController",
     "CalibrationResult",
     "CalibrationState",
+    "CalibrationWindow",
 ]
