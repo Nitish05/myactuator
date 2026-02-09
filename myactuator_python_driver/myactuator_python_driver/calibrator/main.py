@@ -221,5 +221,79 @@ def main():
     sys.exit(app.exec())
 
 
+def main_gui():
+    """GUI entry point for Torque Threshold Calibrator."""
+    import logging
+    logging.getLogger('rosbag2_cpp').setLevel(logging.CRITICAL)
+    logging.getLogger('rosbag2_storage_mcap').setLevel(logging.CRITICAL)
+    logging.getLogger('rcl').setLevel(logging.CRITICAL)
+
+    try:
+        from PyQt6.QtWidgets import QApplication, QMessageBox
+        from PyQt6.QtCore import Qt
+    except ImportError:
+        print("Error: PyQt6 is required but not installed.")
+        print("Install it with: pip install PyQt6")
+        sys.exit(1)
+
+    app = QApplication(sys.argv)
+    app.setApplicationName("Torque Threshold Calibrator")
+
+    # Apply qt-material theme if available (same pattern as studio/main.py)
+    try:
+        from qt_material import apply_stylesheet
+        apply_stylesheet(app, theme='dark_blue.xml')
+    except ImportError:
+        from PyQt6.QtWidgets import QStyleFactory
+        from PyQt6.QtGui import QPalette, QColor
+        app.setStyle(QStyleFactory.create("Fusion"))
+        palette = QPalette()
+        palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
+        palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
+        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
+        palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
+        palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
+        palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
+        palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
+        palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
+        app.setPalette(palette)
+
+    # Check for ROS 2 availability (use QMessageBox since we have GUI)
+    try:
+        import rclpy  # noqa: F401
+    except ImportError:
+        QMessageBox.critical(
+            None,
+            "ROS 2 Not Found",
+            "ROS 2 Python packages (rclpy) are not available.\n\n"
+            "Make sure you have:\n"
+            "1. Installed ROS 2\n"
+            "2. Sourced the ROS 2 setup file\n"
+            "3. Built and sourced your workspace"
+        )
+        sys.exit(1)
+
+    try:
+        import rosbag2_py  # noqa: F401
+    except ImportError:
+        QMessageBox.critical(
+            None,
+            "rosbag2 Not Found",
+            "rosbag2_py is not available.\n\n"
+            "Make sure ros-<distro>-rosbag2 is installed."
+        )
+        sys.exit(1)
+
+    from myactuator_python_driver.calibrator.window import CalibrationWindow
+    window = CalibrationWindow()
+    window.show()
+    sys.exit(app.exec())
+
+
 if __name__ == "__main__":
     main()
