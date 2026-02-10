@@ -5,7 +5,6 @@ Provides a high-level interface for motor control with unit conversions.
 """
 
 import math
-import struct
 from typing import Optional, Tuple
 from dataclasses import dataclass
 
@@ -95,9 +94,6 @@ class MotorWrapper:
         
         # Cache last known state
         self._last_state = MotorState()
-
-        # CAN node for raw V4 commands (set externally)
-        self._can_node = None
 
     def _apply_direction(self, value: float) -> float:
         """Apply direction inversion if needed."""
@@ -238,10 +234,6 @@ class MotorWrapper:
         except Exception:
             return self._last_state
 
-    def set_can_node(self, can_node):
-        """Set CAN node for raw V4 commands."""
-        self._can_node = can_node
-
     def send_force_position(self, position_rad: float, max_torque_pct: float = 50.0,
                             max_speed_rad_s: Optional[float] = None) -> MotorState:
         """
@@ -258,60 +250,22 @@ class MotorWrapper:
         Returns:
             Motor state after command
         """
-        # Convert to motor units
         position_deg = rad_to_deg(self._apply_direction(position_rad))
         position_deg = self._remove_offset(position_deg)
-        angle_ctrl = int(position_deg * 100)  # 0.01 deg/LSB
 
         if max_speed_rad_s is not None:
-            max_speed = int(rad_to_deg(max_speed_rad_s))
+            max_speed_deg = rad_to_deg(max_speed_rad_s)
         else:
-            max_speed = int(self.max_velocity)
+            max_speed_deg = self.max_velocity
 
         # Clamp torque to 0-100% and convert to 0-255
         max_torque_pct = max(0.0, min(100.0, max_torque_pct))
         max_torque = int(max_torque_pct * 255 / 100)
 
-        # Build 0xA9 command frame
-        data = [
-            0xA9,
-            max_torque & 0xFF,
-            max_speed & 0xFF, (max_speed >> 8) & 0xFF,
-            angle_ctrl & 0xFF, (angle_ctrl >> 8) & 0xFF,
-            (angle_ctrl >> 16) & 0xFF, (angle_ctrl >> 24) & 0xFF
-        ]
-
-        return self._send_raw_can(data)
-
-    def _send_raw_can(self, data: list) -> MotorState:
-        """Send raw CAN frame and parse feedback."""
-        if not self._can_node:
-            return self._last_state
-
         try:
-            tx_id = 0x140 + self.can_id
-            frame = rmd.can.Frame(tx_id, data)
-            self._can_node.write(frame)
-
-            response = self._can_node.read()
-            resp = response.getData()
-
-            # Parse feedback: [cmd, temp, curr_lo, curr_hi, spd_lo, spd_hi, pos_lo, pos_hi]
-            temp = resp[1]
-            current = struct.unpack('<h', bytes(resp[2:4]))[0] * 0.01
-            speed = struct.unpack('<h', bytes(resp[4:6]))[0]
-            position = struct.unpack('<h', bytes(resp[6:8]))[0] * 0.01
-
-            pos_deg = self._apply_direction(self._apply_offset(position))
-
-            self._last_state = MotorState(
-                position_rad=deg_to_rad(pos_deg),
-                velocity_rad_s=deg_to_rad(self._apply_direction(speed)),
-                effort_nm=current * self.torque_constant,
-                temperature_c=temp,
-                current_a=current
-            )
-            return self._last_state
+            feedback = self.actuator.sendForcePositionSetpoint(
+                position_deg, max_speed_deg, max_torque)
+            return self._feedback_to_state(feedback)
         except Exception:
             return self._last_state
 

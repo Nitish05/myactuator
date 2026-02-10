@@ -27,6 +27,7 @@ endif()
 add_library(myactuator_rmd SHARED
   src/can/node.cpp
   src/can/utilities.cpp
+  src/protocol/motion_mode.cpp
   src/protocol/requests.cpp
   src/protocol/responses.cpp
   src/actuator_interface.cpp

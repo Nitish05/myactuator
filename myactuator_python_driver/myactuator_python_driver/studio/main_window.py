@@ -535,6 +535,7 @@ class MainWindow(QMainWindow):
         if not self._ros_bridge.joint_names:
             self._show_error_message("No joints detected - connect to driver first")
             return
+        self._ros_bridge.set_mode("position")
         self._ros_bridge.go_to_zero()
 
     # === Mode Switching ===

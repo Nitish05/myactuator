@@ -484,6 +484,116 @@ namespace myactuator_rmd {
       static constexpr std::int16_t number_of_pole_pairs {21};
   };
 
+
+  ///< V4 X-Series actuators (2024+)
+  ///< Naming: RMD-X{size}-P{ratio}-{peak_torque}-E (Brand-Series-Ratio-PeakTorque-Communication)
+  ///< Dual encoder: ABS-17BIT input / ABS-18BIT output
+
+  /**\class X4V4_P12_5
+   * \brief
+   *    Constants for the X4-P12.5 V4 actuator (X2-P28 frame, V4 electronics)
+  */
+  class X4V4_P12_5 {
+    public:
+      static constexpr float reducer_ratio {12.5f};
+      static constexpr float rated_speed {240}; // in rpm
+      static constexpr float rated_current {3.0}; // in A
+      static constexpr float rated_power {80}; // in W
+      static constexpr float rated_torque {3.0}; // in Nm
+      static constexpr float torque_constant {rated_torque/rated_current}; // (1.0) in Nm/A
+      static constexpr float rotor_inertia {200}; // in gcm2
+  };
+
+  /**\class X4V4_P36
+   * \brief
+   *    Constants for the X4-P36 V4 actuator
+  */
+  class X4V4_P36 {
+    public:
+      static constexpr float reducer_ratio {36};
+      static constexpr float rated_speed {80}; // in rpm
+      static constexpr float rated_current {3.5}; // in A
+      static constexpr float rated_power {80}; // in W
+      static constexpr float rated_torque {9.0}; // in Nm
+      static constexpr float torque_constant {rated_torque/rated_current}; // (2.57) in Nm/A
+      static constexpr float rotor_inertia {200}; // in gcm2
+  };
+
+  /**\class X6V4_P20
+   * \brief
+   *    Constants for the X6-P20 V4 actuator
+  */
+  class X6V4_P20 {
+    public:
+      static constexpr float reducer_ratio {20};
+      static constexpr float rated_speed {150}; // in rpm
+      static constexpr float rated_current {5.0}; // in A
+      static constexpr float rated_power {150}; // in W
+      static constexpr float rated_torque {10.0}; // in Nm
+      static constexpr float torque_constant {rated_torque/rated_current}; // (2.0) in Nm/A
+      static constexpr float rotor_inertia {4800}; // in gcm2
+  };
+
+  /**\class X8V4_P20
+   * \brief
+   *    Constants for the X8-P20 V4 actuator
+  */
+  class X8V4_P20 {
+    public:
+      static constexpr float reducer_ratio {20};
+      static constexpr float rated_speed {100}; // in rpm
+      static constexpr float rated_current {7.0}; // in A
+      static constexpr float rated_power {250}; // in W
+      static constexpr float rated_torque {20.0}; // in Nm
+      static constexpr float torque_constant {rated_torque/rated_current}; // (2.86) in Nm/A
+      static constexpr float rotor_inertia {20000}; // in gcm2
+  };
+
+  /**\class X8V4_P33
+   * \brief
+   *    Constants for the X8-P33 V4 actuator
+  */
+  class X8V4_P33 {
+    public:
+      static constexpr float reducer_ratio {33};
+      static constexpr float rated_speed {60}; // in rpm
+      static constexpr float rated_current {5.0}; // in A
+      static constexpr float rated_power {200}; // in W
+      static constexpr float rated_torque {33.0}; // in Nm
+      static constexpr float torque_constant {rated_torque/rated_current}; // (6.6) in Nm/A
+      static constexpr float rotor_inertia {20000}; // in gcm2
+  };
+
+  /**\class X12V4_P20
+   * \brief
+   *    Constants for the X12-P20 V4 actuator
+  */
+  class X12V4_P20 {
+    public:
+      static constexpr float reducer_ratio {20};
+      static constexpr float rated_speed {80}; // in rpm
+      static constexpr float rated_current {15.0}; // in A
+      static constexpr float rated_power {800}; // in W
+      static constexpr float rated_torque {60.0}; // in Nm
+      static constexpr float torque_constant {rated_torque/rated_current}; // (4.0) in Nm/A
+      static constexpr float rotor_inertia {59000}; // in gcm2
+  };
+
+  /**\class X15V4_P20
+   * \brief
+   *    Constants for the X15-P20 V4 actuator
+  */
+  class X15V4_P20 {
+    public:
+      static constexpr float reducer_ratio {20};
+      static constexpr float rated_speed {60}; // in rpm
+      static constexpr float rated_current {25.0}; // in A
+      static constexpr float rated_power {1500}; // in W
+      static constexpr float rated_torque {150.0}; // in Nm
+      static constexpr float torque_constant {rated_torque/rated_current}; // (6.0) in Nm/A
+      static constexpr float rotor_inertia {175000}; // in gcm2
+  };
+
 }
 
 #endif // MYACTUATOR_RMD__ACTUATOR_CONSTANTS

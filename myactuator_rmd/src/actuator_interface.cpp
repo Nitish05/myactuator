@@ -7,6 +7,7 @@
 #include "myactuator_rmd/actuator_state/can_baud_rate.hpp"
 #include "myactuator_rmd/actuator_state/control_mode.hpp"
 #include "myactuator_rmd/actuator_state/feedback.hpp"
+#include "myactuator_rmd/actuator_state/gain_index.hpp"
 #include "myactuator_rmd/actuator_state/gains.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_1.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_2.hpp"
@@ -38,9 +39,23 @@ namespace myactuator_rmd {
   }
 
   Gains ActuatorInterface::getControllerGains() {
-    GetControllerGainsRequest const request {};
-    GetControllerGainsResponse const response {driver_.sendRecv(request, actuator_id_)};
-    return response.getGains();
+    PidGains current, speed, position;
+    current.kp = getGain(GainIndex::CURRENT_KP);
+    current.ki = getGain(GainIndex::CURRENT_KI);
+    current.kd = getGain(GainIndex::CURRENT_KD);
+    speed.kp = getGain(GainIndex::SPEED_KP);
+    speed.ki = getGain(GainIndex::SPEED_KI);
+    speed.kd = getGain(GainIndex::SPEED_KD);
+    position.kp = getGain(GainIndex::POSITION_KP);
+    position.ki = getGain(GainIndex::POSITION_KI);
+    position.kd = getGain(GainIndex::POSITION_KD);
+    return Gains{current, speed, position};
+  }
+
+  float ActuatorInterface::getGain(GainIndex const index) {
+    GetGainRequest const request {index};
+    GetGainResponse const response {driver_.sendRecv(request, actuator_id_)};
+    return response.getValue();
   }
 
   ControlMode ActuatorInterface::getControlMode() {
@@ -157,13 +172,31 @@ namespace myactuator_rmd {
     return response.getStatus();
   }
 
+  Feedback ActuatorInterface::sendForcePositionSetpoint(float const position, float const max_speed, std::uint8_t const max_torque) {
+    SetForcePositionRequest const request {position, max_speed, max_torque};
+    SetForcePositionResponse const response {driver_.sendRecv(request, actuator_id_)};
+    return response.getStatus();
+  }
+
+  Feedback ActuatorInterface::sendSingleTurnPositionSetpoint(float const position, float const max_speed, std::uint8_t const direction) {
+    SetSingleTurnPositionRequest const request {position, max_speed, direction};
+    SetSingleTurnPositionResponse const response {driver_.sendRecv(request, actuator_id_)};
+    return response.getStatus();
+  }
+
+  Feedback ActuatorInterface::sendIncrementalPositionSetpoint(float const angle_increment, float const max_speed) {
+    SetIncrementalPositionRequest const request {angle_increment, max_speed};
+    SetIncrementalPositionResponse const response {driver_.sendRecv(request, actuator_id_)};
+    return response.getStatus();
+  }
+
   Feedback ActuatorInterface::sendTorqueSetpoint(float const torque, float const torque_constant) {
     auto const current {torque/torque_constant};
     return sendCurrentSetpoint(current);
   }
 
-  Feedback ActuatorInterface::sendVelocitySetpoint(float const speed) {
-    SetVelocityRequest const request {speed};
+  Feedback ActuatorInterface::sendVelocitySetpoint(float const speed, std::uint8_t const max_torque) {
+    SetVelocityRequest const request {speed, max_torque};
     SetVelocityResponse const response {driver_.sendRecv(request, actuator_id_)};
     return response.getStatus();
   }
@@ -199,14 +232,28 @@ namespace myactuator_rmd {
   }
 
   Gains ActuatorInterface::setControllerGains(Gains const& gains, bool const is_persistent) {
+    PidGains current, speed, position;
+    current.kp = setGain(GainIndex::CURRENT_KP, gains.current.kp, is_persistent);
+    current.ki = setGain(GainIndex::CURRENT_KI, gains.current.ki, is_persistent);
+    current.kd = setGain(GainIndex::CURRENT_KD, gains.current.kd, is_persistent);
+    speed.kp = setGain(GainIndex::SPEED_KP, gains.speed.kp, is_persistent);
+    speed.ki = setGain(GainIndex::SPEED_KI, gains.speed.ki, is_persistent);
+    speed.kd = setGain(GainIndex::SPEED_KD, gains.speed.kd, is_persistent);
+    position.kp = setGain(GainIndex::POSITION_KP, gains.position.kp, is_persistent);
+    position.ki = setGain(GainIndex::POSITION_KI, gains.position.ki, is_persistent);
+    position.kd = setGain(GainIndex::POSITION_KD, gains.position.kd, is_persistent);
+    return Gains{current, speed, position};
+  }
+
+  float ActuatorInterface::setGain(GainIndex const index, float const value, bool const is_persistent) {
     if (is_persistent) {
-      SetControllerGainsPersistentlyRequest const request {gains};
-      SetControllerGainsPersistentlyResponse const response {driver_.sendRecv(request, actuator_id_)};
-      return response.getGains();
+      SetGainToRomRequest const request {index, value};
+      SetGainToRomResponse const response {driver_.sendRecv(request, actuator_id_)};
+      return response.getValue();
     } else {
-      SetControllerGainsRequest const request {gains};
-      SetControllerGainsResponse const response {driver_.sendRecv(request, actuator_id_)};
-      return response.getGains();
+      SetGainToRamRequest const request {index, value};
+      SetGainToRamResponse const response {driver_.sendRecv(request, actuator_id_)};
+      return response.getValue();
     }
   }
 

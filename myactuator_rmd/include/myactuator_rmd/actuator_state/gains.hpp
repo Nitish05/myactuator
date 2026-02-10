@@ -1,7 +1,7 @@
 /**
  * \file gains.hpp
  * \mainpage
- *    Contains struct for control loop gains
+ *    Contains struct for control loop gains (V4.3 float-based PID format)
  * \author
  *    Tobit Flatscher (github.com/2b-t)
 */
@@ -10,98 +10,50 @@
 #define MYACTUATOR_RMD__ACTUATOR_STATE__GAINS
 #pragma once
 
-#include <cstdint>
-
 
 namespace myactuator_rmd {
 
-  /**\class PiGains
+  /**\class PidGains
    * \brief
-   *    Proportional and integral gains for a PI-controller
+   *    Proportional, integral, and derivative gains for a PID controller (V4.3 format)
   */
-  class PiGains {
+  class PidGains {
     public:
-      /**\fn PiGains
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] kp_
-       *    The proportional gain
-       * \param[in] ki_
-       *    The integral gain
-      */
-      constexpr PiGains(std::uint8_t const& kp_ = 0, std::uint8_t const& ki_ = 0) noexcept;
-      PiGains(PiGains const&) = default;
-      PiGains& operator = (PiGains const&) = default;
-      PiGains(PiGains&&) = default;
-      PiGains& operator = (PiGains&&) = default;
+      constexpr PidGains(float const kp_ = 0.0f, float const ki_ = 0.0f, float const kd_ = 0.0f) noexcept;
+      PidGains(PidGains const&) = default;
+      PidGains& operator = (PidGains const&) = default;
+      PidGains(PidGains&&) = default;
+      PidGains& operator = (PidGains&&) = default;
 
-      std::uint8_t kp;
-      std::uint8_t ki;
+      float kp;
+      float ki;
+      float kd;
   };
 
   /**\class Gains
    * \brief
-   *    Control loop gains
+   *    Control loop gains for current, speed, and position loops
   */
   class Gains {
     public:
-      /**\fn Gains
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] current_
-       *    The PI-gains for current control
-       * \param[in] speed_
-       *    The PI-gains for speed control
-       * \param[in] position_
-       *    The PI-gains for position control
-      */
-      constexpr Gains(PiGains const& current_, PiGains const& speed_, PiGains const& position_) noexcept;
-      /**\fn Gains
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] current_kp
-       *    The proportional gain for current control
-       * \param[in] current_ki
-       *    The integral gain for current control
-       * \param[in] speed_kp
-       *    The proportional gain for speed control
-       * \param[in] speed_ki
-       *    The integral gain for speed control
-       * \param[in] position_kp
-       *    The proportional gain for position control
-       * \param[in] position_ki
-       *    The integral gain for position control
-      */
-      constexpr Gains(std::uint8_t const current_kp = 0, std::uint8_t const current_ki = 0,
-                      std::uint8_t const speed_kp = 0, std::uint8_t const speed_ki = 0,
-                      std::uint8_t const position_kp = 0, std::uint8_t const position_ki = 0) noexcept;
+      constexpr Gains(PidGains const& current_ = {}, PidGains const& speed_ = {}, PidGains const& position_ = {}) noexcept;
       Gains(Gains const&) = default;
       Gains& operator = (Gains const&) = default;
       Gains(Gains&&) = default;
       Gains& operator = (Gains&&) = default;
 
-      PiGains current;
-      PiGains speed;
-      PiGains position;
+      PidGains current;
+      PidGains speed;
+      PidGains position;
   };
 
-  constexpr PiGains::PiGains(std::uint8_t const& kp_, std::uint8_t const& ki_) noexcept
-  : kp{kp_}, ki{ki_} {
+  constexpr PidGains::PidGains(float const kp_, float const ki_, float const kd_) noexcept
+  : kp{kp_}, ki{ki_}, kd{kd_} {
     return;
   }
 
-  constexpr Gains::Gains(PiGains const& current_, PiGains const& speed_, PiGains const& position_) noexcept
+  constexpr Gains::Gains(PidGains const& current_, PidGains const& speed_, PidGains const& position_) noexcept
   : current{current_}, speed{speed_}, position{position_} {
-    return;
-  }
-
-  constexpr Gains::Gains(std::uint8_t const current_kp, std::uint8_t const current_ki,
-                         std::uint8_t const speed_kp, std::uint8_t const speed_ki,
-                         std::uint8_t const position_kp, std::uint8_t const position_ki) noexcept
-  : current{current_kp, current_ki}, speed{speed_kp, speed_ki}, position{position_kp, position_ki} {
     return;
   }
 

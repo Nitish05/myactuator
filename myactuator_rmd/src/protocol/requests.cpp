@@ -7,6 +7,7 @@
 
 #include "myactuator_rmd/actuator_state/acceleration_type.hpp"
 #include "myactuator_rmd/actuator_state/can_baud_rate.hpp"
+#include "myactuator_rmd/actuator_state/gain_index.hpp"
 #include "myactuator_rmd/protocol/single_motor_message.hpp"
 #include "myactuator_rmd/exceptions.hpp"
 
@@ -26,12 +27,12 @@ namespace myactuator_rmd {
   SetCanIdRequest::SetCanIdRequest(std::uint16_t const can_id)
   : CanIdRequest{}  {
     setAt(static_cast<std::uint8_t>(0), 2);
-    setAt(static_cast<std::uint8_t>(can_id), 6);
+    setAt(can_id, 6);
     return;
   }
 
   std::uint16_t SetCanIdRequest::getCanId() const noexcept {
-    return static_cast<std::uint16_t>(getAs<std::uint8_t>(7));
+    return getAs<std::uint16_t>(6);
   }
 
   SetAccelerationRequest::SetAccelerationRequest(std::uint32_t const acceleration, AccelerationType const mode)
@@ -73,6 +74,16 @@ namespace myactuator_rmd {
     return getAs<std::int32_t>(4);
   }
 
+  GetGainRequest::GetGainRequest(GainIndex const index)
+  : SingleMotorRequest{} {
+    data_[1] = static_cast<std::uint8_t>(index);
+    return;
+  }
+
+  GainIndex GetGainRequest::getIndex() const noexcept {
+    return static_cast<GainIndex>(data_[1]);
+  }
+
   SetPositionAbsoluteRequest::SetPositionAbsoluteRequest(float const position, float const max_speed)
   : SingleMotorRequest{} {
     auto const v {static_cast<std::uint16_t>(max_speed)};
@@ -88,6 +99,67 @@ namespace myactuator_rmd {
 
   float SetPositionAbsoluteRequest::getPosition() const noexcept {
     return static_cast<float>(getAs<std::int32_t>(4)/100.0f);
+  }
+
+  SetForcePositionRequest::SetForcePositionRequest(float const position, float const max_speed, std::uint8_t const max_torque)
+  : SingleMotorRequest{} {
+    setAt(max_torque, 1);
+    auto const v {static_cast<std::uint16_t>(max_speed)};
+    setAt(v, 2);
+    auto const pos {static_cast<std::int32_t>(position*100.0f)};
+    setAt(pos, 4);
+    return;
+  }
+
+  float SetForcePositionRequest::getPosition() const noexcept {
+    return static_cast<float>(getAs<std::int32_t>(4)/100.0f);
+  }
+
+  float SetForcePositionRequest::getMaxSpeed() const noexcept {
+    return static_cast<float>(getAs<std::uint16_t>(2));
+  }
+
+  std::uint8_t SetForcePositionRequest::getMaxTorque() const noexcept {
+    return getAs<std::uint8_t>(1);
+  }
+
+  SetSingleTurnPositionRequest::SetSingleTurnPositionRequest(float const position, float const max_speed, std::uint8_t const direction)
+  : SingleMotorRequest{} {
+    setAt(direction, 1);
+    auto const v {static_cast<std::uint16_t>(max_speed)};
+    setAt(v, 2);
+    auto const pos {static_cast<std::uint16_t>(position*100.0f)};
+    setAt(pos, 4);
+    return;
+  }
+
+  float SetSingleTurnPositionRequest::getPosition() const noexcept {
+    return static_cast<float>(getAs<std::uint16_t>(4))*0.01f;
+  }
+
+  float SetSingleTurnPositionRequest::getMaxSpeed() const noexcept {
+    return static_cast<float>(getAs<std::uint16_t>(2));
+  }
+
+  std::uint8_t SetSingleTurnPositionRequest::getDirection() const noexcept {
+    return getAs<std::uint8_t>(1);
+  }
+
+  SetIncrementalPositionRequest::SetIncrementalPositionRequest(float const angle_increment, float const max_speed)
+  : SingleMotorRequest{} {
+    auto const v {static_cast<std::uint16_t>(max_speed)};
+    setAt(v, 2);
+    auto const inc {static_cast<std::int32_t>(angle_increment*100.0f)};
+    setAt(inc, 4);
+    return;
+  }
+
+  float SetIncrementalPositionRequest::getAngleIncrement() const noexcept {
+    return static_cast<float>(getAs<std::int32_t>(4))*0.01f;
+  }
+
+  float SetIncrementalPositionRequest::getMaxSpeed() const noexcept {
+    return static_cast<float>(getAs<std::uint16_t>(2));
   }
 
   SetTorqueRequest::SetTorqueRequest(float const current)
@@ -111,8 +183,9 @@ namespace myactuator_rmd {
     return timeout;
   }
 
-  SetVelocityRequest::SetVelocityRequest(float const speed)
+  SetVelocityRequest::SetVelocityRequest(float const speed, std::uint8_t const max_torque)
   : SingleMotorRequest{} {
+    setAt(max_torque, 1);
     auto const s {static_cast<std::int32_t>(speed*100.0f)};
     setAt(s, 4);
     return;
@@ -120,6 +193,10 @@ namespace myactuator_rmd {
 
   float SetVelocityRequest::getSpeed() const noexcept {
     return static_cast<float>(getAs<std::int32_t>(4))/100.0f;
+  }
+
+  std::uint8_t SetVelocityRequest::getMaxTorque() const noexcept {
+    return getAs<std::uint8_t>(1);
   }
 
 }

@@ -10,6 +10,7 @@
 
 #include "myactuator_rmd/actuator_state/control_mode.hpp"
 #include "myactuator_rmd/actuator_state/feedback.hpp"
+#include "myactuator_rmd/actuator_state/gain_index.hpp"
 #include "myactuator_rmd/actuator_state/gains.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_1.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_2.hpp"
@@ -32,15 +33,13 @@ namespace myactuator_rmd {
       EXPECT_EQ(acceleration, 10000);
     }
 
-    TEST(GetControllerGainsResponseTest, parsing) {
-      myactuator_rmd::GetControllerGainsResponse const response {{0x30, 0x00, 0x55, 0x19, 0x55, 0x19, 0x55, 0x19}};
-      myactuator_rmd::Gains const gains {response.getGains()};
-      EXPECT_EQ(gains.current.kp, 85);
-      EXPECT_EQ(gains.current.ki, 25);
-      EXPECT_EQ(gains.speed.kp, 85);
-      EXPECT_EQ(gains.speed.ki, 25);
-      EXPECT_EQ(gains.position.kp, 85);
-      EXPECT_EQ(gains.position.ki, 25);
+    TEST(GetGainResponseTest, parsing) {
+      // V4.3: index 0x01 (CURRENT_KP), float value 1.0f = 0x3F800000 (LE: 00 00 80 3F)
+      myactuator_rmd::GetGainResponse const response {{0x30, 0x01, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3F}};
+      auto const index {response.getIndex()};
+      auto const value {response.getValue()};
+      EXPECT_EQ(index, GainIndex::CURRENT_KP);
+      EXPECT_NEAR(value, 1.0f, 0.001f);
     }
 
     TEST(GetControlModeResponseTest, parsing) {
@@ -62,9 +61,11 @@ namespace myactuator_rmd {
     }
 
     TEST(GetMotorStatus1ResponseTest, parsing) {
-      myactuator_rmd::GetMotorStatus1Response const response {{0x9A, 0x32, 0x00, 0x01, 0xE5, 0x01, 0x04, 0x00}};
+      // DATA: [cmd, motor_temp, mos_temp, brake, voltage_lo, voltage_hi, error_lo, error_hi]
+      myactuator_rmd::GetMotorStatus1Response const response {{0x9A, 0x32, 0x28, 0x01, 0xE5, 0x01, 0x04, 0x00}};
       myactuator_rmd::MotorStatus1 const motor_status {response.getStatus()};
       EXPECT_EQ(motor_status.temperature, 50);
+      EXPECT_EQ(motor_status.mos_temperature, 40);
       EXPECT_EQ(motor_status.is_brake_released, true);
       EXPECT_NEAR(motor_status.voltage, 48.5, 0.1);
       EXPECT_EQ(motor_status.error_code, myactuator_rmd::ErrorCode::LOW_VOLTAGE);

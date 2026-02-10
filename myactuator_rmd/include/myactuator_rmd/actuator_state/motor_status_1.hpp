@@ -21,20 +21,8 @@ namespace myactuator_rmd {
   */
   class MotorStatus1 {
     public:
-      /**\fn MotorStatus1
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] temperature_
-       *    The temperature of the actuator in degree Celsius with a resolution of 1 deg C
-       * \param[in] is_brake_released_
-       *    Boolean variable indicating whether the brake has been released
-       * \param[in] voltage_
-       *    The voltage with a resultion of 0.1 Volt
-       * \param[in] error_code_
-       *    The error code
-      */
-      constexpr MotorStatus1(int const temperature_ = 0, bool const is_brake_released_ = false, 
+      constexpr MotorStatus1(int const temperature_ = 0, int const mos_temperature_ = 0,
+                             bool const is_brake_released_ = false,
                              float const voltage_ = 0.0f, ErrorCode const error_code_ = ErrorCode::NO_ERROR) noexcept;
       MotorStatus1(MotorStatus1 const&) = default;
       MotorStatus1& operator = (MotorStatus1 const&) = default;
@@ -42,14 +30,17 @@ namespace myactuator_rmd {
       MotorStatus1& operator = (MotorStatus1&&) = default;
 
       int temperature;
+      int mos_temperature;
       bool is_brake_released;
       float voltage;
       ErrorCode error_code;
   };
 
-  constexpr MotorStatus1::MotorStatus1(int const temperature_, bool const is_brake_released_, 
+  constexpr MotorStatus1::MotorStatus1(int const temperature_, int const mos_temperature_,
+                                       bool const is_brake_released_,
                                        float const voltage_, ErrorCode const error_code_) noexcept
-  : temperature{temperature_}, is_brake_released{is_brake_released_}, voltage{voltage_}, error_code{error_code_} {
+  : temperature{temperature_}, mos_temperature{mos_temperature_},
+    is_brake_released{is_brake_released_}, voltage{voltage_}, error_code{error_code_} {
     return;
   }
 

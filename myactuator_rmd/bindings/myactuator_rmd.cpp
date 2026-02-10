@@ -20,6 +20,7 @@
 #include "myactuator_rmd/actuator_state/control_mode.hpp"
 #include "myactuator_rmd/actuator_state/error_code.hpp"
 #include "myactuator_rmd/actuator_state/feedback.hpp"
+#include "myactuator_rmd/actuator_state/gain_index.hpp"
 #include "myactuator_rmd/actuator_state/gains.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_1.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_2.hpp"
@@ -33,22 +34,12 @@
 #include "myactuator_rmd/actuator_interface.hpp"
 #include "myactuator_rmd/exceptions.hpp"
 #include "myactuator_rmd/io.hpp"
+#include "myactuator_rmd/protocol/motion_mode.hpp"
 
 
 namespace myactuator_rmd {
   namespace bindings {
 
-    /**\fn declareActuator
-     * \brief
-     *    Helper function for declaring the actuator constants for a given actuator
-     * 
-     * \tparam T
-     *    The class containing the actuator constants
-     * \param[in] m
-     *    Pybind11 module that the actuator constants should be declared into
-     * \param[in] class_name
-     *    Class name of the corresponding Python bindings
-    */
     template<typename T>
     void declareActuator(pybind11::module& m, std::string const& class_name) {
       pybind11::class_<T>(m, class_name.c_str())
@@ -76,6 +67,7 @@ PYBIND11_MODULE(myactuator_rmd_py, m) {
     .def("getAcceleration", &myactuator_rmd::ActuatorInterface::getAcceleration)
     .def("getCanId", &myactuator_rmd::ActuatorInterface::getCanId)
     .def("getControllerGains", &myactuator_rmd::ActuatorInterface::getControllerGains)
+    .def("getGain", &myactuator_rmd::ActuatorInterface::getGain)
     .def("getControlMode", &myactuator_rmd::ActuatorInterface::getControlMode)
     .def("getMotorModel", &myactuator_rmd::ActuatorInterface::getMotorModel)
     .def("getMotorPower", &myactuator_rmd::ActuatorInterface::getMotorPower)
@@ -94,13 +86,21 @@ PYBIND11_MODULE(myactuator_rmd_py, m) {
     .def("releaseBrake", &myactuator_rmd::ActuatorInterface::releaseBrake)
     .def("reset", &myactuator_rmd::ActuatorInterface::reset)
     .def("sendCurrentSetpoint", &myactuator_rmd::ActuatorInterface::sendCurrentSetpoint)
-    .def("sendPositionAbsoluteSetpoint", &myactuator_rmd::ActuatorInterface::sendPositionAbsoluteSetpoint)
+    .def("sendPositionAbsoluteSetpoint", &myactuator_rmd::ActuatorInterface::sendPositionAbsoluteSetpoint,
+         pybind11::arg("position"), pybind11::arg("max_speed") = 500.0f)
+    .def("sendForcePositionSetpoint", &myactuator_rmd::ActuatorInterface::sendForcePositionSetpoint)
+    .def("sendSingleTurnPositionSetpoint", &myactuator_rmd::ActuatorInterface::sendSingleTurnPositionSetpoint)
+    .def("sendIncrementalPositionSetpoint", &myactuator_rmd::ActuatorInterface::sendIncrementalPositionSetpoint)
     .def("sendTorqueSetpoint", &myactuator_rmd::ActuatorInterface::sendTorqueSetpoint)
-    .def("sendVelocitySetpoint", &myactuator_rmd::ActuatorInterface::sendVelocitySetpoint)
+    .def("sendVelocitySetpoint", &myactuator_rmd::ActuatorInterface::sendVelocitySetpoint,
+         pybind11::arg("speed"), pybind11::arg("max_torque") = static_cast<std::uint8_t>(0))
     .def("setAcceleration", &myactuator_rmd::ActuatorInterface::setAcceleration)
     .def("setCanBaudRate", &myactuator_rmd::ActuatorInterface::setCanBaudRate)
     .def("setCanId", &myactuator_rmd::ActuatorInterface::setCanId)
-    .def("setControllerGains", &myactuator_rmd::ActuatorInterface::setControllerGains)
+    .def("setControllerGains", &myactuator_rmd::ActuatorInterface::setControllerGains,
+         pybind11::arg("gains"), pybind11::arg("is_persistent") = false)
+    .def("setGain", &myactuator_rmd::ActuatorInterface::setGain,
+         pybind11::arg("index"), pybind11::arg("value"), pybind11::arg("is_persistent") = false)
     .def("setCurrentPositionAsEncoderZero", &myactuator_rmd::ActuatorInterface::setCurrentPositionAsEncoderZero)
     .def("setEncoderZero", &myactuator_rmd::ActuatorInterface::setEncoderZero)
     .def("setTimeout", &myactuator_rmd::ActuatorInterface::setTimeout)
@@ -118,7 +118,10 @@ PYBIND11_MODULE(myactuator_rmd_py, m) {
     .value("VELOCITY_PLANNING_DECELERATION", myactuator_rmd::AccelerationType::VELOCITY_PLANNING_DECELERATION);
   pybind11::enum_<myactuator_rmd::CanBaudRate>(m_actuator_state, "CanBaudRate")
     .value("KBPS500", myactuator_rmd::CanBaudRate::KBPS500)
-    .value("MBPS1", myactuator_rmd::CanBaudRate::MBPS1);
+    .value("MBPS1", myactuator_rmd::CanBaudRate::MBPS1)
+    .value("RS485_1M_CAN_OFF", myactuator_rmd::CanBaudRate::RS485_1M_CAN_OFF)
+    .value("RS485_1_5M", myactuator_rmd::CanBaudRate::RS485_1_5M)
+    .value("RS485_2_5M", myactuator_rmd::CanBaudRate::RS485_2_5M);
   pybind11::enum_<myactuator_rmd::ControlMode>(m_actuator_state, "ControlMode")
     .value("NONE", myactuator_rmd::ControlMode::NONE)
     .value("CURRENT", myactuator_rmd::ControlMode::CURRENT)
@@ -131,30 +134,43 @@ PYBIND11_MODULE(myactuator_rmd_py, m) {
     .value("OVERVOLTAGE", myactuator_rmd::ErrorCode::OVERVOLTAGE)
     .value("OVERCURRENT", myactuator_rmd::ErrorCode::OVERCURRENT)
     .value("POWER_OVERRUN", myactuator_rmd::ErrorCode::POWER_OVERRUN)
+    .value("CALIBRATION_ERROR", myactuator_rmd::ErrorCode::CALIBRATION_ERROR)
     .value("SPEEDING", myactuator_rmd::ErrorCode::SPEEDING)
     .value("UNSPECIFIED_1", myactuator_rmd::ErrorCode::UNSPECIFIED_1)
     .value("UNSPECIFIED_2", myactuator_rmd::ErrorCode::UNSPECIFIED_2)
-    .value("UNSPECIFIED_3", myactuator_rmd::ErrorCode::UNSPECIFIED_3)
+    .value("COMPONENT_OVERTEMPERATURE", myactuator_rmd::ErrorCode::COMPONENT_OVERTEMPERATURE)
     .value("OVERTEMPERATURE", myactuator_rmd::ErrorCode::OVERTEMPERATURE)
-    .value("ENCODER_CALIBRATION_ERROR", myactuator_rmd::ErrorCode::ENCODER_CALIBRATION_ERROR);
+    .value("ENCODER_CALIBRATION_ERROR", myactuator_rmd::ErrorCode::ENCODER_CALIBRATION_ERROR)
+    .value("ENCODER_DATA_ERROR", myactuator_rmd::ErrorCode::ENCODER_DATA_ERROR);
+  pybind11::enum_<myactuator_rmd::GainIndex>(m_actuator_state, "GainIndex")
+    .value("CURRENT_KP", myactuator_rmd::GainIndex::CURRENT_KP)
+    .value("CURRENT_KI", myactuator_rmd::GainIndex::CURRENT_KI)
+    .value("CURRENT_KD", myactuator_rmd::GainIndex::CURRENT_KD)
+    .value("SPEED_KP", myactuator_rmd::GainIndex::SPEED_KP)
+    .value("SPEED_KI", myactuator_rmd::GainIndex::SPEED_KI)
+    .value("SPEED_KD", myactuator_rmd::GainIndex::SPEED_KD)
+    .value("POSITION_KP", myactuator_rmd::GainIndex::POSITION_KP)
+    .value("POSITION_KI", myactuator_rmd::GainIndex::POSITION_KI)
+    .value("POSITION_KD", myactuator_rmd::GainIndex::POSITION_KD);
   pybind11::class_<myactuator_rmd::Gains>(m_actuator_state, "Gains")
-    .def(pybind11::init<myactuator_rmd::PiGains const&, myactuator_rmd::PiGains const&, myactuator_rmd::PiGains const&>())
-    .def(pybind11::init<std::uint8_t const, std::uint8_t const, std::uint8_t const, std::uint8_t const, std::uint8_t const, std::uint8_t const>())
+    .def(pybind11::init<myactuator_rmd::PidGains const&, myactuator_rmd::PidGains const&, myactuator_rmd::PidGains const&>())
+    .def(pybind11::init<>())
     .def_readwrite("current", &myactuator_rmd::Gains::current)
     .def_readwrite("speed", &myactuator_rmd::Gains::speed)
     .def_readwrite("position", &myactuator_rmd::Gains::position)
-    .def("__repr__", [](myactuator_rmd::Gains const& gains) -> std::string { 
+    .def("__repr__", [](myactuator_rmd::Gains const& gains) -> std::string {
       std::ostringstream ss {};
       ss << gains;
       return ss.str();
     });
   pybind11::class_<myactuator_rmd::MotorStatus1>(m_actuator_state, "MotorStatus1")
-    .def(pybind11::init<int const, bool const, float const, myactuator_rmd::ErrorCode const>())
+    .def(pybind11::init<int const, int const, bool const, float const, myactuator_rmd::ErrorCode const>())
     .def_readonly("temperature", &myactuator_rmd::MotorStatus1::temperature)
+    .def_readonly("mos_temperature", &myactuator_rmd::MotorStatus1::mos_temperature)
     .def_readonly("is_brake_released", &myactuator_rmd::MotorStatus1::is_brake_released)
     .def_readonly("voltage", &myactuator_rmd::MotorStatus1::voltage)
     .def_readonly("error_code", &myactuator_rmd::MotorStatus1::error_code)
-    .def("__repr__", [](myactuator_rmd::MotorStatus1 const& motor_status) -> std::string { 
+    .def("__repr__", [](myactuator_rmd::MotorStatus1 const& motor_status) -> std::string {
       std::ostringstream ss {};
       ss << motor_status;
       return ss.str();
@@ -165,7 +181,7 @@ PYBIND11_MODULE(myactuator_rmd_py, m) {
     .def_readonly("current", &myactuator_rmd::MotorStatus2::current)
     .def_readonly("shaft_speed", &myactuator_rmd::MotorStatus2::shaft_speed)
     .def_readonly("shaft_angle", &myactuator_rmd::MotorStatus2::shaft_angle)
-    .def("__repr__", [](myactuator_rmd::MotorStatus2 const& motor_status) -> std::string { 
+    .def("__repr__", [](myactuator_rmd::MotorStatus2 const& motor_status) -> std::string {
       std::ostringstream ss {};
       ss << motor_status;
       return ss.str();
@@ -176,18 +192,20 @@ PYBIND11_MODULE(myactuator_rmd_py, m) {
     .def_readonly("current_phase_a", &myactuator_rmd::MotorStatus3::current_phase_a)
     .def_readonly("current_phase_b", &myactuator_rmd::MotorStatus3::current_phase_b)
     .def_readonly("current_phase_c", &myactuator_rmd::MotorStatus3::current_phase_c)
-    .def("__repr__", [](myactuator_rmd::MotorStatus3 const& motor_status) -> std::string { 
+    .def("__repr__", [](myactuator_rmd::MotorStatus3 const& motor_status) -> std::string {
       std::ostringstream ss {};
       ss << motor_status;
       return ss.str();
     });
-  pybind11::class_<myactuator_rmd::PiGains>(m_actuator_state, "PiGains")
-    .def(pybind11::init<std::uint8_t const, std::uint8_t const>())
-    .def_readwrite("kp", &myactuator_rmd::PiGains::kp)
-    .def_readwrite("ki", &myactuator_rmd::PiGains::ki)
-    .def("__repr__", [](myactuator_rmd::PiGains const& pi_gains) -> std::string { 
+  pybind11::class_<myactuator_rmd::PidGains>(m_actuator_state, "PidGains")
+    .def(pybind11::init<float const, float const, float const>(),
+         pybind11::arg("kp") = 0.0f, pybind11::arg("ki") = 0.0f, pybind11::arg("kd") = 0.0f)
+    .def_readwrite("kp", &myactuator_rmd::PidGains::kp)
+    .def_readwrite("ki", &myactuator_rmd::PidGains::ki)
+    .def_readwrite("kd", &myactuator_rmd::PidGains::kd)
+    .def("__repr__", [](myactuator_rmd::PidGains const& pid_gains) -> std::string {
       std::ostringstream ss {};
-      ss << pi_gains;
+      ss << pid_gains;
       return ss.str();
     });
 
@@ -239,5 +257,52 @@ PYBIND11_MODULE(myactuator_rmd_py, m) {
   myactuator_rmd::bindings::declareActuator<myactuator_rmd::X10_100>(m_actuator_constants,  "X10_100");
   myactuator_rmd::bindings::declareActuator<myactuator_rmd::X12_150>(m_actuator_constants,  "X12_150");
   myactuator_rmd::bindings::declareActuator<myactuator_rmd::X15_400>(m_actuator_constants,  "X15_400");
+  // V4 models
+  myactuator_rmd::bindings::declareActuator<myactuator_rmd::X4V4_P12_5>(m_actuator_constants, "X4V4_P12_5");
+  myactuator_rmd::bindings::declareActuator<myactuator_rmd::X4V4_P36>(m_actuator_constants,   "X4V4_P36");
+  myactuator_rmd::bindings::declareActuator<myactuator_rmd::X6V4_P20>(m_actuator_constants,   "X6V4_P20");
+  myactuator_rmd::bindings::declareActuator<myactuator_rmd::X8V4_P20>(m_actuator_constants,   "X8V4_P20");
+  myactuator_rmd::bindings::declareActuator<myactuator_rmd::X8V4_P33>(m_actuator_constants,   "X8V4_P33");
+  myactuator_rmd::bindings::declareActuator<myactuator_rmd::X12V4_P20>(m_actuator_constants,  "X12V4_P20");
+  myactuator_rmd::bindings::declareActuator<myactuator_rmd::X15V4_P20>(m_actuator_constants,  "X15V4_P20");
+
+  auto m_motion_mode = m.def_submodule("motion_mode", "Submodule for Motion Mode Control (MIT-style impedance)");
+  pybind11::class_<myactuator_rmd::MotionModeCommand>(m_motion_mode, "MotionModeCommand")
+    .def(pybind11::init<>())
+    .def(pybind11::init([](float p, float v, float kp, float kd, float t) {
+      return myactuator_rmd::MotionModeCommand{p, v, kp, kd, t};
+    }), pybind11::arg("position") = 0.0f, pybind11::arg("velocity") = 0.0f,
+        pybind11::arg("kp") = 0.0f, pybind11::arg("kd") = 0.0f, pybind11::arg("torque_ff") = 0.0f)
+    .def_readwrite("position", &myactuator_rmd::MotionModeCommand::position)
+    .def_readwrite("velocity", &myactuator_rmd::MotionModeCommand::velocity)
+    .def_readwrite("kp", &myactuator_rmd::MotionModeCommand::kp)
+    .def_readwrite("kd", &myactuator_rmd::MotionModeCommand::kd)
+    .def_readwrite("torque_ff", &myactuator_rmd::MotionModeCommand::torque_ff);
+  pybind11::class_<myactuator_rmd::MotionModeFeedback>(m_motion_mode, "MotionModeFeedback")
+    .def(pybind11::init<>())
+    .def_readwrite("position", &myactuator_rmd::MotionModeFeedback::position)
+    .def_readwrite("velocity", &myactuator_rmd::MotionModeFeedback::velocity)
+    .def_readwrite("torque", &myactuator_rmd::MotionModeFeedback::torque);
+  pybind11::class_<myactuator_rmd::MotionModeLimits>(m_motion_mode, "MotionModeLimits")
+    .def(pybind11::init<>())
+    .def_readwrite("position_min", &myactuator_rmd::MotionModeLimits::position_min)
+    .def_readwrite("position_max", &myactuator_rmd::MotionModeLimits::position_max)
+    .def_readwrite("velocity_min", &myactuator_rmd::MotionModeLimits::velocity_min)
+    .def_readwrite("velocity_max", &myactuator_rmd::MotionModeLimits::velocity_max)
+    .def_readwrite("kp_min", &myactuator_rmd::MotionModeLimits::kp_min)
+    .def_readwrite("kp_max", &myactuator_rmd::MotionModeLimits::kp_max)
+    .def_readwrite("kd_min", &myactuator_rmd::MotionModeLimits::kd_min)
+    .def_readwrite("kd_max", &myactuator_rmd::MotionModeLimits::kd_max)
+    .def_readwrite("torque_min", &myactuator_rmd::MotionModeLimits::torque_min)
+    .def_readwrite("torque_max", &myactuator_rmd::MotionModeLimits::torque_max);
+  pybind11::class_<myactuator_rmd::MotionMode>(m_motion_mode, "MotionMode")
+    .def_readonly_static("tx_offset", &myactuator_rmd::MotionMode::tx_offset)
+    .def_readonly_static("rx_offset", &myactuator_rmd::MotionMode::rx_offset)
+    .def_static("encode", &myactuator_rmd::MotionMode::encode,
+         pybind11::arg("cmd"), pybind11::arg("limits") = myactuator_rmd::MotionModeLimits{})
+    .def_static("decode", &myactuator_rmd::MotionMode::decode,
+         pybind11::arg("data"), pybind11::arg("limits") = myactuator_rmd::MotionModeLimits{})
+    .def_static("txCanId", &myactuator_rmd::MotionMode::txCanId)
+    .def_static("rxCanId", &myactuator_rmd::MotionMode::rxCanId);
 
 }

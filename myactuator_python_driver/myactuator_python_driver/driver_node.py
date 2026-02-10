@@ -221,13 +221,6 @@ class MotorDriverNode(Node):
         try:
             self.driver = rmd.CanDriver(self.config.can_interface)
 
-            # Create raw CAN node for V4 commands (force position)
-            try:
-                self._can_node = rmd.can.Node(self.config.can_interface)
-            except Exception:
-                self._can_node = None
-                self.get_logger().warn("Could not create CAN node for V4 commands")
-
             for motor_cfg in self.config.motors:
                 wrapper = MotorWrapper(
                     driver=self.driver,
@@ -237,9 +230,6 @@ class MotorDriverNode(Node):
                     position_offset=motor_cfg.position_offset,
                     inverted=motor_cfg.inverted,
                 )
-                # Set CAN node for V4 commands
-                if self._can_node:
-                    wrapper.set_can_node(self._can_node)
                 self.motors[motor_cfg.joint_name] = wrapper
 
                 # Get motor model
@@ -418,13 +408,13 @@ class MotorDriverNode(Node):
             for i, name in enumerate(msg.name):
                 if name not in self.motors:
                     continue
-                
-                if i < len(msg.position) and msg.position[i] != 0.0:
+
+                if i < len(msg.position):
                     self._control_positions[name] = msg.position[i]
-                
-                if i < len(msg.velocity) and msg.velocity[i] != 0.0:
+
+                if i < len(msg.velocity):
                     self._control_velocities[name] = msg.velocity[i]
-                
+
                 if i < len(msg.effort):
                     self._control_efforts[name] = msg.effort[i]
 
@@ -438,7 +428,8 @@ class MotorDriverNode(Node):
                     self._control_efforts[joint_name] = effort
 
     def _set_zero_callback(self, request, response):
-        """Set current position as zero for all motors."""
+        """Set current position as zero for all motors, then reset them."""
+        import time
         errors = []
         with self._lock:
             for joint_name, motor in self.motors.items():
@@ -450,10 +441,32 @@ class MotorDriverNode(Node):
         if errors:
             response.success = False
             response.message = f"Failed: {'; '.join(errors)}"
-        else:
-            response.success = True
-            response.message = "Zeroed. RESTART motors for new zero to take effect."
-            self.get_logger().warn("Motors zeroed - RESTART required!")
+            return response
+
+        # Reset motors so the new zero takes effect
+        self.get_logger().info("Resetting motors for new zero to take effect...")
+        with self._lock:
+            for joint_name, motor in self.motors.items():
+                try:
+                    motor.actuator.reset()
+                except Exception:
+                    pass
+
+        # Wait for motors to reboot
+        time.sleep(1.5)
+
+        # Re-capture positions (should now be near zero)
+        with self._lock:
+            for joint_name, motor in self.motors.items():
+                try:
+                    state = motor.get_state()
+                    self._control_positions[joint_name] = state.position_rad
+                except Exception:
+                    self._control_positions[joint_name] = 0.0
+
+        response.success = True
+        response.message = "Zero set and motors restarted."
+        self.get_logger().info("Motors zeroed and restarted successfully.")
         return response
 
     def _emergency_stop_callback(self, request, response):

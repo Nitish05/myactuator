@@ -62,21 +62,21 @@ namespace myactuator_rmd {
        * \param[in] i
        *    The first index of the underlying data array that the value should be set to
       */
-      template <typename T, typename std::enable_if_t<std::is_integral_v<T>>* = nullptr>
+      template <typename T, typename std::enable_if_t<std::is_arithmetic_v<T>>* = nullptr>
       void setAt(T const val, std::size_t const i);
 
       /**\fn getAs
        * \brief
-       *    Convert elements of the array to a larger integer value by reinterpret-casting the underlying data
-       * 
+       *    Convert elements of the array to a value by reinterpret-casting the underlying data
+       *
        * \tparam T
-       *    Signed or unsigned integer type
+       *    Arithmetic type (integer or floating point)
        * \param[in] i
        *    The first index of the underlying data array that the value should be extracted from
        * \return
-       *    The data values located at [i, i + sizeof(T)[ as an integer of type T
+       *    The data values located at [i, i + sizeof(T)[ as type T
       */
-      template <typename T, typename std::enable_if_t<std::is_integral_v<T>>* = nullptr>
+      template <typename T, typename std::enable_if_t<std::is_arithmetic_v<T>>* = nullptr>
       [[nodiscard]]
       T getAs(std::size_t const i) const;
 
@@ -92,7 +92,7 @@ namespace myactuator_rmd {
     return;
   }
 
-  template <typename T, typename std::enable_if_t<std::is_integral_v<T>>*>
+  template <typename T, typename std::enable_if_t<std::is_arithmetic_v<T>>*>
   void Message::setAt(T const val, std::size_t const i) {
     if (i + sizeof(T)/sizeof(std::uint8_t) > data_.size()) {
       throw std::out_of_range("Requested index out of range!");
@@ -101,7 +101,7 @@ namespace myactuator_rmd {
     return;
   }
 
-  template <typename T, typename std::enable_if_t<std::is_integral_v<T>>*>
+  template <typename T, typename std::enable_if_t<std::is_arithmetic_v<T>>*>
   T Message::getAs(std::size_t const i) const {
     if (i + sizeof(T)/sizeof(std::uint8_t) > data_.size()) {
       throw std::out_of_range("Requested index out of range!");

@@ -15,6 +15,7 @@
 
 #include "myactuator_rmd/actuator_state/control_mode.hpp"
 #include "myactuator_rmd/actuator_state/feedback.hpp"
+#include "myactuator_rmd/actuator_state/gain_index.hpp"
 #include "myactuator_rmd/actuator_state/gains.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_1.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_2.hpp"
@@ -27,7 +28,7 @@ namespace myactuator_rmd {
 
   /**\class GetCanIdResponse
    * \brief
-   *    Request for getting the CAN ID of the actuator
+   *    Response for getting the CAN ID of the actuator
   */
   class GetCanIdResponse: public SingleMotorResponse<CommandType::CAN_ID_SETTING> {
     public:
@@ -38,20 +39,13 @@ namespace myactuator_rmd {
       GetCanIdResponse& operator = (GetCanIdResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getCanId
-       * \brief
-       *    Get the CAN ID of the actuator
-       * 
-       * \return
-       *    The CAN ID of the actuator starting at 0x240
-      */
       [[nodiscard]]
       virtual std::uint16_t getCanId() const noexcept;
   };
 
   /**\class GetAccelerationResponse
    * \brief
-   *    Response to request for reading the motor model
+   *    Response to request for reading acceleration
   */
   class GetAccelerationResponse: public SingleMotorResponse<CommandType::READ_ACCELERATION> {
     public:
@@ -62,13 +56,6 @@ namespace myactuator_rmd {
       GetAccelerationResponse& operator = (GetAccelerationResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getAcceleration
-       * \brief
-       *    Get the current acceleration
-       * 
-       * \return
-       *    The current acceleration with a resolution of 1 dps
-      */
       [[nodiscard]]
       std::int32_t getAcceleration() const noexcept;
   };
@@ -86,23 +73,13 @@ namespace myactuator_rmd {
       GetMultiTurnAngleResponse& operator = (GetMultiTurnAngleResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getPosition
-       * \brief
-       *    Get the multi-turn angle
-       * 
-       * \return
-       *    The multi-turn angle with a resolution of 0.01 deg
-      */
       [[nodiscard]]
       float getAngle() const noexcept;
   };
 
-  /**\class GetMultiTurnEncoderPositionResponse
+  /**\class MultiTurnEncoderPositionResponse
    * \brief
    *    Response to request for reading a multi-turn encoder position
-   *
-   * \tparam C
-   *    Type of the command to be requested
   */
   template <CommandType C>
   class MultiTurnEncoderPositionResponse: public SingleMotorResponse<C> {
@@ -114,13 +91,6 @@ namespace myactuator_rmd {
       MultiTurnEncoderPositionResponse& operator = (MultiTurnEncoderPositionResponse&&) = default;
       using SingleMotorResponse<C>::SingleMotorResponse;
 
-      /**\fn getPosition
-       * \brief
-       *    Get the encoder position
-       * 
-       * \return
-       *    The current encoder position
-      */
       [[nodiscard]]
       std::int32_t getPosition() const noexcept;
   };
@@ -148,13 +118,6 @@ namespace myactuator_rmd {
       GetSingleTurnAngleResponse& operator = (GetSingleTurnAngleResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getPosition
-       * \brief
-       *    Get the single-turn angle
-       * 
-       * \return
-       *    The single-turn angle with a resolution of 0.01 deg
-      */
       [[nodiscard]]
       float getAngle() const noexcept;
   };
@@ -172,33 +135,12 @@ namespace myactuator_rmd {
       GetSingleTurnEncoderPositionResponse& operator = (GetSingleTurnEncoderPositionResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getPosition
-       * \brief
-       *    Get the encoder position
-       * 
-       * \return
-       *    The current encoder position
-      */
       [[nodiscard]]
       std::int16_t getPosition() const noexcept;
 
-      /**\fn getRawPosition
-       * \brief
-       *    Get the encoder raw position
-       * 
-       * \return
-       *    The current raw encoder position
-      */
       [[nodiscard]]
       std::int16_t getRawPosition() const noexcept;
 
-      /**\fn getOffset
-       * \brief
-       *    Get the encoder position offset
-       * 
-       * \return
-       *    The current encoder position offset
-      */
       [[nodiscard]]
       std::int16_t getOffset() const noexcept;
   };
@@ -209,9 +151,6 @@ namespace myactuator_rmd {
   /**\class FeedbackResponse
    * \brief
    *    Base class for all responses containing a feedback
-   *
-   * \tparam C
-   *    Type of the command to be requested
   */
   template <CommandType C>
   class FeedbackResponse: public SingleMotorResponse<C> {
@@ -223,13 +162,6 @@ namespace myactuator_rmd {
       FeedbackResponse& operator = (FeedbackResponse&&) = default;
       using SingleMotorResponse<C>::SingleMotorResponse;
 
-      /**\fn getStatus
-       * \brief
-       *    Get the feedback
-       * 
-       * \return
-       *    Feedback from the actuator
-      */
       [[nodiscard]]
       Feedback getStatus() const noexcept;
   };
@@ -247,49 +179,44 @@ namespace myactuator_rmd {
   using SetPositionAbsoluteResponse = FeedbackResponse<CommandType::ABSOLUTE_POSITION_CLOSED_LOOP_CONTROL>;
   using SetTorqueResponse = FeedbackResponse<CommandType::TORQUE_CLOSED_LOOP_CONTROL>;
   using SetVelocityResponse = FeedbackResponse<CommandType::SPEED_CLOSED_LOOP_CONTROL>;
+  using SetForcePositionResponse = FeedbackResponse<CommandType::FORCE_POSITION_CLOSED_LOOP_CONTROL>;
+  using SetSingleTurnPositionResponse = FeedbackResponse<CommandType::SINGLE_TURN_POSITION_CONTROL>;
+  using SetIncrementalPositionResponse = FeedbackResponse<CommandType::INCREMENTAL_POSITION_CLOSED_LOOP_CONTROL>;
 
-  /**\class GainsResponse
+  /**\class GainResponse
    * \brief
-   *    Base class for all responses with controller gains
-   *
-   * \tparam C
-   *    Type of the command to be requested
+   *    V4.3 response containing a single PID gain parameter
   */
   template <CommandType C>
-  class GainsResponse: public SingleMotorResponse<C> {
+  class GainResponse: public SingleMotorResponse<C> {
     public:
-      GainsResponse() = delete;
-      GainsResponse(GainsResponse const&) = default;
-      GainsResponse& operator = (GainsResponse const&) = default;
-      GainsResponse(GainsResponse&&) = default;
-      GainsResponse& operator = (GainsResponse&&) = default;
+      GainResponse() = delete;
+      GainResponse(GainResponse const&) = default;
+      GainResponse& operator = (GainResponse const&) = default;
+      GainResponse(GainResponse&&) = default;
+      GainResponse& operator = (GainResponse&&) = default;
       using SingleMotorResponse<C>::SingleMotorResponse;
 
-      /**\fn getGains
-       * \brief
-       *    Get the controller gains
-       * 
-       * \return
-       *    The controller gains
-      */
       [[nodiscard]]
-      constexpr Gains getGains() const noexcept;
+      GainIndex getIndex() const noexcept;
+
+      [[nodiscard]]
+      float getValue() const noexcept;
   };
 
   template <CommandType C>
-  constexpr Gains GainsResponse<C>::getGains() const noexcept {
-    auto const current_kp {this->data_[2]};
-    auto const current_ki {this->data_[3]};
-    auto const speed_kp {this->data_[4]};
-    auto const speed_ki {this->data_[5]};
-    auto const position_kp {this->data_[6]};
-    auto const position_ki {this->data_[7]};
-    return Gains{current_kp, current_ki, speed_kp, speed_ki, position_kp, position_ki};
+  GainIndex GainResponse<C>::getIndex() const noexcept {
+    return static_cast<GainIndex>(this->data_[1]);
   }
 
-  using GetControllerGainsResponse = GainsResponse<CommandType::READ_PID_PARAMETERS>;
-  using SetControllerGainsPersistentlyResponse = GainsResponse<CommandType::WRITE_PID_PARAMETERS_TO_ROM>;
-  using SetControllerGainsResponse = GainsResponse<CommandType::WRITE_PID_PARAMETERS_TO_RAM>;
+  template <CommandType C>
+  float GainResponse<C>::getValue() const noexcept {
+    return this->template getAs<float>(4);
+  }
+
+  using GetGainResponse = GainResponse<CommandType::READ_PID_PARAMETERS>;
+  using SetGainToRamResponse = GainResponse<CommandType::WRITE_PID_PARAMETERS_TO_RAM>;
+  using SetGainToRomResponse = GainResponse<CommandType::WRITE_PID_PARAMETERS_TO_ROM>;
 
   /**\class GetControlModeResponse
    * \brief
@@ -304,13 +231,6 @@ namespace myactuator_rmd {
       GetControlModeResponse& operator = (GetControlModeResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getMode
-       * \brief
-       *    Get the current control mode
-       * 
-       * \return
-       *    The current control mode
-      */
       [[nodiscard]]
       constexpr ControlMode getMode() const noexcept;
   };
@@ -332,20 +252,13 @@ namespace myactuator_rmd {
       GetMotorModelResponse& operator = (GetMotorModelResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getModel
-       * \brief
-       *    Get the motor model
-       * 
-       * \return
-       *    The version string of the motor model
-      */
       [[nodiscard]]
       std::string getModel() const noexcept;
   };
 
   /**\class GetMotorPowerResponse
    * \brief
-   *    Response to request for reading the motor model
+   *    Response to request for reading the motor power
   */
   class GetMotorPowerResponse: public SingleMotorResponse<CommandType::READ_MOTOR_POWER> {
     public:
@@ -356,13 +269,6 @@ namespace myactuator_rmd {
       GetMotorPowerResponse& operator = (GetMotorPowerResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getPower
-       * \brief
-       *    Get the current motor power
-       * 
-       * \return
-       *    The current motor power in Watt with a resolution of 0.1
-      */
       [[nodiscard]]
       float getPower() const noexcept;
   };
@@ -380,13 +286,6 @@ namespace myactuator_rmd {
       GetMotorStatus1Response& operator = (GetMotorStatus1Response&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getStatus
-       * \brief
-       *    Get the motor status
-       * 
-       * \return
-       *    Motor status of the actuator
-      */
       [[nodiscard]]
       MotorStatus1 getStatus() const noexcept;
   };
@@ -404,13 +303,6 @@ namespace myactuator_rmd {
       GetMotorStatus3Response& operator = (GetMotorStatus3Response&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getStatus
-       * \brief
-       *    Get the motor status
-       * 
-       * \return
-       *    Motor status of the actuator
-      */
       [[nodiscard]]
       MotorStatus3 getStatus() const noexcept;
   };
@@ -428,13 +320,6 @@ namespace myactuator_rmd {
       GetSystemRuntimeResponse& operator = (GetSystemRuntimeResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getRuntime
-       * \brief
-       *    Get the actuator's runtime in milliseconds
-       * 
-       * \return
-       *    The actuators runtime in milliseconds
-      */
       [[nodiscard]]
       std::chrono::milliseconds getRuntime() const noexcept;
   };
@@ -452,13 +337,6 @@ namespace myactuator_rmd {
       GetVersionDateResponse& operator = (GetVersionDateResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getVersion
-       * \brief
-       *    Get the version date as an integer
-       * 
-       * \return
-       *    The version date as an integer number
-      */
       [[nodiscard]]
       std::uint32_t getVersion() const noexcept;
   };
@@ -479,13 +357,6 @@ namespace myactuator_rmd {
       SetCurrentPositionAsEncoderZeroResponse& operator = (SetCurrentPositionAsEncoderZeroResponse&&) = default;
       using SingleMotorResponse::SingleMotorResponse;
 
-      /**\fn getEncoderZero
-       * \brief
-       *    Get the encoder zero value
-       * 
-       * \return
-       *    The encoder zero value
-      */
       [[nodiscard]]
       std::int32_t getEncoderZero() const noexcept;
   };

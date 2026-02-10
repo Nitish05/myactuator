@@ -15,15 +15,15 @@
 
 #include "myactuator_rmd/actuator_state/acceleration_type.hpp"
 #include "myactuator_rmd/actuator_state/can_baud_rate.hpp"
+#include "myactuator_rmd/actuator_state/gain_index.hpp"
 #include "myactuator_rmd/actuator_state/gains.hpp"
 #include "myactuator_rmd/protocol/command_type.hpp"
 #include "myactuator_rmd/protocol/single_motor_message.hpp"
 
 
 namespace myactuator_rmd {
-  
+
   using GetAccelerationRequest = SingleMotorRequest<CommandType::READ_ACCELERATION>;
-  using GetControllerGainsRequest = SingleMotorRequest<CommandType::READ_PID_PARAMETERS>;
   using GetControlModeRequest = SingleMotorRequest<CommandType::READ_SYSTEM_OPERATING_MODE>;
   using GetMotorModelRequest =  SingleMotorRequest<CommandType::READ_MOTOR_MODEL>;
   using GetMotorPowerRequest =  SingleMotorRequest<CommandType::READ_MOTOR_POWER>;
@@ -51,13 +51,6 @@ namespace myactuator_rmd {
     public:
       using SingleMotorRequest::SingleMotorRequest;
 
-      /**\fn isWrite
-       * \brief
-       *    Check if the can request reads or writes the given CAN ID
-       * 
-       * \return
-       *    True in case this is a write command, false in case it is a read command
-      */
       [[nodiscard]]
       bool isWrite() const noexcept;
 
@@ -96,13 +89,6 @@ namespace myactuator_rmd {
       SetCanIdRequest& operator = (SetCanIdRequest&&) = default;
       using CanIdRequest::CanIdRequest;
 
-      /**\fn getCanId
-       * \brief
-       *    Get the CAN ID of the actuator
-       * 
-       * \return
-       *    The CAN ID of the actuator [1, 32]
-      */
       [[nodiscard]]
       std::uint16_t getCanId() const noexcept;
   };
@@ -113,15 +99,6 @@ namespace myactuator_rmd {
   */
   class SetAccelerationRequest: public SingleMotorRequest<CommandType::WRITE_ACCELERATION_TO_RAM_AND_ROM> {
     public:
-      /**\fn SetAccelerationRequest
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] acceleration
-       *    The desired acceleration/deceleration in dps with a resolution of 1 dps [100, 60000]
-       * \param[in] mode
-       *    The mode of the desired acceleration/deceleration to be set
-      */
       SetAccelerationRequest(std::uint32_t const acceleration, AccelerationType const mode);
       SetAccelerationRequest() = delete;
       SetAccelerationRequest(SetAccelerationRequest const&) = default;
@@ -130,23 +107,9 @@ namespace myactuator_rmd {
       SetAccelerationRequest& operator = (SetAccelerationRequest&&) = default;
       using SingleMotorRequest::SingleMotorRequest;
 
-      /**\fn getAcceleration
-       * \brief
-       *    Get the acceleration
-       * 
-       * \return
-       *    The acceleration in degree per second**2 [100, 60000]
-      */
       [[nodiscard]]
       std::uint32_t getAcceleration() const noexcept;
 
-      /**\fn getMode
-       * \brief
-       *    Get the acceleration mode
-       * 
-       * \return
-       *    The acceleration mode
-      */
       [[nodiscard]]
       AccelerationType getMode() const noexcept;
   };
@@ -164,13 +127,6 @@ namespace myactuator_rmd {
       SetCanBaudRateRequest& operator = (SetCanBaudRateRequest&&) = default;
       using SingleMotorRequest::SingleMotorRequest;
 
-      /**\fn getBaudRate
-       * \brief
-       *    Get the Baud rate that should be set to the actuator
-       * 
-       * \return
-       *    The Baud rate that the actuator should be using
-      */
       [[nodiscard]]
       CanBaudRate getBaudRate() const noexcept;
   };
@@ -188,78 +144,73 @@ namespace myactuator_rmd {
       SetEncoderZeroRequest& operator = (SetEncoderZeroRequest&&) = default;
       using SingleMotorRequest::SingleMotorRequest;
 
-      /**\fn getEncoderZero
-       * \brief
-       *    Get the encoder zero value
-       * 
-       * \return
-       *    The encoder zero value
-      */
       [[nodiscard]]
       std::int32_t getEncoderZero() const noexcept;
   };
 
-  /**\class SetGainsRequest
+  /**\class GetGainRequest
    * \brief
-   *    Base class for all requests for setting controller gains
+   *    V4.3 request for reading a single PID gain parameter by index
+  */
+  class GetGainRequest: public SingleMotorRequest<CommandType::READ_PID_PARAMETERS> {
+    public:
+      GetGainRequest(GainIndex const index);
+      GetGainRequest() = delete;
+      GetGainRequest(GetGainRequest const&) = default;
+      GetGainRequest& operator = (GetGainRequest const&) = default;
+      GetGainRequest(GetGainRequest&&) = default;
+      GetGainRequest& operator = (GetGainRequest&&) = default;
+      using SingleMotorRequest::SingleMotorRequest;
+
+      [[nodiscard]]
+      GainIndex getIndex() const noexcept;
+  };
+
+  /**\class SetGainRequest
+   * \brief
+   *    V4.3 request for writing a single PID gain parameter by index
    *
    * \tparam C
-   *    Type of the command to be requested
+   *    Command type (WRITE_PID_PARAMETERS_TO_RAM or WRITE_PID_PARAMETERS_TO_ROM)
   */
   template <CommandType C>
-  class SetGainsRequest: public SingleMotorRequest<C> {
+  class SetGainRequest: public SingleMotorRequest<C> {
     public:
-      /**\fn GainsRequest
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] gains
-       *    Gains that the actuator should be set to
-      */
-      constexpr SetGainsRequest(Gains const& gains) noexcept;
-      SetGainsRequest() = delete;
-      SetGainsRequest(SetGainsRequest const&) = default;
-      SetGainsRequest& operator = (SetGainsRequest const&) = default;
-      SetGainsRequest(SetGainsRequest&&) = default;
-      SetGainsRequest& operator = (SetGainsRequest&&) = default;
+      SetGainRequest(GainIndex const index, float const value);
+      SetGainRequest() = delete;
+      SetGainRequest(SetGainRequest const&) = default;
+      SetGainRequest& operator = (SetGainRequest const&) = default;
+      SetGainRequest(SetGainRequest&&) = default;
+      SetGainRequest& operator = (SetGainRequest&&) = default;
       using SingleMotorRequest<C>::SingleMotorRequest;
 
-      /**\fn getGains
-       * \brief
-       *    Get the controller gains
-       * 
-       * \return
-       *    The controller gains
-      */
       [[nodiscard]]
-      constexpr Gains getGains() const noexcept;
+      GainIndex getIndex() const noexcept;
+
+      [[nodiscard]]
+      float getValue() const noexcept;
   };
 
   template <CommandType C>
-  constexpr SetGainsRequest<C>::SetGainsRequest(Gains const& gains) noexcept
+  SetGainRequest<C>::SetGainRequest(GainIndex const index, float const value)
   : SingleMotorRequest<C>{} {
-    this->data_[2] = gains.current.kp;
-    this->data_[3] = gains.current.ki;
-    this->data_[4] = gains.speed.kp;
-    this->data_[5] = gains.speed.ki;
-    this->data_[6] = gains.position.kp;
-    this->data_[7] = gains.position.ki;
+    this->data_[1] = static_cast<std::uint8_t>(index);
+    this->template setAt<float>(value, 4);
     return;
   }
 
   template <CommandType C>
-  constexpr Gains SetGainsRequest<C>::getGains() const noexcept {
-    auto const current_kp {this->data_[2]};
-    auto const current_ki {this->data_[3]};
-    auto const speed_kp {this->data_[4]};
-    auto const speed_ki {this->data_[5]};
-    auto const position_kp {this->data_[6]};
-    auto const position_ki {this->data_[7]};
-    return Gains{current_kp, current_ki, speed_kp, speed_ki, position_kp, position_ki};
+  GainIndex SetGainRequest<C>::getIndex() const noexcept {
+    return static_cast<GainIndex>(this->data_[1]);
   }
 
-  using SetControllerGainsPersistentlyRequest = SetGainsRequest<CommandType::WRITE_PID_PARAMETERS_TO_ROM>;
-  using SetControllerGainsRequest = SetGainsRequest<CommandType::WRITE_PID_PARAMETERS_TO_RAM>;
+  template <CommandType C>
+  float SetGainRequest<C>::getValue() const noexcept {
+    return this->template getAs<float>(4);
+  }
+
+  using SetGainToRamRequest = SetGainRequest<CommandType::WRITE_PID_PARAMETERS_TO_RAM>;
+  using SetGainToRomRequest = SetGainRequest<CommandType::WRITE_PID_PARAMETERS_TO_ROM>;
 
   /**\class SetPositionAbsoluteRequest
    * \brief
@@ -267,15 +218,6 @@ namespace myactuator_rmd {
   */
   class SetPositionAbsoluteRequest: public SingleMotorRequest<CommandType::ABSOLUTE_POSITION_CLOSED_LOOP_CONTROL> {
     public:
-      /**\fn SetPositionAbsoluteRequest
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] position
-       *    The position set-point in degree
-       * \param[in] max_speed
-       *    The maximum speed for the motion in degree per second
-      */
       SetPositionAbsoluteRequest(float const position, float const max_speed);
       SetPositionAbsoluteRequest() = delete;
       SetPositionAbsoluteRequest(SetPositionAbsoluteRequest const&) = default;
@@ -284,25 +226,111 @@ namespace myactuator_rmd {
       SetPositionAbsoluteRequest& operator = (SetPositionAbsoluteRequest&&) = default;
       using SingleMotorRequest::SingleMotorRequest;
 
-      /**\fn getMaxSpeed
-       * \brief
-       *    Get the maximum speed
-       * 
-       * \return
-       *    The maximum speed for the motion in degree per second
-      */
       [[nodiscard]]
       float getMaxSpeed() const noexcept;
 
-      /**\fn getPosition
-       * \brief
-       *    Get the position
-       * 
-       * \return
-       *    The position set-point in degree
-      */
       [[nodiscard]]
       float getPosition() const noexcept;
+  };
+
+  /**\class SetForcePositionRequest
+   * \brief
+   *    V4.3 request for position control with torque limiting (0xA9)
+  */
+  class SetForcePositionRequest: public SingleMotorRequest<CommandType::FORCE_POSITION_CLOSED_LOOP_CONTROL> {
+    public:
+      /**\fn SetForcePositionRequest
+       * \brief
+       *    Class constructor
+       *
+       * \param[in] position
+       *    The position set-point in degrees
+       * \param[in] max_speed
+       *    The maximum speed in degrees per second
+       * \param[in] max_torque
+       *    Maximum torque as percentage of rated current (0-255, 1 = 1%)
+      */
+      SetForcePositionRequest(float const position, float const max_speed, std::uint8_t const max_torque);
+      SetForcePositionRequest() = delete;
+      SetForcePositionRequest(SetForcePositionRequest const&) = default;
+      SetForcePositionRequest& operator = (SetForcePositionRequest const&) = default;
+      SetForcePositionRequest(SetForcePositionRequest&&) = default;
+      SetForcePositionRequest& operator = (SetForcePositionRequest&&) = default;
+      using SingleMotorRequest::SingleMotorRequest;
+
+      [[nodiscard]]
+      float getPosition() const noexcept;
+
+      [[nodiscard]]
+      float getMaxSpeed() const noexcept;
+
+      [[nodiscard]]
+      std::uint8_t getMaxTorque() const noexcept;
+  };
+
+  /**\class SetSingleTurnPositionRequest
+   * \brief
+   *    Request for single-turn position control (0xA6)
+  */
+  class SetSingleTurnPositionRequest: public SingleMotorRequest<CommandType::SINGLE_TURN_POSITION_CONTROL> {
+    public:
+      /**\fn SetSingleTurnPositionRequest
+       * \brief
+       *    Class constructor
+       *
+       * \param[in] position
+       *    The position set-point in degrees (0-359.99)
+       * \param[in] max_speed
+       *    The maximum speed in degrees per second
+       * \param[in] direction
+       *    Spin direction: 0x00 = clockwise, 0x01 = counter-clockwise
+      */
+      SetSingleTurnPositionRequest(float const position, float const max_speed, std::uint8_t const direction);
+      SetSingleTurnPositionRequest() = delete;
+      SetSingleTurnPositionRequest(SetSingleTurnPositionRequest const&) = default;
+      SetSingleTurnPositionRequest& operator = (SetSingleTurnPositionRequest const&) = default;
+      SetSingleTurnPositionRequest(SetSingleTurnPositionRequest&&) = default;
+      SetSingleTurnPositionRequest& operator = (SetSingleTurnPositionRequest&&) = default;
+      using SingleMotorRequest::SingleMotorRequest;
+
+      [[nodiscard]]
+      float getPosition() const noexcept;
+
+      [[nodiscard]]
+      float getMaxSpeed() const noexcept;
+
+      [[nodiscard]]
+      std::uint8_t getDirection() const noexcept;
+  };
+
+  /**\class SetIncrementalPositionRequest
+   * \brief
+   *    Request for incremental position control (0xA8)
+  */
+  class SetIncrementalPositionRequest: public SingleMotorRequest<CommandType::INCREMENTAL_POSITION_CLOSED_LOOP_CONTROL> {
+    public:
+      /**\fn SetIncrementalPositionRequest
+       * \brief
+       *    Class constructor
+       *
+       * \param[in] angle_increment
+       *    Relative angle increment in degrees (positive or negative)
+       * \param[in] max_speed
+       *    The maximum speed in degrees per second
+      */
+      SetIncrementalPositionRequest(float const angle_increment, float const max_speed);
+      SetIncrementalPositionRequest() = delete;
+      SetIncrementalPositionRequest(SetIncrementalPositionRequest const&) = default;
+      SetIncrementalPositionRequest& operator = (SetIncrementalPositionRequest const&) = default;
+      SetIncrementalPositionRequest(SetIncrementalPositionRequest&&) = default;
+      SetIncrementalPositionRequest& operator = (SetIncrementalPositionRequest&&) = default;
+      using SingleMotorRequest::SingleMotorRequest;
+
+      [[nodiscard]]
+      float getAngleIncrement() const noexcept;
+
+      [[nodiscard]]
+      float getMaxSpeed() const noexcept;
   };
 
   /**\class SetTimeoutRequest
@@ -311,13 +339,6 @@ namespace myactuator_rmd {
   */
   class SetTimeoutRequest: public SingleMotorRequest<CommandType::COMMUNICATION_INTERRUPTION_PROTECTION_TIME_SETTING> {
     public:
-      /**\fn SetTimeoutRequest
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] timeout
-       *    The communication interruption protection time setting in milliseconds, 0 if this feature should be de-activated
-      */
       SetTimeoutRequest(std::chrono::milliseconds const& timeout);
       SetTimeoutRequest() = delete;
       SetTimeoutRequest(SetTimeoutRequest const&) = default;
@@ -326,13 +347,6 @@ namespace myactuator_rmd {
       SetTimeoutRequest& operator = (SetTimeoutRequest&&) = default;
       using SingleMotorRequest::SingleMotorRequest;
 
-      /**\fn getTimeout
-       * \brief
-       *    Get the communication interruption protection time to be set
-       * 
-       * \return
-       *    The communication interruption protection time to be set
-      */
       [[nodiscard]]
       std::chrono::milliseconds getTimeout() const noexcept;
   };
@@ -343,13 +357,6 @@ namespace myactuator_rmd {
   */
   class SetTorqueRequest: public SingleMotorRequest<CommandType::TORQUE_CLOSED_LOOP_CONTROL> {
     public:
-      /**\fn SetTorqueRequest
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] current
-       *    The current set-point in Ampere
-      */
       SetTorqueRequest(float const current);
       SetTorqueRequest() = delete;
       SetTorqueRequest(SetTorqueRequest const&) = default;
@@ -358,13 +365,6 @@ namespace myactuator_rmd {
       SetTorqueRequest& operator = (SetTorqueRequest&&) = default;
       using SingleMotorRequest::SingleMotorRequest;
 
-      /**\fn getTorqueCurrent
-       * \brief
-       *    Get the torque current
-       * 
-       * \return
-       *    The torque current in Ampere
-      */
       [[nodiscard]]
       float getTorqueCurrent() const noexcept;
   };
@@ -378,11 +378,13 @@ namespace myactuator_rmd {
       /**\fn SetVelocityRequest
        * \brief
        *    Class constructor
-       * 
+       *
        * \param[in] speed
        *    The velocity set-point in degree per second
+       * \param[in] max_torque
+       *    Maximum torque as percentage of rated current (0-255, 1 = 1%), 0 = no limit
       */
-      SetVelocityRequest(float const speed);
+      SetVelocityRequest(float const speed, std::uint8_t const max_torque = 0);
       SetVelocityRequest() = delete;
       SetVelocityRequest(SetVelocityRequest const&) = default;
       SetVelocityRequest& operator = (SetVelocityRequest const&) = default;
@@ -390,15 +392,11 @@ namespace myactuator_rmd {
       SetVelocityRequest& operator = (SetVelocityRequest&&) = default;
       using SingleMotorRequest::SingleMotorRequest;
 
-      /**\fn getSpeed
-       * \brief
-       *    Get the velocity set-point
-       * 
-       * \return
-       *    The speed for the motion in degree per second
-      */
       [[nodiscard]]
       float getSpeed() const noexcept;
+
+      [[nodiscard]]
+      std::uint8_t getMaxTorque() const noexcept;
   };
 
   using ShutdownMotorRequest = SingleMotorRequest<CommandType::SHUTDOWN_MOTOR>;

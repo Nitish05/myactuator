@@ -17,6 +17,7 @@
 #include "myactuator_rmd/actuator_state/can_baud_rate.hpp"
 #include "myactuator_rmd/actuator_state/control_mode.hpp"
 #include "myactuator_rmd/actuator_state/error_code.hpp"
+#include "myactuator_rmd/actuator_state/gain_index.hpp"
 #include "myactuator_rmd/actuator_state/gains.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_1.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_2.hpp"
@@ -50,10 +51,19 @@ namespace myactuator_rmd {
     os << "0x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<std::uint16_t>(baud_rate) << std::dec;
     switch(baud_rate) {
       case CanBaudRate::KBPS500:
-        os << " (500 kbps)";
+        os << " (RS485@115200 + CAN@500K)";
         break;
       case CanBaudRate::MBPS1:
-        os << " (1 Mbps)";
+        os << " (RS485@500K + CAN@1M)";
+        break;
+      case CanBaudRate::RS485_1M_CAN_OFF:
+        os << " (RS485@1M, CAN disabled)";
+        break;
+      case CanBaudRate::RS485_1_5M:
+        os << " (RS485@1.5M)";
+        break;
+      case CanBaudRate::RS485_2_5M:
+        os << " (RS485@2.5M)";
         break;
       default:
         os << " (unknown baud rate)";
@@ -103,11 +113,17 @@ namespace myactuator_rmd {
       case ErrorCode::POWER_OVERRUN:
         os << " (power overrun)";
         break;
+      case ErrorCode::CALIBRATION_ERROR:
+        os << " (calibration error)";
+        break;
       case ErrorCode::SPEEDING:
         os << " (speeding)";
         break;
-      case ErrorCode::UNSPECIFIED_1: case ErrorCode::UNSPECIFIED_2: case ErrorCode::UNSPECIFIED_3:
+      case ErrorCode::UNSPECIFIED_1: case ErrorCode::UNSPECIFIED_2:
         os << " (unspecified error)";
+        break;
+      case ErrorCode::COMPONENT_OVERTEMPERATURE:
+        os << " (component overtemperature)";
         break;
       case ErrorCode::OVERTEMPERATURE:
         os << " (overtemperature)";
@@ -115,14 +131,34 @@ namespace myactuator_rmd {
       case ErrorCode::ENCODER_CALIBRATION_ERROR:
         os << " (encoder calibration error)";
         break;
+      case ErrorCode::ENCODER_DATA_ERROR:
+        os << " (encoder data error)";
+        break;
       default:
         os << " (unknown error)";
     }
     return os;
   }
 
-  inline std::ostream& operator << (std::ostream& os, PiGains const& g) noexcept {
-    os << "kp: " << static_cast<int>(g.kp) << ", ki: " << static_cast<int>(g.ki);
+  inline std::ostream& operator << (std::ostream& os, GainIndex const& index) noexcept {
+    os << "0x" << std::hex << std::setfill('0') << std::setw(2) << static_cast<std::uint16_t>(index) << std::dec;
+    switch(index) {
+      case GainIndex::CURRENT_KP: os << " (current Kp)"; break;
+      case GainIndex::CURRENT_KI: os << " (current Ki)"; break;
+      case GainIndex::CURRENT_KD: os << " (current Kd)"; break;
+      case GainIndex::SPEED_KP: os << " (speed Kp)"; break;
+      case GainIndex::SPEED_KI: os << " (speed Ki)"; break;
+      case GainIndex::SPEED_KD: os << " (speed Kd)"; break;
+      case GainIndex::POSITION_KP: os << " (position Kp)"; break;
+      case GainIndex::POSITION_KI: os << " (position Ki)"; break;
+      case GainIndex::POSITION_KD: os << " (position Kd)"; break;
+      default: os << " (unknown gain index)";
+    }
+    return os;
+  }
+
+  inline std::ostream& operator << (std::ostream& os, PidGains const& g) noexcept {
+    os << "kp: " << g.kp << ", ki: " << g.ki << ", kd: " << g.kd;
     return os;
   }
 
@@ -132,8 +168,9 @@ namespace myactuator_rmd {
   }
 
   inline std::ostream& operator << (std::ostream& os, MotorStatus1 const& motor_status) noexcept {
-    os << "temperature: " << motor_status.temperature << ", brake released: " << std::boolalpha << motor_status.is_brake_released << 
-          ", voltage: " << motor_status.voltage << ", error code: " << motor_status.error_code;
+    os << "temperature: " << motor_status.temperature << ", mos_temperature: " << motor_status.mos_temperature
+       << ", brake released: " << std::boolalpha << motor_status.is_brake_released
+       << ", voltage: " << motor_status.voltage << ", error code: " << motor_status.error_code;
     return os;
   }
 
@@ -144,7 +181,7 @@ namespace myactuator_rmd {
   }
 
   inline std::ostream& operator << (std::ostream& os, MotorStatus3 const& motor_status) noexcept {
-    os << "temperature: " << motor_status.temperature << ", current phase A: " << std::boolalpha << motor_status.current_phase_a << 
+    os << "temperature: " << motor_status.temperature << ", current phase A: " << std::boolalpha << motor_status.current_phase_a <<
           ", current phase B: " << motor_status.current_phase_b << ", current phase C: " << motor_status.current_phase_c;
     return os;
   }

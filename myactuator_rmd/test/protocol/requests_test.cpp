@@ -13,6 +13,7 @@
 
 #include "myactuator_rmd/actuator_state/acceleration_type.hpp"
 #include "myactuator_rmd/actuator_state/can_baud_rate.hpp"
+#include "myactuator_rmd/actuator_state/gain_index.hpp"
 #include "myactuator_rmd/actuator_state/gains.hpp"
 #include "myactuator_rmd/protocol/requests.hpp"
 
@@ -76,26 +77,29 @@ namespace myactuator_rmd {
       EXPECT_EQ(mode, AccelerationType::VELOCITY_PLANNING_DECELERATION);
     }
 
-    TEST(SetControllerGainsPersistentlyRequestTest, parsing) {
-      myactuator_rmd::SetControllerGainsPersistentlyRequest const request {{0x32, 0x00, 0x55, 0x19, 0x55, 0x19, 0x55, 0x19}};
-      myactuator_rmd::Gains const gains {request.getGains()};
-      EXPECT_EQ(gains.current.kp, 85);
-      EXPECT_EQ(gains.current.ki, 25);
-      EXPECT_EQ(gains.speed.kp, 85);
-      EXPECT_EQ(gains.speed.ki, 25);
-      EXPECT_EQ(gains.position.kp, 85);
-      EXPECT_EQ(gains.position.ki, 25);
+    TEST(SetGainToRomRequestTest, parsing) {
+      // V4.3: index 0x01 (CURRENT_KP), float value 1.0f = 0x3F800000 (LE: 00 00 80 3F)
+      myactuator_rmd::SetGainToRomRequest const request {{0x32, 0x01, 0x00, 0x00, 0x00, 0x00, 0x80, 0x3F}};
+      auto const index {request.getIndex()};
+      auto const value {request.getValue()};
+      EXPECT_EQ(index, GainIndex::CURRENT_KP);
+      EXPECT_NEAR(value, 1.0f, 0.001f);
     }
 
-    TEST(SetControllerGainsRequestTest, parsing) {
-      myactuator_rmd::SetControllerGainsRequest const request {{0x31, 0x00, 0x55, 0x19, 0x55, 0x19, 0x55, 0x19}};
-      myactuator_rmd::Gains const gains {request.getGains()};
-      EXPECT_EQ(gains.current.kp, 85);
-      EXPECT_EQ(gains.current.ki, 25);
-      EXPECT_EQ(gains.speed.kp, 85);
-      EXPECT_EQ(gains.speed.ki, 25);
-      EXPECT_EQ(gains.position.kp, 85);
-      EXPECT_EQ(gains.position.ki, 25);
+    TEST(SetGainToRamRequestTest, parsing) {
+      // V4.3: index 0x04 (SPEED_KP), float value 2.5f = 0x40200000 (LE: 00 00 20 40)
+      myactuator_rmd::SetGainToRamRequest const request {{0x31, 0x04, 0x00, 0x00, 0x00, 0x00, 0x20, 0x40}};
+      auto const index {request.getIndex()};
+      auto const value {request.getValue()};
+      EXPECT_EQ(index, GainIndex::SPEED_KP);
+      EXPECT_NEAR(value, 2.5f, 0.001f);
+    }
+
+    TEST(GetGainRequestTest, parsing) {
+      // V4.3: read request for index 0x07 (POSITION_KP)
+      myactuator_rmd::GetGainRequest const request {{0x30, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}};
+      auto const index {request.getIndex()};
+      EXPECT_EQ(index, GainIndex::POSITION_KP);
     }
 
     TEST(SetPositionAbsoluteRequestTest, parsingPositivePosition) {

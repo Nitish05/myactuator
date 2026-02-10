@@ -18,6 +18,7 @@
 #include "myactuator_rmd/actuator_state/can_baud_rate.hpp"
 #include "myactuator_rmd/actuator_state/control_mode.hpp"
 #include "myactuator_rmd/actuator_state/feedback.hpp"
+#include "myactuator_rmd/actuator_state/gain_index.hpp"
 #include "myactuator_rmd/actuator_state/gains.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_1.hpp"
 #include "myactuator_rmd/actuator_state/motor_status_2.hpp"
@@ -33,15 +34,6 @@ namespace myactuator_rmd {
   */
   class ActuatorInterface {
     public:
-      /**\fn ActuatorInterface
-       * \brief
-       *    Class constructor
-       * 
-       * \param[in] driver
-       *    The driver communicating over the network interface
-       * \param[in] actuator_id
-       *    The actuator id [1, 32]
-      */
       ActuatorInterface(Driver& driver, std::uint32_t const actuator_id);
       ActuatorInterface() = delete;
       ActuatorInterface(ActuatorInterface const&) = default;
@@ -52,7 +44,7 @@ namespace myactuator_rmd {
       /**\fn getAcceleration
        * \brief
        *    Reads the current acceleration
-       * 
+       *
        * \return
        *    The current acceleration in dps with a resolution of 1 dps
       */
@@ -62,181 +54,88 @@ namespace myactuator_rmd {
       /**\fn getCanId
        * \brief
        *    Get the CAN ID of the device
-       * 
+       *
        * \return
-       *    The CAN ID of the device starting at 0x240
+       *    The CAN ID of the device
       */
       [[nodiscard]]
       std::uint16_t getCanId();
 
       /**\fn getControllerGains
        * \brief
-       *    Reads the currently used controller gains
-       * 
+       *    Reads all PID controller gains (V4.3: 9 individual read requests)
+       *
        * \return
-       *    The currently used controller gains for current, speed and position as unsigned 8-bit integers
+       *    The currently used PID gains for current, speed, and position loops
       */
       [[nodiscard]]
       Gains getControllerGains();
 
+      /**\fn getGain
+       * \brief
+       *    Read a single PID gain parameter by index (V4.3)
+       *
+       * \param[in] index
+       *    The gain parameter index to read
+       * \return
+       *    The gain parameter value as a float
+      */
+      [[nodiscard]]
+      float getGain(GainIndex const index);
+
       /**\fn getControlMode
        * \brief
        *    Reads the currently used control mode
-       * 
+       *
        * \return
        *    The currently used control mode
       */
       [[nodiscard]]
       ControlMode getControlMode();
 
-      /**\fn getMotorModel
-       * \brief
-       *    Reads the motor model currently in use by the actuator
-       * 
-       * \return
-       *    The motor model string currently in use by the actuator, e.g. 'X8S2V10'
-      */
       [[nodiscard]]
       std::string getMotorModel();
 
-      /**\fn getMotorPower
-       * \brief
-       *    Reads the current motor power consumption in Watt
-       * 
-       * \return
-       *    The current motor power consumption in Watt with a resolution of 0.1
-      */
       [[nodiscard]]
       float getMotorPower();
 
-      /**\fn getMotorStatus1
-       * \brief
-       *    Reads the motor status 1
-       * 
-       * \return
-       *    The motor status 1 containing temperature, voltage and error codes
-      */
       [[nodiscard]]
       MotorStatus1 getMotorStatus1();
 
-      /**\fn getMotorStatus2
-       * \brief
-       *    Reads the motor status 2
-       * 
-       * \return
-       *    The motor status 2 containing current, speed and position
-      */
       [[nodiscard]]
       MotorStatus2 getMotorStatus2();
 
-      /**\fn getMotorStatus3
-       * \brief
-       *    Reads the motor status 3
-       * 
-       * \return
-       *    The motor status 3 containing detailed current information
-      */
       [[nodiscard]]
       MotorStatus3 getMotorStatus3();
 
-      /**\fn getMultiTurnAngle
-       * \brief
-       *    Read the multi-turn angle
-       * 
-       * \return
-       *    The current multi-turn angle with a resolution of 0.01 deg
-      */
       [[nodiscard]]
       float getMultiTurnAngle();
 
-      /**\fn getMultiTurnEncoderPosition
-       * \brief
-       *    Read the multi-turn encoder position subtracted by the encoder multi-turn zero offset
-       * 
-       * \return
-       *    The multi-turn encoder position
-      */
       [[nodiscard]]
       std::int32_t getMultiTurnEncoderPosition();
 
-      /**\fn getMultiTurnEncoderOriginalPosition
-       * \brief
-       *    Read the raw multi-turn encoder position without taking into consideration the multi-turn zero offset
-       * 
-       * \return
-       *    The multi-turn encoder position
-      */
       [[nodiscard]]
       std::int32_t getMultiTurnEncoderOriginalPosition();
 
-      /**\fn getMultiTurnEncoderZeroOffset
-       * \brief
-       *    Read the multi-turn encoder zero offset
-       * 
-       * \return
-       *    The multi-turn encoder zero offset
-      */
       [[nodiscard]]
       std::int32_t getMultiTurnEncoderZeroOffset();
 
-      /**\fn getRuntime
-       * \brief
-       *    Reads the uptime of the actuator in milliseconds
-       * 
-       * \return
-       *    The uptime of the actuator in milliseconds
-      */
       [[nodiscard]]
       std::chrono::milliseconds getRuntime();
 
-      /**\fn getSingleTurnAngle
-       * \brief
-       *    Read the single-turn angle
-       * \warning
-       *    This does not seem to give correct values with my X8-PRO V2 actuator!
-       * 
-       * \return
-       *    The current single-turn angle with a resolution of 0.01 deg
-      */
       [[nodiscard]]
       float getSingleTurnAngle();
 
-      /**\fn getSingleTurnEncoderPosition
-       * \brief
-       *    Read the single-turn encoder position
-       * 
-       * \return
-       *    The single-turn encoder position
-      */
       [[nodiscard]]
       std::int16_t getSingleTurnEncoderPosition();
 
-      /**\fn getVersionDate
-       * \brief
-       *    Reads the version date of the actuator firmware
-       * 
-       * \return
-       *    The version date of the firmware on the actuator, e.g. '20220206'
-      */
       [[nodiscard]]
       std::uint32_t getVersionDate();
 
-      /**\fn lockBrake
-       * \brief
-       *    Close the holding brake. The motor won't be able to turn anymore.
-      */
       void lockBrake();
 
-      /**\fn releaseBrake
-       * \brief
-       *    Open the holding brake leaving the motor in a movable state
-      */
       void releaseBrake();
 
-      /**\fn reset
-       * \brief
-       *    Reset the actuator
-      */
       void reset();
 
       /**\fn sendCurrentSetpoint
@@ -246,22 +145,65 @@ namespace myactuator_rmd {
        * \param[in] current
        *    The current set-point in Ampere
        * \return
-       *    Feedback control message containing actuator position, velocity, torque and temperature
+       *    Feedback control message
       */
       Feedback sendCurrentSetpoint(float const current);
 
       /**\fn sendPositionAbsoluteSetpoint
        * \brief
-       *    Send an absolute position set-point to the actuator additionally specifying a maximum velocity
+       *    Send an absolute position set-point to the actuator
        *
        * \param[in] position
        *    The position set-point in degree
        * \param[in] max_speed
        *    The maximum speed for the motion in degree per second
        * \return
-       *    Feedback control message containing actuator position, velocity, torque and temperature
+       *    Feedback control message
       */
       Feedback sendPositionAbsoluteSetpoint(float const position, float const max_speed = 500.0);
+
+      /**\fn sendForcePositionSetpoint
+       * \brief
+       *    Send a force-controlled position command (V4.3 0xA9) with torque limiting
+       *
+       * \param[in] position
+       *    The position set-point in degree
+       * \param[in] max_speed
+       *    The maximum speed in degree per second
+       * \param[in] max_torque
+       *    Maximum torque as percentage of rated current (0-255, 1 = 1%)
+       * \return
+       *    Feedback control message
+      */
+      Feedback sendForcePositionSetpoint(float const position, float const max_speed, std::uint8_t const max_torque);
+
+      /**\fn sendSingleTurnPositionSetpoint
+       * \brief
+       *    Send a single-turn position command (0xA6)
+       *
+       * \param[in] position
+       *    The position set-point in degrees (0-359.99)
+       * \param[in] max_speed
+       *    The maximum speed in degree per second
+       * \param[in] direction
+       *    Spin direction: 0x00 = clockwise, 0x01 = counter-clockwise
+       * \return
+       *    Feedback control message
+      */
+      Feedback sendSingleTurnPositionSetpoint(float const position, float const max_speed, std::uint8_t const direction);
+
+      /**\fn sendIncrementalPositionSetpoint
+       * \brief
+       *    Send an incremental (relative) position command (0xA8)
+       *
+       * \param[in] angle_increment
+       *    Relative angle increment in degrees
+       * \param[in] max_speed
+       *    The maximum speed in degree per second
+       * \return
+       *    Feedback control message
+      */
+      Feedback sendIncrementalPositionSetpoint(float const angle_increment, float const max_speed);
 
       /**\fn sendTorqueSetpoint
        * \brief
@@ -270,10 +212,9 @@ namespace myactuator_rmd {
        * \param[in] torque
        *    The desired torque in [Nm]
        * \param[in] torque_constant
-       *    The motor's torque constant [Nm/A], depends on the model of the motor, refer to actuator_constants.hpp
-       *    for the torque constant of your actuator
+       *    The motor's torque constant [Nm/A]
        * \return
-       *    Feedback control message containing actuator position, velocity, torque and temperature
+       *    Feedback control message
       */
       Feedback sendTorqueSetpoint(float const torque, float const torque_constant);
 
@@ -283,97 +224,55 @@ namespace myactuator_rmd {
        *
        * \param[in] speed
        *    The speed set-point in degree per second
+       * \param[in] max_torque
+       *    Maximum torque as percentage of rated current (0-255, 1 = 1%), 0 = no limit
        * \return
-       *    Feedback control message containing actuator position, velocity, torque and temperature
+       *    Feedback control message
       */
-      Feedback sendVelocitySetpoint(float const speed);
+      Feedback sendVelocitySetpoint(float const speed, std::uint8_t const max_torque = 0);
 
-      /**\fn setAcceleration
-       * \brief
-       *    Write the acceleration/deceleration for the different modes to RAM and ROM (persistent)
-       * 
-       * \param[in] acceleration
-       *    The desired acceleration/deceleration in dps with a resolution of 1 dps/s [100, 60000]
-       *    For continuous motions the acceleration should be set to the value 0, see 
-       *    https://github.com/2b-t/myactuator_rmd/issues/10#issuecomment-2195847459
-       * \param[in] mode
-       *    The mode of the desired acceleration/deceleration to be set
-      */
       void setAcceleration(std::uint32_t const acceleration, AccelerationType const mode);
 
-      /**\fn setCanBaudRate
-       * \brief
-       *    Set the communication Baud rate for CAN bus
-       * 
-       * \param[in] baud_rate
-       *    Communication Baud rate that the actuator should operator with
-      */
       void setCanBaudRate(CanBaudRate const baud_rate);
 
-      /**\fn setCanId
-       * \brief
-       *    Set the CAN ID of the device
-       * 
-       * \param[in] can_id
-       *    The CAN ID of the device in the range [1, 32]
-      */
       void setCanId(std::uint16_t const can_id);
 
-      /**\fn setCurrentPositionAsEncoderZero
-       * \brief
-       *    Set the zero offset (initial position) of the encoder to the current position
-       * \warning
-       *    Motor has be restarted in order for this to become effective
-       * 
-       * \return
-       *    Current encoder position that was set to be zero
-      */
       std::int32_t setCurrentPositionAsEncoderZero();
 
-      /**\fn setEncoderZero
-       * \brief
-       *    Set the zero offset (initial position) of the encoder to a given value
-       * \warning
-       *    Motor has be restarted in order for this to become effective
-       * 
-       * \param[in] encoder_offset
-       *    Encoder offset that should be set as zero
-      */
       void setEncoderZero(std::int32_t const encoder_offset);
 
       /**\fn setControllerGains
        * \brief
-       *    Write the currently used controller gains either to RAM (not persistent after reboot) or ROM (persistent)
-       * 
+       *    Write all PID controller gains (V4.3: 9 individual write requests)
+       *
        * \param[in] gains
-       *    The PI-gains for current, speed and position to be set
+       *    The PID gains for current, speed, and position to be set
        * \param[in] is_persistent
-       *    Boolean argument signaling whether the controller gains should be persistent after reboot of the actuator or not
+       *    Whether gains persist after reboot (ROM) or not (RAM)
        * \return
-       *    The currently used controller gains for current, speed and position as unsigned 8-bit integers
+       *    The confirmed controller gains
       */
       Gains setControllerGains(Gains const& gains, bool const is_persistent = false);
 
-      /**\fn setTimeout
+      /**\fn setGain
        * \brief
-       *    Set the communication interruption protection time setting. The break will be triggered if the communication
-       *    is interrupted for longer than the set time. The value 0 disables this feature.
-       * 
-       * \param[in] timeout
-       *    The desired interruption protection time, 0 in case it should be disabled
+       *    Write a single PID gain parameter by index (V4.3)
+       *
+       * \param[in] index
+       *    The gain parameter index to write
+       * \param[in] value
+       *    The gain value as a float
+       * \param[in] is_persistent
+       *    Whether the gain persists after reboot
+       * \return
+       *    The confirmed gain value
       */
+      float setGain(GainIndex const index, float const value, bool const is_persistent = false);
+
       void setTimeout(std::chrono::milliseconds const& timeout);
 
-      /**\fn shutdownMotor
-       * \brief
-       *    Turn off the motor
-      */
       void shutdownMotor();
 
-      /**\fn stopMotor
-       * \brief
-       *    Stop the motor if running closed loop command
-      */
       void stopMotor();
 
     protected:
