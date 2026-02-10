@@ -14,6 +14,7 @@ A complete ROS 2 workspace for controlling MyActuator RMD X-series brushless mot
 - [Driver Configuration](#driver-configuration)
 - [ROS 2 Interface](#ros-2-interface)
 - [Motor Studio GUI](#motor-studio-gui)
+- [Desktop App Installation](#desktop-app-installation)
 - [Recording and Playback](#recording-and-playback)
 - [Control Modes](#control-modes)
 - [Advanced Features](#advanced-features)
@@ -414,6 +415,116 @@ ros2 launch myactuator_python_driver driver_with_studio.launch.py
 | `Ctrl+Z` | Set Zero |
 | `Ctrl+0` | Go to Zero |
 | `F5` | Refresh Recordings |
+
+## Desktop App Installation
+
+Motor Studio can be installed as a standalone desktop application that you launch by double-clicking an icon. It automatically connects CAN, starts the driver, and opens the GUI.
+
+### How It Works
+
+The launcher script (`scripts/motor-studio.sh`) handles everything:
+
+1. **CAN setup** — auto-detects native socketcan (candleLight/gs_usb) or SLCAN adapters and brings up `can0`
+2. **ROS 2 sourcing** — auto-detects the installed ROS 2 distro (Humble, Jazzy, etc.)
+3. **Driver launch** — starts the motor driver node in the background
+4. **Studio launch** — opens the PyQt6 GUI
+
+If no CAN adapter is connected, the app still opens — it just won't have hardware access until you plug one in and restart.
+
+### Supported Platforms
+
+| Platform | ROS 2 | Setup |
+|----------|-------|-------|
+| Desktop (Arch/Ubuntu) via distrobox | Humble | Container — desktop entry wraps with `distrobox-enter` |
+| Raspberry Pi 5 | Jazzy | Native — desktop entry runs the launcher directly |
+| Ubuntu 22.04/24.04 native | Humble/Jazzy | Native — same as RPi5 |
+
+### Prerequisites
+
+1. **Build the workspace** (must be done before installing):
+   ```bash
+   cd ~/work/myactuator   # or wherever your workspace is
+   colcon build --cmake-args -DPYTHON_BINDINGS=on
+   ```
+
+2. **CAN utilities** (for SLCAN adapters):
+   ```bash
+   sudo apt install can-utils
+   ```
+
+3. **PyQt6** (for the GUI):
+   ```bash
+   pip install PyQt6
+   ```
+
+### Install (One-Time)
+
+Run from inside the workspace (and inside the distrobox container if using one):
+
+```bash
+./scripts/install-desktop.sh
+```
+
+This does three things:
+
+1. **Creates a sudoers rule** (`/etc/sudoers.d/motor-studio-can`) so CAN setup runs without a password prompt
+2. **Adds a desktop shortcut** to `~/Desktop/motor-studio.desktop`
+3. **Adds an app menu entry** to `~/.local/share/applications/`
+
+On a distrobox setup, the desktop entry automatically wraps the launch command with `distrobox-enter <container> --` so everything runs inside the container.
+
+### Usage
+
+After installation:
+
+- **Double-click** "Motor Studio" on your desktop
+- **Search** "Motor Studio" in your app menu
+- **Terminal** (inside container/native):
+  ```bash
+  ./scripts/motor-studio.sh
+  ```
+
+### Configuration
+
+The launcher reads environment variables for customization:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `MOTOR_STUDIO_WORKSPACE` | Parent of `scripts/` dir | Path to the colcon workspace |
+| `MOTOR_STUDIO_CAN` | `can0` | CAN interface name |
+| `MOTOR_STUDIO_BITRATE` | `1000000` | CAN bitrate in bps |
+
+Example:
+```bash
+MOTOR_STUDIO_CAN=can1 MOTOR_STUDIO_BITRATE=500000 ./scripts/motor-studio.sh
+```
+
+### Logs
+
+Logs are stored in `~/.local/share/motor-studio/logs/` (last 10 kept). Check the latest log if the app fails to start:
+
+```bash
+cat ~/.local/share/motor-studio/logs/$(ls -t ~/.local/share/motor-studio/logs/ | head -1)
+```
+
+### Raspberry Pi 5 Notes
+
+- Clone and build the workspace on the Pi (uses ROS 2 Jazzy natively)
+- Run `./scripts/install-desktop.sh` — it detects the native environment and sets up accordingly
+- The first launch after install requires no password (sudoers is configured by the installer)
+- To auto-start on boot (kiosk mode):
+  ```bash
+  mkdir -p ~/.config/autostart
+  cp ~/.local/share/applications/motor-studio.desktop ~/.config/autostart/
+  ```
+
+### Reinstalling
+
+Only re-run `./scripts/install-desktop.sh` if you:
+- Move the workspace to a different directory
+- Switch to a different distrobox container
+
+Normal code changes only need `colcon build` — the desktop shortcut points to the scripts in your workspace, which source the latest build on every launch.
 
 ## Recording and Playback
 
