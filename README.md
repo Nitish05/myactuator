@@ -1,6 +1,6 @@
 # MyActuator RMD ROS 2 Workspace
 
-A complete ROS 2 workspace for controlling MyActuator RMD X-series brushless motors over CAN bus. This workspace provides a C++ SDK with Python bindings, a full-featured ROS 2 driver, and a graphical Motor Studio application for recording and playing back trajectories.
+A complete ROS 2 workspace for controlling MyActuator RMD X-series brushless motors over CAN bus. This workspace provides a C++ SDK with Python bindings, a full-featured ROS 2 driver, a graphical Motor Studio application, and a torque threshold calibration tool.
 
 ## Table of Contents
 
@@ -16,6 +16,7 @@ A complete ROS 2 workspace for controlling MyActuator RMD X-series brushless mot
 - [Motor Studio GUI](#motor-studio-gui)
 - [Desktop App Installation](#desktop-app-installation)
 - [Recording and Playback](#recording-and-playback)
+- [Torque Threshold Calibrator](#torque-threshold-calibrator)
 - [Control Modes](#control-modes)
 - [Advanced Features](#advanced-features)
 - [C++ SDK Usage](#c-sdk-usage)
@@ -25,25 +26,36 @@ A complete ROS 2 workspace for controlling MyActuator RMD X-series brushless mot
 
 ## Features
 
-- **C++17 SDK** - Low-level motor control library with full protocol support
+- **C++17 SDK** - Low-level motor control library with V4.3 protocol support
 - **Python Bindings** - pybind11 bindings for Python integration
 - **ROS 2 Driver** - Full-featured driver node with multiple control modes
-- **Motor Studio** - PyQt6 GUI for monitoring, recording, and playback
+- **Motor Studio** - PyQt6 GUI with easy mode and advanced mode for monitoring, recording, and playback
+- **Torque Calibrator** - Headless CLI and GUI for automated torque threshold discovery
 - **Setup Wizard** - Interactive TUI for motor discovery and configuration
 - **Multi-motor Support** - Control up to 32 motors on a single CAN bus
-- **Recording/Playback** - Record trajectories and play them back with triggers
+- **Recording/Playback** - Record trajectories as ROS 2 bags and play them back with triggers
 - **Admittance Control** - Move motors by hand with force feedback
-- **Hybrid Playback** - Position control with torque override triggers
+- **Hybrid Playback** - Position control with hysteresis torque triggers
+- **Motion Mode Control** - MIT-style impedance controller (V4.3)
 
 ## Supported Hardware
 
 ### Motors
-- MyActuator RMD-X4 series (V2, V3, X4-3, X4-24)
-- MyActuator RMD-X6 series (V2, V3, S2V2, X6-7, X6-8, X6-40)
-- MyActuator RMD-X8 series (V2, V3, Pro, S2V3, HV3, X8-20, X8-25, X8-60, X8-90)
-- MyActuator RMD-X10 series (V3, S2V3, X10-40, X10-100)
-- MyActuator RMD-X12-150
-- MyActuator RMD-X15-400
+
+**V4 X-Series (2024+):**
+- RMD-X4-P12.5, RMD-X4-P36
+- RMD-X6-P20
+- RMD-X8-P20, RMD-X8-P33
+- RMD-X12-P20
+- RMD-X15-P20
+
+**Legacy models:**
+- X4 series (V2, V3, X4-3, X4-24)
+- X6 series (V2, V3, S2V2, X6-7, X6-8, X6-40)
+- X8 series (V2, V3, Pro, S2V3, HV3, X8-20, X8-25, X8-60, X8-90)
+- X10 series (V3, S2V3, X10-40, X10-100)
+- X12-150
+- X15-400
 
 ### CAN Adapters
 - CANable / CANable Pro (candleLight firmware)
@@ -201,17 +213,26 @@ ros2 launch myactuator_python_driver driver_with_studio.launch.py
 
 ### myactuator_rmd (C++ SDK)
 
-Low-level C++17 library for direct motor communication.
+Low-level C++17 library for direct motor communication. Implements the RMD V4.3 CAN protocol.
 
 ```
 myactuator_rmd/
 ├── include/myactuator_rmd/
 │   ├── actuator_interface.hpp    # Main API class
-│   ├── actuator_constants.hpp    # Motor torque constants
+│   ├── actuator_constants.hpp    # Motor specs (all models including V4)
 │   ├── driver/                   # CAN driver abstractions
-│   ├── protocol/                 # CAN message encoding/decoding
+│   ├── protocol/
+│   │   ├── command_type.hpp      # All V4.3 command codes
+│   │   ├── requests.hpp          # CAN request message encoding
+│   │   ├── responses.hpp         # CAN response message decoding
+│   │   └── motion_mode.hpp       # MIT-style impedance controller
 │   ├── can/                      # SocketCAN implementation
-│   └── actuator_state/           # Feedback data structures
+│   └── actuator_state/
+│       ├── gains.hpp             # Float-based PID gains (V4.3)
+│       ├── gain_index.hpp        # PID parameter indices
+│       ├── motor_status_1.hpp    # Temperature, MOS temp, voltage, errors
+│       ├── error_code.hpp        # All V4.3 error flags
+│       └── ...
 ├── src/                          # Implementation
 ├── bindings/                     # pybind11 Python bindings
 └── test/                         # Unit tests (GTest)
@@ -219,20 +240,30 @@ myactuator_rmd/
 
 ### myactuator_python_driver (ROS 2 Node)
 
-Python ROS 2 driver with TUI tools and Motor Studio.
+Python ROS 2 driver with TUI tools, Motor Studio, and calibration tools.
 
 ```
 myactuator_python_driver/
 ├── myactuator_python_driver/
-│   ├── driver_node.py      # Main ROS 2 driver node
-│   ├── motor_wrapper.py    # Python wrapper for C++ bindings
-│   ├── config.py           # Configuration dataclasses
-│   ├── can_utils.py        # CAN scanning utilities
-│   ├── setup_tui.py        # Interactive setup wizard
-│   ├── recorder_tui.py     # Terminal recording interface
-│   └── studio/             # PyQt6 Motor Studio application
+│   ├── driver_node.py       # Main ROS 2 driver node
+│   ├── motor_wrapper.py     # Python wrapper for C++ bindings
+│   ├── config.py            # Configuration dataclasses + torque constants
+│   ├── can_utils.py         # CAN scanning utilities
+│   ├── setup_tui.py         # Interactive setup wizard
+│   ├── recorder_tui.py      # Terminal recording interface
+│   ├── velocity_demo.py     # Simple velocity demo node
+│   ├── studio/              # PyQt6 Motor Studio application
+│   │   ├── main_window.py   # Main window (easy mode + advanced mode)
+│   │   ├── ros_bridge.py    # ROS 2 <-> Qt signal bridge
+│   │   ├── recording_manager.py  # ROS 2 bag recording/playback
+│   │   └── widgets/         # UI components (control, monitor, record, playback, browse, easy mode)
+│   └── calibrator/          # Torque threshold calibration
+│       ├── controller.py    # CalibrationController state machine
+│       ├── config.py        # CalibrationConfig, CalibrationResult
+│       ├── window.py        # CalibrationWindow (PyQt6 GUI)
+│       └── main.py          # CLI + GUI entry points
 ├── config/
-│   └── driver_config.yaml  # Default configuration
+│   └── driver_config.yaml   # Default configuration
 └── launch/
     ├── driver.launch.py              # Driver only
     └── driver_with_studio.launch.py  # Driver + Motor Studio
@@ -276,14 +307,22 @@ motors:
 
 ### Torque Constants by Motor Model
 
-| Motor Series | Torque Constant (Nm/A) |
-|--------------|------------------------|
-| X4           | 0.11                   |
-| X6           | 0.16                   |
-| X8           | 0.21                   |
-| X10          | 0.32                   |
-| X12          | 0.42                   |
-| X15          | 0.65                   |
+| Motor | Torque Constant (Nm/A) |
+|-------|------------------------|
+| X4 (V2/V3/X4-3) | 0.11 |
+| X4-24 | 0.11 |
+| X6 (V2/V3/X6-7/X6-8/X6-40) | 0.16 |
+| X8 (all legacy models) | 0.21 |
+| X10 (V3/S2V3/X10-40/X10-100) | 0.32 |
+| X12-150 | 0.42 |
+| X15-400 | 0.65 |
+| **X4V4-P12.5** | **1.0** |
+| **X4V4-P36** | **2.57** |
+| **X6V4-P20** | **2.0** |
+| **X8V4-P20** | **2.86** |
+| **X8V4-P33** | **6.6** |
+| **X12V4-P20** | **4.0** |
+| **X15V4-P20** | **6.0** |
 
 ### Launch Parameters
 
@@ -305,7 +344,7 @@ ros2 launch myactuator_python_driver driver.launch.py \
 | Topic | Type | Description |
 |-------|------|-------------|
 | `/joint_states` | `sensor_msgs/JointState` | Position (rad), velocity (rad/s), effort (Nm) |
-| `/motor_status` | `std_msgs/Float64MultiArray` | Temperature (°C), voltage (V) per motor |
+| `/motor_status` | `std_msgs/Float64MultiArray` | Temperature, voltage per motor |
 | `~/mode` | `std_msgs/String` | Current control mode |
 | `~/trigger_states` | `std_msgs/String` | Active trigger states (JSON) |
 
@@ -363,7 +402,7 @@ ros2 service call /motor_driver/set_zero std_srvs/srv/Trigger
 
 ## Motor Studio GUI
 
-Motor Studio is a PyQt6 desktop application for motor control, monitoring, and trajectory recording.
+Motor Studio is a PyQt6 desktop application for motor control, monitoring, and trajectory recording. It starts in easy mode by default and includes an advanced mode for full control.
 
 ### Launch
 
@@ -375,18 +414,29 @@ ros2 run myactuator_python_driver motor_studio
 ros2 launch myactuator_python_driver driver_with_studio.launch.py
 ```
 
-### Features
+### Easy Mode
+
+The default view with a simplified interface:
+- Connection status LED
+- Recording dropdown selector
+- Play/Pause/Stop controls
+- Emergency stop button
+- "Advanced" button to switch to full interface
+
+### Advanced Mode
+
+Full-featured interface with docks and tabs:
+
+#### Control Panel (Left Dock)
+- Mode selection (Position, Velocity, Torque, Free, Admittance)
+- Enable/Disable toggle
+- Emergency Stop button
+- Set Zero / Go to Zero
 
 #### Monitor Tab
 - Real-time joint state graphs (position, velocity, effort)
 - Configurable time window
 - Per-joint enable/disable
-
-#### Control Panel
-- Mode selection buttons (Position, Velocity, Torque, Free, Admittance)
-- Enable/Disable toggle
-- Emergency Stop button
-- Set Zero / Go to Zero
 
 #### Record Tab
 - Name recordings
@@ -424,20 +474,20 @@ Motor Studio can be installed as a standalone desktop application that you launc
 
 The launcher script (`scripts/motor-studio.sh`) handles everything:
 
-1. **CAN setup** — auto-detects native socketcan (candleLight/gs_usb) or SLCAN adapters and brings up `can0`
-2. **ROS 2 sourcing** — auto-detects the installed ROS 2 distro (Humble, Jazzy, etc.)
-3. **Driver launch** — starts the motor driver node in the background
-4. **Studio launch** — opens the PyQt6 GUI
+1. **CAN setup** -- auto-detects native socketcan (candleLight/gs_usb) or SLCAN adapters and brings up `can0`
+2. **ROS 2 sourcing** -- auto-detects the installed ROS 2 distro (Humble, Jazzy, etc.)
+3. **Driver launch** -- starts the motor driver node in the background
+4. **Studio launch** -- opens the PyQt6 GUI
 
-If no CAN adapter is connected, the app still opens — it just won't have hardware access until you plug one in and restart.
+If no CAN adapter is connected, the app still opens -- it just won't have hardware access until you plug one in and restart.
 
 ### Supported Platforms
 
 | Platform | ROS 2 | Setup |
 |----------|-------|-------|
-| Desktop (Arch/Ubuntu) via distrobox | Humble | Container — desktop entry wraps with `distrobox-enter` |
-| Raspberry Pi 5 | Jazzy | Native — desktop entry runs the launcher directly |
-| Ubuntu 22.04/24.04 native | Humble/Jazzy | Native — same as RPi5 |
+| Desktop (Arch/Ubuntu) via distrobox | Humble | Container -- desktop entry wraps with `distrobox-enter` |
+| Raspberry Pi 5 | Jazzy | Native -- desktop entry runs the launcher directly |
+| Ubuntu 22.04/24.04 native | Humble/Jazzy | Native -- same as RPi5 |
 
 ### Prerequisites
 
@@ -510,7 +560,7 @@ cat ~/.local/share/motor-studio/logs/$(ls -t ~/.local/share/motor-studio/logs/ |
 ### Raspberry Pi 5 Notes
 
 - Clone and build the workspace on the Pi (uses ROS 2 Jazzy natively)
-- Run `./scripts/install-desktop.sh` — it detects the native environment and sets up accordingly
+- Run `./scripts/install-desktop.sh` -- it detects the native environment and sets up accordingly
 - The first launch after install requires no password (sudoers is configured by the installer)
 - To auto-start on boot (kiosk mode):
   ```bash
@@ -524,11 +574,13 @@ Only re-run `./scripts/install-desktop.sh` if you:
 - Move the workspace to a different directory
 - Switch to a different distrobox container
 
-Normal code changes only need `colcon build` — the desktop shortcut points to the scripts in your workspace, which source the latest build on every launch.
+Normal code changes only need `colcon build` -- the desktop shortcut points to the scripts in your workspace, which source the latest build on every launch.
 
 ## Recording and Playback
 
 ### Recording Trajectories
+
+Recordings are stored as ROS 2 bags (sqlite3 + MCAP) in `~/recordings/`.
 
 1. **Using Motor Studio:**
    - Switch to "Free" mode
@@ -546,7 +598,7 @@ Normal code changes only need `colcon build` — the desktop shortcut points to 
 ### Playback
 
 1. **Basic Playback:**
-   - Load recording in Playback tab
+   - Load recording in Playback tab (or select from easy mode dropdown)
    - Click Play
    - Motors follow recorded trajectory
 
@@ -555,31 +607,52 @@ Normal code changes only need `colcon build` — the desktop shortcut points to 
    - Recording repeats until stopped
 
 3. **Hybrid Playback with Triggers:**
-   Configure torque triggers for specific joint angles - useful for tasks like:
+   Configure hysteresis torque triggers for specific joint angles - useful for tasks like:
    - Grasping objects at certain positions
    - Applying force at end of motion
    - Compliance during contact
 
-### Recording File Format
+## Torque Threshold Calibrator
 
-Recordings are stored as JSON files in `~/recordings/`:
+Automated tool for discovering torque thresholds -- applies torque to a joint, records the motion, detects reversal, and reports the threshold position.
 
-```json
-{
-  "name": "pick_and_place",
-  "created": "2024-01-15T10:30:00",
-  "joint_names": ["base_joint", "elbow_joint"],
-  "frames": [
-    {
-      "timestamp_ns": 1000000000,
-      "position": [0.0, 0.0],
-      "velocity": [0.0, 0.0],
-      "effort": [0.0, 0.0]
-    },
-    ...
-  ]
-}
+### Headless CLI
+
+```bash
+ros2 run myactuator_python_driver calibrator_cli \
+    --joint base_joint --torque 0.5 [--name my_calib] [--offset 0.5] [--settle-time 3.0]
 ```
+
+Options:
+- `--joint` (required): Joint to calibrate
+- `--torque` (required): Torque in Nm (negative reverses direction)
+- `--name`: Recording name (auto-generated if omitted)
+- `--offset`: Threshold offset in degrees (default: 0.5)
+- `--settle-time`: Seconds to track threshold after reversal (default: 3.0)
+
+Press Ctrl+C once to stop gracefully, twice to emergency stop.
+
+### GUI
+
+```bash
+ros2 run myactuator_python_driver calibrator_app
+```
+
+The GUI provides:
+- Joint selection dropdown
+- Torque and offset configuration
+- Live position display during calibration
+- Record/Stop/Emergency Stop controls
+- Calibration result display (threshold position, extreme position, duration)
+
+### How Calibration Works
+
+1. Applies configured torque to the selected joint (zero effort to all others)
+2. Records the entire sequence as a ROS 2 bag
+3. Tracks the maximum position reached (extreme)
+4. Detects reversal (position retreats by >1 degree from extreme)
+5. Enters threshold tracking phase for the settle time
+6. Locks and reports the threshold position
 
 ## Control Modes
 
@@ -631,7 +704,7 @@ ros2 topic pub --once /motor_driver/set_mode std_msgs/msg/String "data: 'disable
 
 ### Hysteresis Torque Triggers
 
-Configure position-based torque triggers for hybrid control:
+Configure position-based torque triggers for hybrid control. Triggers are persisted to `~/recordings/triggers.json`.
 
 ```python
 # Trigger structure
@@ -641,14 +714,39 @@ Configure position-based torque triggers for hybrid control:
     "exit_threshold_rad": 1.3,    # Switch back when angle < 1.3
     "torque_nm": 5.0,             # Apply 5 Nm in torque mode
     "direction": "rising",        # or "falling"
-    "enabled": true
+    "enabled": true,
+    "recording_name": "pick_and_place"  # Paired with a specific recording
 }
 ```
+
+### Force-Controlled Position (V4.3)
+
+Position control with torque limiting -- the motor moves to a target position but caps the applied torque:
+
+```cpp
+// C++ SDK
+motor.sendForcePositionSetpoint(90.0, 500.0, 128);  // 90 deg, 500 dps, 50% torque limit
+```
+
+```python
+# Python bindings
+motor.sendForcePositionSetpoint(90.0, 500.0, 128)
+```
+
+### Motion Mode Control (V4.3)
+
+MIT-style impedance controller using CAN ID `0x400+motor_id`:
+
+```
+torque = kp * (p_des - p) + kd * (v_des - v) + torque_ff
+```
+
+Parameters are bit-packed in big-endian format with configurable scaling limits.
 
 ### Multi-turn Position Tracking
 
 The driver tracks multi-turn position, allowing:
-- Continuous rotation beyond 360°
+- Continuous rotation beyond 360 degrees
 - Absolute position commands
 - Position offset calibration
 
@@ -658,6 +756,15 @@ Set a watchdog timeout to stop motors if communication is lost:
 
 ```yaml
 timeout_ms: 1000  # Stop if no command for 1 second
+```
+
+### Velocity Demo
+
+A simple ROS 2 node that spins a joint at constant velocity:
+
+```bash
+ros2 run myactuator_python_driver velocity_demo
+ros2 run myactuator_python_driver velocity_demo --ros-args -p speed:=180.0 -p joint:=base_joint
 ```
 
 ## C++ SDK Usage
@@ -678,16 +785,32 @@ int main() {
     // Get motor info
     std::string model = motor.getMotorModel();
     auto status = motor.getMotorStatus1();
+    // status.temperature, status.mos_temperature, status.voltage, status.error_code
 
-    // Send position command (degrees, max speed in dps)
+    // Position control
     auto feedback = motor.sendPositionAbsoluteSetpoint(90.0, 500.0);
 
-    // Send velocity command (degrees per second)
-    feedback = motor.sendVelocitySetpoint(100.0);
+    // Force-controlled position (V4.3) - position with torque limit
+    feedback = motor.sendForcePositionSetpoint(90.0, 500.0, 128);
 
-    // Send torque command (Nm, requires torque constant)
+    // Single-turn position (0-359.99 deg with direction)
+    feedback = motor.sendSingleTurnPositionSetpoint(180.0, 500.0, 0x00);  // clockwise
+
+    // Incremental (relative) position
+    feedback = motor.sendIncrementalPositionSetpoint(45.0, 500.0);
+
+    // Velocity control (with optional torque limit)
+    feedback = motor.sendVelocitySetpoint(100.0);       // no torque limit
+    feedback = motor.sendVelocitySetpoint(100.0, 128);   // 50% torque limit
+
+    // Torque control
     float torque_constant = 0.21;  // X8 series
     feedback = motor.sendTorqueSetpoint(1.0, torque_constant);
+
+    // PID gains (V4.3 float-based)
+    auto gains = motor.getControllerGains();
+    float kp = motor.getGain(myactuator_rmd::GainIndex::SPEED_KP);
+    motor.setGain(myactuator_rmd::GainIndex::SPEED_KP, 50.0f, true);  // persistent
 
     // Stop motor
     motor.stopMotor();
@@ -743,14 +866,24 @@ motor = rmd.ActuatorInterface(driver, 1)
 
 # Get motor info
 model = motor.getMotorModel()
-status = motor.getMotorStatus2()
-print(f"Position: {status.shaft_angle}°")
-print(f"Velocity: {status.shaft_speed} dps")
+status = motor.getMotorStatus1()
+print(f"Temperature: {status.temperature} C")
+print(f"MOS Temperature: {status.mos_temperature} C")
+print(f"Voltage: {status.voltage} V")
+
+status2 = motor.getMotorStatus2()
+print(f"Position: {status2.shaft_angle} deg")
+print(f"Velocity: {status2.shaft_speed} dps")
 
 # Control commands
 feedback = motor.sendPositionAbsoluteSetpoint(90.0, 500.0)
+feedback = motor.sendForcePositionSetpoint(90.0, 500.0, 128)
 feedback = motor.sendVelocitySetpoint(100.0)
 feedback = motor.sendTorqueSetpoint(1.0, 0.21)
+
+# PID gains (V4.3)
+gains = motor.getControllerGains()
+motor.setGain(rmd.actuator_state.GainIndex.SPEED_KP, 50.0, True)
 
 # Stop
 motor.stopMotor()
@@ -818,25 +951,52 @@ python3 -c "from myactuator_rmd import myactuator_rmd_py; print('OK')"
 
 ## Protocol Reference
 
-The driver implements the RMD-X Servo Motor Control Protocol V3.8.
+The SDK implements the MyActuator RMD V4.3 CAN protocol.
 
 ### CAN Addressing
 - **TX (commands)**: `0x140 + motor_id`
 - **RX (responses)**: `0x240 + motor_id`
+- **Motion Mode TX**: `0x400 + motor_id`
+- **Motion Mode RX**: `0x500 + motor_id`
 - **Motor IDs**: 1-32
 
-### Common Command Codes
+### Command Codes
+
 | Code | Description |
 |------|-------------|
+| `0x20` | Function control |
+| `0x30` | Read PID parameters (index-based) |
+| `0x31` | Write PID to RAM (index-based) |
+| `0x32` | Write PID to ROM (index-based) |
+| `0x42` | Read acceleration |
+| `0x43` | Write acceleration |
+| `0x60-0x64` | Encoder operations |
+| `0x70` | Read system operating mode |
+| `0x76` | Reset system |
+| `0x77` | Release brake |
+| `0x78` | Lock brake |
+| `0x79` | CAN ID setting |
 | `0x80` | Shutdown motor |
 | `0x81` | Stop motor |
-| `0x88` | Reset motor |
-| `0x9A` | Read status 1 (temp, voltage, errors) |
+| `0x90` | Read single-turn encoder |
+| `0x92` | Read multi-turn angle |
+| `0x94` | Read single-turn angle |
+| `0x9A` | Read status 1 (temp, MOS temp, voltage, errors) |
 | `0x9C` | Read status 2 (position, velocity, current) |
 | `0x9D` | Read status 3 (phase currents) |
 | `0xA1` | Torque/current control |
-| `0xA2` | Velocity control |
-| `0xA4` | Position control (absolute) |
+| `0xA2` | Velocity control (with optional torque limit) |
+| `0xA4` | Absolute position control |
+| `0xA6` | Single-turn position control |
+| `0xA8` | Incremental position control |
+| `0xA9` | Force-controlled position (with torque limit) |
+| `0xB1` | Read system runtime |
+| `0xB2` | Read software version |
+| `0xB3` | Communication timeout setting |
+| `0xB4` | Baud rate setting |
+| `0xB5` | Read motor model |
+| `0xB6` | Active reply function |
+| `0x400+ID` | Motion mode control (MIT-style) |
 
 ## License
 
