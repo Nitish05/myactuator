@@ -68,29 +68,30 @@ fi
 # --- Step 1: CAN Bus Setup ---
 echo "[$(timestamp)] Setting up CAN ($CAN_INTERFACE @ ${CAN_BITRATE}bps)..."
 
+CAN_OK=false
 if ip link show "$CAN_INTERFACE" up >/dev/null 2>&1; then
     echo "[$(timestamp)] $CAN_INTERFACE already up."
+    CAN_OK=true
 else
     CAN_HELPER="$SCRIPT_DIR/setup_can.sh"
-    if [ ! -x "$CAN_HELPER" ]; then
-        die "CAN helper not found: $CAN_HELPER"
-    fi
+    if [ -x "$CAN_HELPER" ]; then
+        RESULT=$(sudo "$CAN_HELPER" "$CAN_INTERFACE" "$CAN_BITRATE" 2>&1) || true
+        echo "[$(timestamp)] CAN setup: $RESULT"
 
-    # Inside distrobox: sudo talks to host. Native: sudo is normal.
-    RESULT=$(sudo "$CAN_HELPER" "$CAN_INTERFACE" "$CAN_BITRATE" 2>&1) || true
-    echo "[$(timestamp)] CAN setup: $RESULT"
-
-    if [[ "$RESULT" != OK:* ]]; then
-        die "CAN setup failed: $RESULT
-
-Make sure a USB-CAN adapter is connected."
+        if [[ "$RESULT" == OK:* ]]; then
+            CAN_OK=true
+        fi
+    else
+        echo "[$(timestamp)] CAN helper not found: $CAN_HELPER"
     fi
 fi
 
-if ! ip link show "$CAN_INTERFACE" up >/dev/null 2>&1; then
-    die "$CAN_INTERFACE failed to come up."
+if $CAN_OK; then
+    echo "[$(timestamp)] CAN OK."
+else
+    echo "[$(timestamp)] WARNING: CAN not available — studio will open without hardware."
+    notify "No CAN adapter — opening without hardware"
 fi
-echo "[$(timestamp)] CAN OK."
 
 # --- Step 2: Source ROS 2 (auto-detect distro) ---
 echo "[$(timestamp)] Sourcing ROS 2..."
@@ -126,22 +127,27 @@ set -u
 
 echo "[$(timestamp)] ROS 2 $ROS_DISTRO + workspace sourced."
 
-# --- Step 3: Start driver node ---
-echo "[$(timestamp)] Starting motor driver..."
-ros2 run myactuator_python_driver driver_node &
-DRIVER_PID=$!
-echo "[$(timestamp)] Driver PID: $DRIVER_PID"
+# --- Step 3: Start driver node (only if CAN is available) ---
+if $CAN_OK; then
+    echo "[$(timestamp)] Starting motor driver..."
+    ros2 run myactuator_python_driver driver_node &
+    DRIVER_PID=$!
+    echo "[$(timestamp)] Driver PID: $DRIVER_PID"
 
-sleep 1.5
+    sleep 1.5
 
-if ! kill -0 "$DRIVER_PID" 2>/dev/null; then
-    die "Motor driver crashed on startup.
-
-Check: $LOGFILE"
+    if ! kill -0 "$DRIVER_PID" 2>/dev/null; then
+        echo "[$(timestamp)] WARNING: Driver failed to start. Opening studio anyway."
+        notify "Driver failed — opening studio without hardware"
+        DRIVER_PID=""
+    else
+        echo "[$(timestamp)] Driver running."
+        notify "Connected and ready"
+    fi
+else
+    echo "[$(timestamp)] Skipping driver (no CAN)."
+    DRIVER_PID=""
 fi
-
-echo "[$(timestamp)] Driver running."
-notify "Connected and ready"
 
 # --- Step 4: Launch Motor Studio GUI ---
 echo "[$(timestamp)] Opening Motor Studio..."

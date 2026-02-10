@@ -115,7 +115,7 @@ class EasyModeWidget(QWidget):
 
         self._play_btn = QPushButton(_PLAY)
         self._play_btn.setObjectName("easyPlayButton")
-        self._play_btn.setFixedSize(80, 80)
+        self._play_btn.setFixedSize(120, 120)
         self._play_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._play_btn.setEnabled(False)
         self._play_btn.clicked.connect(self._on_play_clicked)
@@ -123,7 +123,7 @@ class EasyModeWidget(QWidget):
 
         self._stop_btn = QPushButton(_STOP)
         self._stop_btn.setObjectName("easyStopPlaybackButton")
-        self._stop_btn.setFixedSize(56, 56)
+        self._stop_btn.setFixedSize(80, 80)
         self._stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._stop_btn.setEnabled(False)
         self._stop_btn.clicked.connect(self._on_stop_clicked)

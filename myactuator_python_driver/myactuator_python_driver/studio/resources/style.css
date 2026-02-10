@@ -114,12 +114,12 @@ QLabel#triggerIndicator[active="false"] {
 QPushButton#easyPlayButton {
     background-color: #c62828;
     color: white;
-    font-size: 28px;
-    min-width: 80px;
-    max-width: 80px;
-    min-height: 80px;
-    max-height: 80px;
-    border-radius: 40px;
+    font-size: 40px;
+    min-width: 120px;
+    max-width: 120px;
+    min-height: 120px;
+    max-height: 120px;
+    border-radius: 60px;
     border: 2px solid #c62828;
     padding: 0px;
     outline: none;
@@ -149,12 +149,12 @@ QPushButton#easyPlayButton:focus {
 QPushButton#easyStopPlaybackButton {
     background-color: #424242;
     color: #e0e0e0;
-    font-size: 20px;
-    min-width: 56px;
-    max-width: 56px;
-    min-height: 56px;
-    max-height: 56px;
-    border-radius: 28px;
+    font-size: 28px;
+    min-width: 80px;
+    max-width: 80px;
+    min-height: 80px;
+    max-height: 80px;
+    border-radius: 40px;
     border: 2px solid #424242;
     padding: 0px;
     outline: none;
