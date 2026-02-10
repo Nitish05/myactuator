@@ -11,7 +11,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
     QDockWidget, QStatusBar, QLabel, QMenuBar, QMenu, QMessageBox,
-    QToolBar
+    QToolBar, QStackedWidget
 )
 from PyQt6.QtGui import QAction, QKeySequence
 
@@ -27,6 +27,7 @@ from .widgets.monitor_tab import MonitorTab
 from .widgets.record_tab import RecordTab
 from .widgets.playback_tab import PlaybackTab
 from .widgets.browse_tab import BrowseTab
+from .widgets.easy_mode import EasyModeWidget
 from .dialogs.trigger_dialog import TriggerDialog
 
 
@@ -56,6 +57,7 @@ class MainWindow(QMainWindow):
         self._connected = False
         self._recording = False
         self._playing = False
+        self._easy_mode = True
 
         # Setup UI
         self._setup_menu_bar()
@@ -66,6 +68,14 @@ class MainWindow(QMainWindow):
 
         # Connect signals
         self._connect_signals()
+
+        # Start in easy mode: hide advanced UI
+        self._control_dock.setVisible(False)
+        self._monitor_dock.setVisible(False)
+        self._toolbar.setVisible(False)
+        self.menuBar().setVisible(False)
+        self._status_bar.setVisible(False)
+        self._stack.setCurrentIndex(0)
 
         # Start ROS bridge
         self._ros_bridge.start()
@@ -125,6 +135,13 @@ class MainWindow(QMainWindow):
         self._monitor_dock_action.setChecked(True)
         view_menu.addAction(self._monitor_dock_action)
 
+        view_menu.addSeparator()
+
+        simple_mode_action = QAction("&Simple Mode", self)
+        simple_mode_action.setShortcut(QKeySequence("Ctrl+Shift+S"))
+        simple_mode_action.triggered.connect(self._switch_to_easy)
+        view_menu.addAction(simple_mode_action)
+
         # Help menu
         help_menu = menubar.addMenu("&Help")
 
@@ -134,37 +151,49 @@ class MainWindow(QMainWindow):
 
     def _setup_toolbar(self):
         """Set up the toolbar."""
-        toolbar = QToolBar("Main Toolbar")
-        toolbar.setMovable(False)
-        self.addToolBar(toolbar)
+        self._toolbar = QToolBar("Main Toolbar")
+        self._toolbar.setMovable(False)
+        self.addToolBar(self._toolbar)
 
         # E-Stop button in toolbar
-        self._estop_btn_toolbar = toolbar.addAction("STOP")
+        self._estop_btn_toolbar = self._toolbar.addAction("STOP")
         self._estop_btn_toolbar.setToolTip("Emergency Stop (Esc)")
         self._estop_btn_toolbar.triggered.connect(self._emergency_stop)
 
+        self._toolbar.addSeparator()
+
+        # Simple Mode button in toolbar
+        self._simple_mode_toolbar = self._toolbar.addAction("Simple Mode")
+        self._simple_mode_toolbar.setToolTip("Switch to Simple Mode (Ctrl+Shift+S)")
+        self._simple_mode_toolbar.triggered.connect(self._switch_to_easy)
+
     def _setup_central_widget(self):
-        """Set up the central tab widget."""
+        """Set up the central widget with easy mode and tab pages."""
+        self._stack = QStackedWidget()
+
+        # Page 0: Easy Mode
+        self._easy_mode_widget = EasyModeWidget()
+        self._stack.addWidget(self._easy_mode_widget)
+
+        # Page 1: Advanced Mode (tab widget)
         self._tabs = QTabWidget()
         self._tabs.setDocumentMode(True)
 
-        # Monitor tab
         self._monitor_tab = MonitorTab()
         self._tabs.addTab(self._monitor_tab, "Monitor")
 
-        # Record tab
         self._record_tab = RecordTab()
         self._tabs.addTab(self._record_tab, "Record")
 
-        # Playback tab
         self._playback_tab = PlaybackTab()
         self._tabs.addTab(self._playback_tab, "Playback")
 
-        # Browse tab
         self._browse_tab = BrowseTab()
         self._tabs.addTab(self._browse_tab, "Browse")
 
-        self.setCentralWidget(self._tabs)
+        self._stack.addWidget(self._tabs)
+
+        self.setCentralWidget(self._stack)
 
     def _setup_docks(self):
         """Set up dock widgets."""
@@ -274,6 +303,13 @@ class MainWindow(QMainWindow):
         self._recording_manager.playback_frame.connect(self._on_playback_frame)
         self._recording_manager.error_occurred.connect(self._show_error_message)
 
+        # Easy mode signals
+        self._easy_mode_widget.recording_play_requested.connect(self._easy_play_recording)
+        self._easy_mode_widget.pause_requested.connect(self._easy_toggle_pause)
+        self._easy_mode_widget.stop_requested.connect(self._stop_playback)
+        self._easy_mode_widget.emergency_stop_requested.connect(self._emergency_stop)
+        self._easy_mode_widget.advanced_mode_requested.connect(self._switch_to_advanced)
+
     # === ROS Bridge Handlers ===
 
     def _on_joint_state(self, msg):
@@ -310,6 +346,7 @@ class MainWindow(QMainWindow):
             self._recording_manager.set_direct_publisher(None)
 
         self._control_panel.set_connection_status(connected)
+        self._easy_mode_widget.set_connection_status(connected)
 
     def _on_trigger_state_changed(self, states: dict):
         """Handle trigger state update."""
@@ -391,11 +428,13 @@ class MainWindow(QMainWindow):
     def _on_playback_started(self, name: str):
         """Handle playback started."""
         self._playback_tab.set_playing(True)
+        self._easy_mode_widget.set_playing(True, name)
         self._recording_label.setText(f"Playing: {name}")
 
     def _on_playback_stopped(self):
         """Handle playback stopped."""
         self._playback_tab.set_playing(False)
+        self._easy_mode_widget.set_playing(False)
         self._recording_label.setText("Idle")
         self._playing = False
         # Clear triggers when playback ends (natural stop or loop end)
@@ -404,6 +443,7 @@ class MainWindow(QMainWindow):
     def _on_playback_progress(self, current_sec: float, total_sec: float):
         """Handle playback progress update."""
         self._playback_tab.set_progress(current_sec, total_sec)
+        self._easy_mode_widget.set_progress(current_sec, total_sec)
 
     def _on_playback_frame(self, msg):
         """Handle playback frame - send to motors."""
@@ -456,6 +496,7 @@ class MainWindow(QMainWindow):
         recordings = self._recording_manager.get_recordings()
         self._browse_tab.set_recordings(recordings)
         self._playback_tab.set_recordings(recordings)
+        self._easy_mode_widget.set_recordings(recordings, self._trigger_store)
         # Load all saved triggers
         self._playback_tab.set_triggers(self._trigger_store.get_all())
 
@@ -495,6 +536,58 @@ class MainWindow(QMainWindow):
             self._show_error_message("No joints detected - connect to driver first")
             return
         self._ros_bridge.go_to_zero()
+
+    # === Mode Switching ===
+
+    def _switch_to_easy(self):
+        """Switch to easy mode."""
+        if self._playing:
+            self._stop_playback()
+        self._easy_mode = True
+        self._stack.setCurrentIndex(0)
+        self._control_dock.setVisible(False)
+        self._monitor_dock.setVisible(False)
+        self._toolbar.setVisible(False)
+        self.menuBar().setVisible(False)
+        self._status_bar.setVisible(False)
+        # Refresh so cards are up to date
+        self._refresh_recordings()
+
+    def _switch_to_advanced(self):
+        """Switch to advanced mode."""
+        self._easy_mode = False
+        self._stack.setCurrentIndex(1)
+        self._control_dock.setVisible(True)
+        self._monitor_dock.setVisible(True)
+        self._toolbar.setVisible(True)
+        self.menuBar().setVisible(True)
+        self._status_bar.setVisible(True)
+
+    def _easy_play_recording(self, recording):
+        """Handle play request from easy mode."""
+        # Get matching triggers
+        all_triggers = self._trigger_store.get_all()
+        matching_triggers = [
+            t for t in all_triggers
+            if not t.recording_name or t.recording_name == recording.name
+        ]
+        if matching_triggers:
+            config = PlaybackTriggerConfig(triggers=matching_triggers)
+            self._ros_bridge.set_trigger_config(config)
+        else:
+            self._ros_bridge.clear_trigger_config()
+
+        # Switch to position mode and start playback
+        self._ros_bridge.set_mode("position")
+        self._recording_manager.start_playback(recording)
+        self._playing = True
+
+    def _easy_toggle_pause(self):
+        """Toggle pause from easy mode."""
+        self._recording_manager.toggle_pause()
+        paused = self._recording_manager.is_paused
+        self._playback_tab.set_paused(paused)
+        self._easy_mode_widget.set_paused(paused)
 
     # === UI Helpers ===
 

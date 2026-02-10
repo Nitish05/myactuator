@@ -35,6 +35,7 @@ setup(
             'motor_studio = myactuator_python_driver.studio.main:main',
             'calibrator_cli = myactuator_python_driver.calibrator.main:main',
             'calibrator_app = myactuator_python_driver.calibrator.main:main_gui',
+            'velocity_demo = myactuator_python_driver.velocity_demo:main',
         ],
     },
 )

@@ -6,6 +6,7 @@ from .record_tab import RecordTab
 from .playback_tab import PlaybackTab
 from .browse_tab import BrowseTab
 from .monitor_tab import MonitorTab
+from .easy_mode import EasyModeWidget
 
 __all__ = [
     'ControlPanel',
@@ -14,4 +15,5 @@ __all__ = [
     'PlaybackTab',
     'BrowseTab',
     'MonitorTab',
+    'EasyModeWidget',
 ]

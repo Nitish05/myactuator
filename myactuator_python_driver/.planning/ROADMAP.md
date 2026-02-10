@@ -13,7 +13,7 @@ The Torque Threshold Calibrator delivers automated trigger discovery in three ph
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Safety Infrastructure & Core Controller** - Build calibration state machine with safety guardrails
-- [ ] **Phase 2: UI Shell & Basic Calibration** - Expose controller through PyQt6 interface with ROS integration
+- [x] **Phase 2: UI Shell & Basic Calibration** - Expose controller through PyQt6 interface with ROS integration
 - [ ] **Phase 3: Trigger Management & Output** - Implement trigger preview, persistence, and management
 
 ## Phase Details
@@ -47,7 +47,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 02-01-PLAN.md -- CalibrationWindow GUI, entry point, and setup.py registration
+- [x] 02-01-PLAN.md -- CalibrationWindow GUI, entry point, and setup.py registration
 
 ### Phase 3: Trigger Management & Output
 **Goal**: User can review computed trigger parameters before saving and triggers persist to TriggerStore for use in Motor Studio
@@ -72,5 +72,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Safety Infrastructure & Core Controller | 2/2 | ✓ Complete | 2026-02-09 |
-| 2. UI Shell & Basic Calibration | 0/? | Not started | - |
+| 2. UI Shell & Basic Calibration | 1/1 | ✓ Complete | 2026-02-09 |
 | 3. Trigger Management & Output | 0/? | Not started | - |

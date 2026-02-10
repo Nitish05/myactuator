@@ -109,3 +109,88 @@ QLabel#triggerIndicator[active="true"] {
 QLabel#triggerIndicator[active="false"] {
     color: #757575;
 }
+
+/* Easy Mode - Circular play/pause button */
+QPushButton#easyPlayButton {
+    background-color: #c62828;
+    color: white;
+    font-size: 28px;
+    min-width: 80px;
+    max-width: 80px;
+    min-height: 80px;
+    max-height: 80px;
+    border-radius: 40px;
+    border: 2px solid #c62828;
+    padding: 0px;
+    outline: none;
+}
+
+QPushButton#easyPlayButton:hover {
+    background-color: #e53935;
+    border-color: #e53935;
+}
+
+QPushButton#easyPlayButton:pressed {
+    background-color: #b71c1c;
+    border-color: #b71c1c;
+}
+
+QPushButton#easyPlayButton:disabled {
+    background-color: #424242;
+    border-color: #424242;
+    color: #757575;
+}
+
+QPushButton#easyPlayButton:focus {
+    border-color: #ef5350;
+}
+
+/* Easy Mode - Stop playback button */
+QPushButton#easyStopPlaybackButton {
+    background-color: #424242;
+    color: #e0e0e0;
+    font-size: 20px;
+    min-width: 56px;
+    max-width: 56px;
+    min-height: 56px;
+    max-height: 56px;
+    border-radius: 28px;
+    border: 2px solid #424242;
+    padding: 0px;
+    outline: none;
+}
+
+QPushButton#easyStopPlaybackButton:hover {
+    background-color: #616161;
+    border-color: #616161;
+}
+
+QPushButton#easyStopPlaybackButton:pressed {
+    background-color: #303030;
+    border-color: #303030;
+}
+
+QPushButton#easyStopPlaybackButton:disabled {
+    background-color: #2d2d2d;
+    border-color: #2d2d2d;
+    color: #616161;
+}
+
+QPushButton#easyStopPlaybackButton:focus {
+    border-color: #757575;
+}
+
+/* Easy Mode - Advanced Mode button */
+QPushButton#advancedModeButton {
+    background-color: transparent;
+    color: #9e9e9e;
+    border: 1px solid #616161;
+    border-radius: 4px;
+    padding: 6px 14px;
+    font-size: 12px;
+}
+
+QPushButton#advancedModeButton:hover {
+    color: #e0e0e0;
+    border-color: #9e9e9e;
+}
