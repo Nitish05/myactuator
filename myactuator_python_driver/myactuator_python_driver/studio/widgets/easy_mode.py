@@ -6,8 +6,8 @@ Dropdown to pick a recording, circular play/pause button, stop button.
 
 from typing import List, Optional
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QComboBox, QProgressBar, QFrame, QSizePolicy
 )
@@ -27,11 +27,13 @@ class EasyModeWidget(QWidget):
     a circular play/pause button, and a stop button.
     """
 
-    recording_play_requested = pyqtSignal(object)  # RecordingInfo
-    pause_requested = pyqtSignal()
-    stop_requested = pyqtSignal()
-    emergency_stop_requested = pyqtSignal()
-    advanced_mode_requested = pyqtSignal()
+    recording_play_requested = Signal(object)  # RecordingInfo
+    pause_requested = Signal()
+    stop_requested = Signal()
+    emergency_stop_requested = Signal()
+    advanced_mode_requested = Signal()
+    exit_fullscreen_requested = Signal()
+    exit_app_requested = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -69,6 +71,18 @@ class EasyModeWidget(QWidget):
         advanced_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         advanced_btn.clicked.connect(self.advanced_mode_requested)
         header.addWidget(advanced_btn)
+
+        exit_fs_btn = QPushButton("Exit Fullscreen")
+        exit_fs_btn.setObjectName("advancedModeButton")
+        exit_fs_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        exit_fs_btn.clicked.connect(self.exit_fullscreen_requested)
+        header.addWidget(exit_fs_btn)
+
+        exit_btn = QPushButton("Exit")
+        exit_btn.setObjectName("advancedModeButton")
+        exit_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        exit_btn.clicked.connect(self.exit_app_requested)
+        header.addWidget(exit_btn)
 
         layout.addLayout(header)
 

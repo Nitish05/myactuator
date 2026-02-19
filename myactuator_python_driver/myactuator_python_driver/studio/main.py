@@ -20,11 +20,11 @@ def main():
 
     # Import PyQt6
     try:
-        from PyQt6.QtWidgets import QApplication, QMessageBox
-        from PyQt6.QtCore import Qt
+        from PySide6.QtWidgets import QApplication, QMessageBox
+        from PySide6.QtCore import Qt
     except ImportError:
-        print("Error: PyQt6 is required but not installed.")
-        print("Install it with: pip install PyQt6")
+        print("Error: PySide6 is required but not installed.")
+        print("Install it with: pip install PySide6")
         sys.exit(1)
 
     # Create application
@@ -39,8 +39,8 @@ def main():
         apply_stylesheet(app, theme='dark_blue.xml')
     except ImportError:
         # qt-material not installed, use default dark palette
-        from PyQt6.QtWidgets import QStyleFactory
-        from PyQt6.QtGui import QPalette, QColor
+        from PySide6.QtWidgets import QStyleFactory
+        from PySide6.QtGui import QPalette, QColor
 
         app.setStyle(QStyleFactory.create("Fusion"))
 
@@ -105,6 +105,7 @@ def main():
 
     window = MainWindow()
     window.show()
+    window.showFullScreen()
 
     # Run application
     sys.exit(app.exec())

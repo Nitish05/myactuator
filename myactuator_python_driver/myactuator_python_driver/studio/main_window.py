@@ -7,13 +7,13 @@ QMainWindow with docks, tabs, menu bar, and status bar.
 import time
 from pathlib import Path
 
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QTabWidget,
     QDockWidget, QStatusBar, QLabel, QMenuBar, QMenu, QMessageBox,
     QToolBar, QStackedWidget
 )
-from PyQt6.QtGui import QAction, QKeySequence
+from PySide6.QtGui import QAction, QKeySequence
 
 from sensor_msgs.msg import JointState
 
@@ -76,6 +76,12 @@ class MainWindow(QMainWindow):
         self.menuBar().setVisible(False)
         self._status_bar.setVisible(False)
         self._stack.setCurrentIndex(0)
+
+        # F11 toggle fullscreen
+        toggle_fs_action = QAction("Toggle Fullscreen", self)
+        toggle_fs_action.setShortcut(QKeySequence("F11"))
+        toggle_fs_action.triggered.connect(self._toggle_fullscreen)
+        self.addAction(toggle_fs_action)
 
         # Start ROS bridge
         self._ros_bridge.start()
@@ -166,6 +172,18 @@ class MainWindow(QMainWindow):
         self._simple_mode_toolbar = self._toolbar.addAction("Simple Mode")
         self._simple_mode_toolbar.setToolTip("Switch to Simple Mode (Ctrl+Shift+S)")
         self._simple_mode_toolbar.triggered.connect(self._switch_to_easy)
+
+        self._toolbar.addSeparator()
+
+        # Exit Fullscreen button in toolbar
+        self._exit_fs_toolbar = self._toolbar.addAction("Exit Fullscreen")
+        self._exit_fs_toolbar.setToolTip("Exit Fullscreen (F11)")
+        self._exit_fs_toolbar.triggered.connect(self.showNormal)
+
+        # Exit button in toolbar
+        self._exit_toolbar = self._toolbar.addAction("Exit")
+        self._exit_toolbar.setToolTip("Exit Application")
+        self._exit_toolbar.triggered.connect(self.close)
 
     def _setup_central_widget(self):
         """Set up the central widget with easy mode and tab pages."""
@@ -309,6 +327,8 @@ class MainWindow(QMainWindow):
         self._easy_mode_widget.stop_requested.connect(self._stop_playback)
         self._easy_mode_widget.emergency_stop_requested.connect(self._emergency_stop)
         self._easy_mode_widget.advanced_mode_requested.connect(self._switch_to_advanced)
+        self._easy_mode_widget.exit_fullscreen_requested.connect(self.showNormal)
+        self._easy_mode_widget.exit_app_requested.connect(self.close)
 
     # === ROS Bridge Handlers ===
 
@@ -537,6 +557,15 @@ class MainWindow(QMainWindow):
             return
         self._ros_bridge.set_mode("position")
         self._ros_bridge.go_to_zero()
+
+    # === Fullscreen ===
+
+    def _toggle_fullscreen(self):
+        """Toggle between fullscreen and normal window."""
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
 
     # === Mode Switching ===
 

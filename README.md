@@ -402,7 +402,7 @@ ros2 service call /motor_driver/set_zero std_srvs/srv/Trigger
 
 ## Motor Studio GUI
 
-Motor Studio is a PyQt6 desktop application for motor control, monitoring, and trajectory recording. It starts in easy mode by default and includes an advanced mode for full control.
+Motor Studio is a PyQt6 desktop application for motor control, monitoring, and trajectory recording. It launches in fullscreen and starts in easy mode by default, with an advanced mode for full control.
 
 ### Launch
 
@@ -421,7 +421,9 @@ The default view with a simplified interface:
 - Recording dropdown selector
 - Play/Pause/Stop controls
 - Emergency stop button
-- "Advanced" button to switch to full interface
+- "Advanced Mode" button to switch to full interface
+- "Exit Fullscreen" button to return to windowed mode
+- "Exit" button to quit the application
 
 ### Advanced Mode
 
@@ -462,6 +464,7 @@ Full-featured interface with docks and tabs:
 | Shortcut | Action |
 |----------|--------|
 | `Escape` | Emergency Stop |
+| `F11` | Toggle Fullscreen |
 | `Ctrl+Z` | Set Zero |
 | `Ctrl+0` | Go to Zero |
 | `F5` | Refresh Recordings |
