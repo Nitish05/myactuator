@@ -13,7 +13,7 @@ import time
 from datetime import datetime
 from typing import Optional
 
-from PyQt6.QtCore import QObject, QTimer, pyqtSignal
+from PySide6.QtCore import QObject, QTimer, Signal
 from sensor_msgs.msg import JointState
 
 from .config import CalibrationConfig, CalibrationResult, CalibrationState
@@ -39,13 +39,13 @@ class CalibrationController(QObject):
         calibration_complete: Emitted with CalibrationResult on successful stop.
     """
 
-    state_changed = pyqtSignal(object)
-    max_position_updated = pyqtSignal(float)
-    position_updated = pyqtSignal(float)
-    error_occurred = pyqtSignal(str)
-    calibration_complete = pyqtSignal(object)
-    reversal_detected = pyqtSignal(float)  # extreme position when reversal occurs
-    threshold_locked = pyqtSignal(float)   # threshold frozen after settle window
+    state_changed = Signal(object)
+    max_position_updated = Signal(float)
+    position_updated = Signal(float)
+    error_occurred = Signal(str)
+    calibration_complete = Signal(object)
+    reversal_detected = Signal(float)  # extreme position when reversal occurs
+    threshold_locked = Signal(float)   # threshold frozen after settle window
 
     def __init__(self, ros_bridge, recording_manager, parent=None):
         super().__init__(parent)

@@ -11,7 +11,7 @@ only layout, signal wiring, and display updates.
 
 import math
 
-from PyQt6.QtWidgets import (
+from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QFormLayout, QGroupBox,
     QComboBox, QDoubleSpinBox, QLineEdit, QLabel, QPushButton,
 )

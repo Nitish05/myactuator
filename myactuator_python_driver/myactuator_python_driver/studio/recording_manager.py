@@ -12,7 +12,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable, List, Optional
 
-from PyQt6.QtCore import QObject, QThread, pyqtSignal
+from PySide6.QtCore import QObject, QThread, Signal
 
 import rclpy
 from rclpy.serialization import serialize_message, deserialize_message
@@ -46,16 +46,16 @@ class RecordingManager(QObject):
     """
 
     # Signals
-    recording_started = pyqtSignal(str)  # recording name
-    recording_stopped = pyqtSignal(str, int)  # recording name, frame count
-    recording_frame = pyqtSignal(int)  # frame count
+    recording_started = Signal(str)  # recording name
+    recording_stopped = Signal(str, int)  # recording name, frame count
+    recording_frame = Signal(int)  # frame count
 
-    playback_started = pyqtSignal(str)  # recording name
-    playback_stopped = pyqtSignal()
-    playback_progress = pyqtSignal(float, float)  # current_sec, total_sec
-    playback_frame = pyqtSignal(object)  # JointState msg
+    playback_started = Signal(str)  # recording name
+    playback_stopped = Signal()
+    playback_progress = Signal(float, float)  # current_sec, total_sec
+    playback_frame = Signal(object)  # JointState msg
 
-    error_occurred = pyqtSignal(str)
+    error_occurred = Signal(str)
 
     SPEEDS = [0.25, 0.5, 1.0, 2.0, 4.0]
 

@@ -7,8 +7,8 @@ Provides a QAbstractTableModel for displaying joint states in a QTableView.
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
-from PyQt6.QtGui import QColor
+from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex
+from PySide6.QtGui import QColor
 
 
 @dataclass

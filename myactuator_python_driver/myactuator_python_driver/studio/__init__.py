@@ -1,5 +1,5 @@
 """
-Motor Recording Studio - PyQt6 desktop application for motor trajectory recording and playback.
+Motor Recording Studio - PySide6 desktop application for motor trajectory recording and playback.
 
 This package provides a graphical interface for:
 - Real-time monitoring of motor joint states

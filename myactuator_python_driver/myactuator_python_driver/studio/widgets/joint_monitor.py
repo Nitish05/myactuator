@@ -4,8 +4,8 @@ Joint monitor widget for Motor Recording Studio.
 Bottom dock widget showing real-time joint state values.
 """
 
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QTableView,
     QHeaderView, QAbstractItemView
 )

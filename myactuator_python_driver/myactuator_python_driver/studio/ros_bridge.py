@@ -10,7 +10,7 @@ import threading
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
-from PyQt6.QtCore import QObject, QThread, pyqtSignal
+from PySide6.QtCore import QObject, QThread, Signal
 
 import rclpy
 from rclpy.node import Node
@@ -47,12 +47,12 @@ class RosBridgeWorker(QObject):
     """Worker that runs ROS 2 communication in a background thread."""
 
     # Signals for GUI updates
-    joint_state_received = pyqtSignal(object)  # JointState msg
-    mode_changed = pyqtSignal(str)
-    trigger_state_changed = pyqtSignal(dict)
-    connection_status_changed = pyqtSignal(bool)
-    status_message = pyqtSignal(str)
-    error_message = pyqtSignal(str)
+    joint_state_received = Signal(object)  # JointState msg
+    mode_changed = Signal(str)
+    trigger_state_changed = Signal(dict)
+    connection_status_changed = Signal(bool)
+    status_message = Signal(str)
+    error_message = Signal(str)
 
     def __init__(self):
         super().__init__()
@@ -254,12 +254,12 @@ class RosBridge(QObject):
     """
 
     # Forward signals from worker
-    joint_state_received = pyqtSignal(object)
-    mode_changed = pyqtSignal(str)
-    trigger_state_changed = pyqtSignal(dict)
-    connection_status_changed = pyqtSignal(bool)
-    status_message = pyqtSignal(str)
-    error_message = pyqtSignal(str)
+    joint_state_received = Signal(object)
+    mode_changed = Signal(str)
+    trigger_state_changed = Signal(dict)
+    connection_status_changed = Signal(bool)
+    status_message = Signal(str)
+    error_message = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)

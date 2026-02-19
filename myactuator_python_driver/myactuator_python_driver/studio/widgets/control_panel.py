@@ -6,8 +6,8 @@ Left dock widget containing motor control options.
 
 from typing import List
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
     QPushButton, QFrame, QSizePolicy, QDoubleSpinBox
 )
@@ -29,11 +29,11 @@ class ControlPanel(QWidget):
     """
 
     # Signals
-    mode_requested = pyqtSignal(str)
-    enable_requested = pyqtSignal(bool)
-    set_zero_requested = pyqtSignal()
-    go_to_zero_requested = pyqtSignal()
-    emergency_stop_requested = pyqtSignal()
+    mode_requested = Signal(str)
+    enable_requested = Signal(bool)
+    set_zero_requested = Signal()
+    go_to_zero_requested = Signal()
+    emergency_stop_requested = Signal()
 
     MODES = ["position", "velocity", "torque", "force_position", "admittance", "free", "disabled"]
 

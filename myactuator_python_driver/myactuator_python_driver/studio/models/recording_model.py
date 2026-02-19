@@ -6,7 +6,7 @@ Provides a QAbstractTableModel for displaying recordings in a QTableView.
 
 from typing import Any, List, Optional
 
-from PyQt6.QtCore import Qt, QAbstractTableModel, QModelIndex
+from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex
 
 from myactuator_python_driver.studio.recording_manager import RecordingInfo
 

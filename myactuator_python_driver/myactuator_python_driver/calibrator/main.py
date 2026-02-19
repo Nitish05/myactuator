@@ -30,10 +30,10 @@ def main():
 
     # --- Dependency checks (print to stderr, no GUI) ---
     try:
-        from PyQt6.QtCore import QCoreApplication, QTimer
+        from PySide6.QtCore import QCoreApplication, QTimer
     except ImportError:
-        print("Error: PyQt6 is required but not installed.", file=sys.stderr)
-        print("Install it with: pip install PyQt6", file=sys.stderr)
+        print("Error: PySide6 is required but not installed.", file=sys.stderr)
+        print("Install it with: pip install PySide6", file=sys.stderr)
         sys.exit(1)
 
     try:
@@ -229,11 +229,11 @@ def main_gui():
     logging.getLogger('rcl').setLevel(logging.CRITICAL)
 
     try:
-        from PyQt6.QtWidgets import QApplication, QMessageBox
-        from PyQt6.QtCore import Qt
+        from PySide6.QtWidgets import QApplication, QMessageBox
+        from PySide6.QtCore import Qt
     except ImportError:
-        print("Error: PyQt6 is required but not installed.")
-        print("Install it with: pip install PyQt6")
+        print("Error: PySide6 is required but not installed.")
+        print("Install it with: pip install PySide6")
         sys.exit(1)
 
     app = QApplication(sys.argv)
@@ -244,8 +244,8 @@ def main_gui():
         from qt_material import apply_stylesheet
         apply_stylesheet(app, theme='dark_blue.xml')
     except ImportError:
-        from PyQt6.QtWidgets import QStyleFactory
-        from PyQt6.QtGui import QPalette, QColor
+        from PySide6.QtWidgets import QStyleFactory
+        from PySide6.QtGui import QPalette, QColor
         app.setStyle(QStyleFactory.create("Fusion"))
         palette = QPalette()
         palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))

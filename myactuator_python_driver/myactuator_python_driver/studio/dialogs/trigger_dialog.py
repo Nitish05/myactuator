@@ -7,8 +7,8 @@ joint position falls below a threshold.
 
 from typing import Callable, Dict, List, Optional
 
-from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel,
     QComboBox, QDoubleSpinBox, QPushButton, QGroupBox, QLineEdit,
     QMessageBox

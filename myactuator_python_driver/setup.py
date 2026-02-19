@@ -18,7 +18,7 @@ setup(
     install_requires=[
         'setuptools',
         'rich',
-        'PyQt6>=6.4.0',
+        'PySide6>=6.4.0',
         'qt-material>=2.14',
     ],
     zip_safe=True,

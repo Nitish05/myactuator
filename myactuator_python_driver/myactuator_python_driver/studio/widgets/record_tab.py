@@ -4,8 +4,8 @@ Record tab widget for Motor Recording Studio.
 Recording controls and status display.
 """
 
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, QTimer, Signal
+from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QFrame, QProgressBar, QGroupBox
 )
@@ -22,8 +22,8 @@ class RecordTab(QWidget):
     """
 
     # Signals
-    start_recording = pyqtSignal(str)  # recording name
-    stop_recording = pyqtSignal()
+    start_recording = Signal(str)  # recording name
+    stop_recording = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)

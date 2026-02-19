@@ -6,8 +6,8 @@ Playback controls, speed adjustment, and trigger configuration.
 
 from typing import Dict, List, Optional
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QComboBox,
     QPushButton, QSlider, QCheckBox, QGroupBox, QListWidget,
     QListWidgetItem, QProgressBar
@@ -31,14 +31,14 @@ class PlaybackTab(QWidget):
     """
 
     # Signals
-    play_requested = pyqtSignal(object)  # RecordingInfo
-    stop_requested = pyqtSignal()
-    pause_requested = pyqtSignal()
-    speed_changed = pyqtSignal(float)
-    loop_changed = pyqtSignal(bool)
-    triggers_changed = pyqtSignal(object)  # PlaybackTriggerConfig
-    configure_triggers_requested = pyqtSignal()
-    trigger_removed = pyqtSignal(object)  # HysteresisTorqueTrigger
+    play_requested = Signal(object)  # RecordingInfo
+    stop_requested = Signal()
+    pause_requested = Signal()
+    speed_changed = Signal(float)
+    loop_changed = Signal(bool)
+    triggers_changed = Signal(object)  # PlaybackTriggerConfig
+    configure_triggers_requested = Signal()
+    trigger_removed = Signal(object)  # HysteresisTorqueTrigger
 
     SPEEDS = [0.25, 0.5, 1.0, 2.0, 4.0]
 
@@ -218,7 +218,7 @@ class PlaybackTab(QWidget):
 
     def _on_loop_changed(self, state: int):
         """Handle loop checkbox change."""
-        self.loop_changed.emit(state == Qt.CheckState.Checked.value)
+        self.loop_changed.emit(state == Qt.CheckState.Checked)
 
     def _remove_selected_trigger(self):
         """Remove the selected trigger."""

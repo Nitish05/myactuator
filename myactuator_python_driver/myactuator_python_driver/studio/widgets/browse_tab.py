@@ -6,8 +6,8 @@ Recording file browser with management options.
 
 from typing import Optional
 
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtWidgets import (
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QTableView, QHeaderView, QAbstractItemView,
     QMenu, QMessageBox, QInputDialog
@@ -28,11 +28,11 @@ class BrowseTab(QWidget):
     """
 
     # Signals
-    recording_selected = pyqtSignal(object)  # RecordingInfo
-    recording_double_clicked = pyqtSignal(object)  # RecordingInfo
-    refresh_requested = pyqtSignal()
-    delete_requested = pyqtSignal(object)  # RecordingInfo
-    rename_requested = pyqtSignal(object, str)  # RecordingInfo, new_name
+    recording_selected = Signal(object)  # RecordingInfo
+    recording_double_clicked = Signal(object)  # RecordingInfo
+    refresh_requested = Signal()
+    delete_requested = Signal(object)  # RecordingInfo
+    rename_requested = Signal(object, str)  # RecordingInfo, new_name
 
     def __init__(self, parent=None):
         super().__init__(parent)
