@@ -129,15 +129,16 @@ class EasyModeWidget(QWidget):
 
         self._play_btn = QPushButton(_PLAY)
         self._play_btn.setObjectName("easyPlayButton")
-        self._play_btn.setFixedSize(120, 120)
+        self._play_btn.setFixedSize(200, 200)
         self._play_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._play_btn.setEnabled(False)
         self._play_btn.clicked.connect(self._on_play_clicked)
+        self._update_play_btn_color()
         btn_row.addWidget(self._play_btn)
 
         self._stop_btn = QPushButton(_STOP)
         self._stop_btn.setObjectName("easyStopPlaybackButton")
-        self._stop_btn.setFixedSize(80, 80)
+        self._stop_btn.setFixedSize(160, 160)
         self._stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._stop_btn.setEnabled(False)
         self._stop_btn.clicked.connect(self._on_stop_clicked)
@@ -221,6 +222,23 @@ class EasyModeWidget(QWidget):
         self._info_label.setText("  |  ".join(parts))
         self._play_btn.setEnabled(not self._playing)
 
+    def _update_play_btn_color(self):
+        """Set play button color based on current symbol (green for play, yellow for pause)."""
+        if self._play_btn.text() == _PAUSE:
+            # Showing pause symbol → yellow
+            self._play_btn.setStyleSheet(
+                "QPushButton#easyPlayButton { background-color: #f9a825; color: #212121; border-color: #f9a825; }"
+                "QPushButton#easyPlayButton:hover { background-color: #fbc02d; border-color: #fbc02d; }"
+                "QPushButton#easyPlayButton:pressed { background-color: #f57f17; border-color: #f57f17; }"
+            )
+        else:
+            # Showing play symbol → green
+            self._play_btn.setStyleSheet(
+                "QPushButton#easyPlayButton { background-color: #388e3c; color: white; border-color: #388e3c; }"
+                "QPushButton#easyPlayButton:hover { background-color: #43a047; border-color: #43a047; }"
+                "QPushButton#easyPlayButton:pressed { background-color: #2e7d32; border-color: #2e7d32; }"
+            )
+
     def _on_play_clicked(self):
         """Handle play/pause button click."""
         if self._playing:
@@ -297,11 +315,13 @@ class EasyModeWidget(QWidget):
             self._stop_btn.setEnabled(False)
             self._recording_combo.setEnabled(True)
             self._playing_widget.setVisible(False)
+        self._update_play_btn_color()
 
     def set_paused(self, paused: bool):
         """Update play/pause button to reflect pause state."""
         self._paused = paused
         self._play_btn.setText(_PLAY if paused else _PAUSE)
+        self._update_play_btn_color()
 
     def set_progress(self, current_sec: float, total_sec: float):
         """Update playback progress."""

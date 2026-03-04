@@ -89,18 +89,20 @@ class PlaybackTab(QWidget):
 
         self._play_btn = QPushButton("Play")
         self._play_btn.setObjectName("playButton")
-        self._play_btn.setMinimumWidth(80)
+        self._play_btn.setMinimumWidth(120)
         self._play_btn.clicked.connect(self._on_play_clicked)
         btn_layout.addWidget(self._play_btn)
 
         self._pause_btn = QPushButton("Pause")
-        self._pause_btn.setMinimumWidth(80)
+        self._pause_btn.setObjectName("pauseButton")
+        self._pause_btn.setMinimumWidth(120)
         self._pause_btn.setEnabled(False)
         self._pause_btn.clicked.connect(self._on_pause_clicked)
         btn_layout.addWidget(self._pause_btn)
 
         self._stop_btn = QPushButton("Stop")
-        self._stop_btn.setMinimumWidth(80)
+        self._stop_btn.setObjectName("stopButton")
+        self._stop_btn.setMinimumWidth(120)
         self._stop_btn.setEnabled(False)
         self._stop_btn.clicked.connect(self._on_stop_clicked)
         btn_layout.addWidget(self._stop_btn)
