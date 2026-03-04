@@ -23,9 +23,10 @@ QPushButton {
     background: #333;
     color: #eee;
     border: 1px solid #555;
-    border-radius: 4px;
-    min-height: 50px;
-    font-size: 18px;
+    border-radius: 3px;
+    min-height: 36px;
+    max-height: 36px;
+    font-size: 16px;
 }
 QPushButton:pressed {
     background: #555;
@@ -37,9 +38,10 @@ QPushButton {
     background: #444;
     color: #ccc;
     border: 1px solid #555;
-    border-radius: 4px;
-    min-height: 50px;
-    font-size: 16px;
+    border-radius: 3px;
+    min-height: 36px;
+    max-height: 36px;
+    font-size: 14px;
 }
 QPushButton:pressed {
     background: #666;
@@ -57,6 +59,7 @@ class VirtualKeyboard(QWidget):
 
         self.setObjectName("virtualKeyboard")
         self.setStyleSheet("#virtualKeyboard { background: #222; border-top: 2px solid #555; }")
+        self.setMaximumHeight(200)
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
@@ -68,14 +71,14 @@ class VirtualKeyboard(QWidget):
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(4)
+        layout.setContentsMargins(4, 4, 4, 4)
+        layout.setSpacing(2)
 
         self._key_buttons: list[QPushButton] = []
 
         for row_chars in _ROWS:
             row_layout = QHBoxLayout()
-            row_layout.setSpacing(4)
+            row_layout.setSpacing(2)
             for ch in row_chars:
                 btn = QPushButton(ch)
                 btn.setStyleSheet(_BTN_STYLE)
@@ -88,7 +91,7 @@ class VirtualKeyboard(QWidget):
 
         # Bottom row: Shift, Space, Backspace, Done
         bottom = QHBoxLayout()
-        bottom.setSpacing(4)
+        bottom.setSpacing(2)
 
         self._shift_btn = QPushButton("Shift")
         self._shift_btn.setStyleSheet(_SPECIAL_BTN_STYLE)
