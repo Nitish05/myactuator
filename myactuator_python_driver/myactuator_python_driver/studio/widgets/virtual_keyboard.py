@@ -1,19 +1,19 @@
 """
 On-screen keyboard integration for touchscreen use.
 
-Launches the system 'onboard' on-screen keyboard when a QLineEdit gains
-focus, and dismisses it when focus moves away from text inputs.
+Launches the system 'onboard' on-screen keyboard when a QLineEdit first
+gains focus. Onboard stays open and manages its own visibility thereafter.
 """
 
 import subprocess
 import shutil
 
-from PySide6.QtCore import Qt, QEvent, QObject, QTimer
+from PySide6.QtCore import QEvent, QObject
 from PySide6.QtWidgets import QLineEdit, QApplication
 
 
 class VirtualKeyboard(QObject):
-    """Spawns/hides the system on-screen keyboard on QLineEdit focus."""
+    """Launches the system on-screen keyboard on first QLineEdit focus."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -32,9 +32,10 @@ class VirtualKeyboard(QObject):
             return ["distrobox-host-exec", "onboard", "--size=1024x200"]
         return None
 
-    def _show(self):
+    def _ensure_running(self):
+        """Launch onboard if it's not already running."""
         if self._process and self._process.poll() is None:
-            return  # already running
+            return
         try:
             self._process = subprocess.Popen(
                 self._onboard_cmd,
@@ -44,21 +45,8 @@ class VirtualKeyboard(QObject):
         except OSError:
             pass
 
-    def _hide(self):
-        if self._process and self._process.poll() is None:
-            self._process.terminate()
-            self._process = None
-
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.FocusIn:
             if isinstance(obj, QLineEdit):
-                self._show()
-        elif event.type() == QEvent.Type.FocusOut:
-            if isinstance(obj, QLineEdit):
-                QTimer.singleShot(100, self._check_focus)
+                self._ensure_running()
         return False
-
-    def _check_focus(self):
-        focused = QApplication.focusWidget()
-        if not isinstance(focused, QLineEdit):
-            self._hide()
