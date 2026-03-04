@@ -35,7 +35,7 @@ QPushButton#recordButton[recording="true"] {
 QPushButton#playButton {
     font-weight: bold;
     font-size: 39px;
-    min-height: 40px;
+    min-height: 60px;
     background-color: #388e3c;
     color: white;
 }
@@ -57,7 +57,7 @@ QPushButton#playButton[playing="true"] {
 QPushButton#pauseButton {
     font-weight: bold;
     font-size: 39px;
-    min-height: 40px;
+    min-height: 60px;
     background-color: #f9a825;
     color: #212121;
 }
@@ -74,7 +74,7 @@ QPushButton#pauseButton:pressed {
 QPushButton#stopButton {
     font-weight: bold;
     font-size: 39px;
-    min-height: 40px;
+    min-height: 60px;
     background-color: #d32f2f;
     color: white;
 }
