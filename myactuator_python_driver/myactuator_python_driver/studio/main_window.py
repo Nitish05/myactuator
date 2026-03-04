@@ -28,6 +28,7 @@ from .widgets.record_tab import RecordTab
 from .widgets.playback_tab import PlaybackTab
 from .widgets.browse_tab import BrowseTab
 from .widgets.easy_mode import EasyModeWidget
+from .widgets.virtual_keyboard import VirtualKeyboard
 from .dialogs.trigger_dialog import TriggerDialog
 
 
@@ -66,6 +67,9 @@ class MainWindow(QMainWindow):
         self._setup_central_widget()
         self._setup_docks()
         self._setup_status_bar()
+
+        # On-screen keyboard for touchscreen
+        self._virtual_keyboard = VirtualKeyboard(self)
 
         # Connect signals
         self._connect_signals()

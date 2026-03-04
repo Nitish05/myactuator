@@ -52,6 +52,15 @@ class BrowseTab(QWidget):
         self._search_edit.textChanged.connect(self._on_search_changed)
         search_layout.addWidget(self._search_edit)
 
+        self._delete_btn = QPushButton("Delete")
+        self._delete_btn.setEnabled(False)
+        self._delete_btn.setStyleSheet(
+            "QPushButton { color: #ef5350; }"
+            "QPushButton:disabled { color: #666; }"
+        )
+        self._delete_btn.clicked.connect(self._on_delete_clicked)
+        search_layout.addWidget(self._delete_btn)
+
         self._refresh_btn = QPushButton("Refresh")
         self._refresh_btn.clicked.connect(self.refresh_requested)
         search_layout.addWidget(self._refresh_btn)
@@ -119,8 +128,10 @@ class BrowseTab(QWidget):
                 self._selected_label.setText(
                     f"Selected: {recording.name} ({recording.duration_sec:.1f}s)"
                 )
-        else:
-            self._selected_label.setText("")
+                self._delete_btn.setEnabled(True)
+                return
+        self._selected_label.setText("")
+        self._delete_btn.setEnabled(False)
 
     def _on_double_clicked(self, index):
         """Handle double-click on recording."""
@@ -182,6 +193,12 @@ class BrowseTab(QWidget):
         if reply == QMessageBox.StandardButton.Yes:
             self.delete_requested.emit(recording)
 
+    def _on_delete_clicked(self):
+        """Handle delete button click."""
+        recording = self.get_selected_recording()
+        if recording:
+            self._delete_recording(recording)
+
     def _open_folder(self, recording: RecordingInfo):
         """Open the recording folder in file manager."""
         import subprocess
@@ -200,6 +217,7 @@ class BrowseTab(QWidget):
         """Set the list of recordings."""
         self._model.set_recordings(recordings)
         self._count_label.setText(f"{len(recordings)} recording(s)")
+        self._delete_btn.setEnabled(False)
         self._on_search_changed(self._search_edit.text())
 
     def get_model(self) -> RecordingModel:
@@ -217,6 +235,7 @@ class BrowseTab(QWidget):
         """Remove a recording from the list."""
         self._model.remove_recording(recording)
         self._count_label.setText(f"{self._model.count()} recording(s)")
+        self._delete_btn.setEnabled(False)
 
     def clear_selection(self):
         """Clear the current selection."""
