@@ -317,3 +317,40 @@ class TriggerStore:
         """Update a trigger and save."""
         self.remove(old_trigger)
         self.add(new_trigger)
+
+
+class StudioPreferences:
+    """Persistent key-value preferences for Motor Studio."""
+
+    def __init__(self, storage_dir: Path):
+        self.storage_dir = storage_dir
+        self.storage_file = storage_dir / "studio_preferences.json"
+        self._data: dict = {}
+        self.load()
+
+    def load(self):
+        """Load preferences from disk."""
+        import json
+        self._data = {}
+        if self.storage_file.exists():
+            try:
+                with open(self.storage_file, 'r') as f:
+                    self._data = json.load(f)
+            except Exception:
+                pass
+
+    def save(self):
+        """Save preferences to disk."""
+        import json
+        self.storage_dir.mkdir(parents=True, exist_ok=True)
+        with open(self.storage_file, 'w') as f:
+            json.dump(self._data, f, indent=2)
+
+    def get(self, key: str, default=None):
+        """Get a preference value."""
+        return self._data.get(key, default)
+
+    def set(self, key: str, value):
+        """Set a preference value and save."""
+        self._data[key] = value
+        self.save()

@@ -17,7 +17,7 @@ from PySide6.QtGui import QAction, QKeySequence
 
 from sensor_msgs.msg import JointState
 
-from myactuator_python_driver.config import PlaybackTriggerConfig, TriggerStore
+from myactuator_python_driver.config import PlaybackTriggerConfig, TriggerStore, StudioPreferences
 
 from .ros_bridge import RosBridge
 from .recording_manager import RecordingManager
@@ -52,6 +52,7 @@ class MainWindow(QMainWindow):
         self._ros_bridge = RosBridge(self)
         self._recording_manager = RecordingManager(self)
         self._trigger_store = TriggerStore(self._recording_manager.recordings_dir)
+        self._preferences = StudioPreferences(self._recording_manager.recordings_dir)
 
         # State
         self._connected = False
@@ -498,13 +499,17 @@ class MainWindow(QMainWindow):
         recording_names = [r.name for r in recordings]
 
         # Pass callback for live position updates
+        last_joint = self._preferences.get("last_trigger_joint")
         trigger = TriggerDialog.create_trigger(
             joint_names, recording_names, self,
-            position_callback=self._joint_monitor.get_joint_positions
+            position_callback=self._joint_monitor.get_joint_positions,
+            default_joint=last_joint
         )
         if trigger:
             # Save to persistent store
             self._trigger_store.add(trigger)
+            # Remember the selected joint
+            self._preferences.set("last_trigger_joint", trigger.joint_name)
             # Add to playback tab
             self._playback_tab.add_trigger(trigger)
             self._show_status_message(f"Trigger '{trigger.name}' saved")

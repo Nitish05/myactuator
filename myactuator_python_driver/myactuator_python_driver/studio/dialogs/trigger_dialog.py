@@ -29,7 +29,8 @@ class TriggerDialog(QDialog):
                  recording_names: List[str],
                  parent=None,
                  existing_trigger: Optional[HysteresisTorqueTrigger] = None,
-                 position_callback: Optional[Callable[[], Dict[str, float]]] = None):
+                 position_callback: Optional[Callable[[], Dict[str, float]]] = None,
+                 default_joint: Optional[str] = None):
         super().__init__(parent)
         self._joint_names = joint_names
         self._recording_names = recording_names
@@ -38,6 +39,7 @@ class TriggerDialog(QDialog):
         self._existing = existing_trigger
         self._result: Optional[HysteresisTorqueTrigger] = None
         self._threshold_set = False
+        self._default_joint = default_joint
 
         self.setWindowTitle("Add Torque Trigger" if not existing_trigger else "Edit Trigger")
         self.setMinimumWidth(400)
@@ -45,6 +47,8 @@ class TriggerDialog(QDialog):
 
         if existing_trigger:
             self._load_existing(existing_trigger)
+        elif default_joint and default_joint in joint_names:
+            self._joint_combo.setCurrentText(default_joint)
 
         # Timer for live position updates
         self._update_timer = QTimer(self)
@@ -246,11 +250,13 @@ class TriggerDialog(QDialog):
     def create_trigger(joint_names: List[str],
                        recording_names: List[str],
                        parent=None,
-                       position_callback: Optional[Callable[[], Dict[str, float]]] = None
+                       position_callback: Optional[Callable[[], Dict[str, float]]] = None,
+                       default_joint: Optional[str] = None
                        ) -> Optional[HysteresisTorqueTrigger]:
         """Show dialog and return new trigger, or None if cancelled."""
         dialog = TriggerDialog(joint_names, recording_names, parent,
-                               position_callback=position_callback)
+                               position_callback=position_callback,
+                               default_joint=default_joint)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             return dialog.get_trigger()
         return None
