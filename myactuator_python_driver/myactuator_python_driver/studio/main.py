@@ -6,7 +6,6 @@ A PyQt6 desktop application for recording and playing back motor trajectories.
 """
 
 import sys
-import os
 from pathlib import Path
 
 

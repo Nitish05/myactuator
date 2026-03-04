@@ -47,7 +47,7 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Motor Recording Studio")
-        self.setMinimumSize(1000, 700)
+        self.setMinimumSize(1000, 550)
 
         # Core components
         self._ros_bridge = RosBridge(self)

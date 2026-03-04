@@ -151,6 +151,7 @@ fi
 
 # --- Step 4: Launch Motor Studio GUI ---
 echo "[$(timestamp)] Opening Motor Studio..."
+
 ros2 run myactuator_python_driver motor_studio
 
 echo "[$(timestamp)] Motor Studio closed."

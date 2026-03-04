@@ -36,9 +36,10 @@ fi
 echo ""
 
 # --- Build the Exec= line ---
+# CAN setup runs on the HOST (needs real root for /dev/ttyACM* and ip link).
+# The motor-studio.sh script will see can0 already up and skip its own CAN step.
 if $IN_CONTAINER; then
-    # Desktop file runs on the HOST, so it needs distrobox-enter to get into the container
-    EXEC_LINE="distrobox-enter $CONTAINER_NAME -- $LAUNCHER"
+    EXEC_LINE="bash -c \"sudo $CAN_HELPER can0 1000000 || true; distrobox-enter $CONTAINER_NAME -- $LAUNCHER\""
 else
     EXEC_LINE="$LAUNCHER"
 fi
@@ -47,12 +48,28 @@ fi
 echo "[1/3] Configuring passwordless CAN setup..."
 SUDOERS_FILE="/etc/sudoers.d/motor-studio-can"
 SUDOERS_LINE="$USER ALL=(ALL) NOPASSWD: $CAN_HELPER"
-if ! sudo grep -qF "$CAN_HELPER" "$SUDOERS_FILE" 2>/dev/null; then
-    echo "$SUDOERS_LINE" | sudo tee "$SUDOERS_FILE" > /dev/null
-    sudo chmod 440 "$SUDOERS_FILE"
-    echo "  Done."
+if $IN_CONTAINER; then
+    # Install sudoers on the HOST (where sudo actually runs for CAN setup)
+    distrobox-host-exec bash -c "
+        if ! sudo grep -qF '$CAN_HELPER' '$SUDOERS_FILE' 2>/dev/null; then
+            echo '$SUDOERS_LINE' | sudo tee '$SUDOERS_FILE' > /dev/null
+            sudo chmod 440 '$SUDOERS_FILE'
+        fi
+    " 2>/dev/null && echo "  Host sudoers configured." || echo "  WARNING: Could not configure host sudoers."
+    # Also configure inside container (for manual runs)
+    if ! sudo grep -qF "$CAN_HELPER" "$SUDOERS_FILE" 2>/dev/null; then
+        echo "$SUDOERS_LINE" | sudo tee "$SUDOERS_FILE" > /dev/null
+        sudo chmod 440 "$SUDOERS_FILE"
+    fi
+    echo "  Container sudoers configured."
 else
-    echo "  Already configured."
+    if ! sudo grep -qF "$CAN_HELPER" "$SUDOERS_FILE" 2>/dev/null; then
+        echo "$SUDOERS_LINE" | sudo tee "$SUDOERS_FILE" > /dev/null
+        sudo chmod 440 "$SUDOERS_FILE"
+        echo "  Done."
+    else
+        echo "  Already configured."
+    fi
 fi
 
 # --- Create .desktop file ---
