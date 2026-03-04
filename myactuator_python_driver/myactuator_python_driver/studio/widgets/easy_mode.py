@@ -227,14 +227,14 @@ class EasyModeWidget(QWidget):
         if self._play_btn.text() == _PAUSE:
             # Showing pause symbol → yellow
             self._play_btn.setStyleSheet(
-                "QPushButton#easyPlayButton { background-color: #f9a825; color: #212121; border-color: #f9a825; }"
+                "QPushButton#easyPlayButton { background-color: #f9a825; color: #212121; border-color: #f9a825; font-size: 200px; }"
                 "QPushButton#easyPlayButton:hover { background-color: #fbc02d; border-color: #fbc02d; }"
                 "QPushButton#easyPlayButton:pressed { background-color: #f57f17; border-color: #f57f17; }"
             )
         else:
             # Showing play symbol → green
             self._play_btn.setStyleSheet(
-                "QPushButton#easyPlayButton { background-color: #388e3c; color: white; border-color: #388e3c; }"
+                "QPushButton#easyPlayButton { background-color: #388e3c; color: white; border-color: #388e3c; font-size: 200px; }"
                 "QPushButton#easyPlayButton:hover { background-color: #43a047; border-color: #43a047; }"
                 "QPushButton#easyPlayButton:pressed { background-color: #2e7d32; border-color: #2e7d32; }"
             )
