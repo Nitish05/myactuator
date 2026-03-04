@@ -1,8 +1,8 @@
 """
 On-screen keyboard integration for touchscreen use.
 
-Launches the system 'onboard' on-screen keyboard when a QLineEdit first
-gains focus. Onboard stays open and manages its own visibility thereafter.
+Launches the system 'onboard' on-screen keyboard when a QLineEdit gains
+focus, and shows it via D-Bus if it was hidden.
 """
 
 import subprocess
@@ -13,7 +13,7 @@ from PySide6.QtWidgets import QLineEdit, QApplication
 
 
 class VirtualKeyboard(QObject):
-    """Launches the system on-screen keyboard on first QLineEdit focus."""
+    """Launches and shows the system on-screen keyboard on QLineEdit focus."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -32,9 +32,20 @@ class VirtualKeyboard(QObject):
             return ["distrobox-host-exec", "onboard", "--size=1024x200"]
         return None
 
-    def _ensure_running(self):
-        """Launch onboard if it's not already running."""
+    def _show(self):
+        """Launch onboard or show it via D-Bus if already running but hidden."""
         if self._process and self._process.poll() is None:
+            # Process alive but maybe hidden — tell it to show via D-Bus
+            try:
+                subprocess.Popen(
+                    ["dbus-send", "--type=method_call", "--dest=org.onboard.Onboard",
+                     "/org/onboard/Onboard/Keyboard",
+                     "org.onboard.Onboard.Keyboard.Show"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except OSError:
+                pass
             return
         try:
             self._process = subprocess.Popen(
@@ -48,5 +59,5 @@ class VirtualKeyboard(QObject):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.FocusIn:
             if isinstance(obj, QLineEdit):
-                self._ensure_running()
+                self._show()
         return False
