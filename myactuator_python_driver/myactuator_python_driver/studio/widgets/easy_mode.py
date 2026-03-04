@@ -129,7 +129,7 @@ class EasyModeWidget(QWidget):
 
         self._play_btn = QPushButton(_PLAY)
         self._play_btn.setObjectName("easyPlayButton")
-        self._play_btn.setFixedSize(300, 300)
+        self._play_btn.setFixedSize(100, 100)
         self._play_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._play_btn.setEnabled(False)
         self._play_btn.clicked.connect(self._on_play_clicked)
@@ -138,11 +138,11 @@ class EasyModeWidget(QWidget):
 
         self._stop_btn = QPushButton(_STOP)
         self._stop_btn.setObjectName("easyStopPlaybackButton")
-        self._stop_btn.setFixedSize(300, 300)
+        self._stop_btn.setFixedSize(100, 100)
         self._stop_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._stop_btn.setEnabled(False)
         self._stop_btn.setStyleSheet(
-            "QPushButton#easyStopPlaybackButton { background-color: #d32f2f; color: white; border-color: #d32f2f; font-size: 150px; text-align: center; }"
+            "QPushButton#easyStopPlaybackButton { background-color: #d32f2f; color: white; border-color: #d32f2f; font-size: 100px; text-align: center; }"
             "QPushButton#easyStopPlaybackButton:hover { background-color: #f44336; border-color: #f44336; }"
             "QPushButton#easyStopPlaybackButton:pressed { background-color: #b71c1c; border-color: #b71c1c; }"
             "QPushButton#easyStopPlaybackButton:disabled { background-color: #2d2d2d; border-color: #2d2d2d; color: #616161; }"
@@ -233,14 +233,14 @@ class EasyModeWidget(QWidget):
         if self._play_btn.text() == _PAUSE:
             # Showing pause symbol → yellow
             self._play_btn.setStyleSheet(
-                "QPushButton#easyPlayButton { background-color: #f9a825; color: #212121; border-color: #f9a825; font-size: 150px; text-align: center; }"
+                "QPushButton#easyPlayButton { background-color: #f9a825; color: #212121; border-color: #f9a825; font-size: 100px; text-align: center; }"
                 "QPushButton#easyPlayButton:hover { background-color: #fbc02d; border-color: #fbc02d; }"
                 "QPushButton#easyPlayButton:pressed { background-color: #f57f17; border-color: #f57f17; }"
             )
         else:
             # Showing play symbol → green
             self._play_btn.setStyleSheet(
-                "QPushButton#easyPlayButton { background-color: #388e3c; color: white; border-color: #388e3c; font-size: 150px; text-align: center; }"
+                "QPushButton#easyPlayButton { background-color: #388e3c; color: white; border-color: #388e3c; font-size: 100px; text-align: center; }"
                 "QPushButton#easyPlayButton:hover { background-color: #43a047; border-color: #43a047; }"
                 "QPushButton#easyPlayButton:pressed { background-color: #2e7d32; border-color: #2e7d32; }"
             )
