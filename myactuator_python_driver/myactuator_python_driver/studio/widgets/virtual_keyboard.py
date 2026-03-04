@@ -1,13 +1,13 @@
 """
 On-screen keyboard integration for touchscreen use.
 
-Launches wvkbd (Wayland virtual keyboard) when a QLineEdit gains focus,
+Launches the system on-screen keyboard when a QLineEdit gains focus,
 and hides it when focus leaves all text inputs.
 """
 
 import subprocess
 import shutil
-import signal
+import os
 
 from PySide6.QtCore import QEvent, QObject, QTimer
 from PySide6.QtWidgets import QLineEdit, QApplication
@@ -26,16 +26,41 @@ class VirtualKeyboard(QObject):
 
     @staticmethod
     def _find_keyboard() -> list[str] | None:
-        """Find a virtual keyboard binary."""
+        """Find a virtual keyboard binary.
+
+        Prefers onboard on GNOME/Mutter (wvkbd needs wlr-layer-shell).
+        """
+        is_gnome = "GNOME" in os.environ.get("XDG_CURRENT_DESKTOP", "").upper() or \
+                   os.environ.get("GNOME_SETUP_DISPLAY", "")
+
+        if is_gnome:
+            if shutil.which("onboard"):
+                return ["onboard", "--size=1024x200"]
+
         if shutil.which("wvkbd-mobintl"):
             return ["wvkbd-mobintl", "-H", "200", "-l", "full,special"]
         if shutil.which("onboard"):
             return ["onboard", "--size=1024x200"]
         return None
 
+    def _is_running(self) -> bool:
+        return self._process is not None and self._process.poll() is None
+
     def _show(self):
         """Launch the keyboard if not already running."""
-        if self._process and self._process.poll() is None:
+        if self._is_running():
+            # Already running — try to re-show via D-Bus (onboard)
+            try:
+                subprocess.Popen(
+                    ["dbus-send", "--type=method_call",
+                     "--dest=org.onboard.Onboard",
+                     "/org/onboard/Onboard/Keyboard",
+                     "org.onboard.Onboard.Keyboard.Show"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except OSError:
+                pass
             return
         try:
             self._process = subprocess.Popen(
@@ -47,22 +72,25 @@ class VirtualKeyboard(QObject):
             pass
 
     def _hide(self):
-        """Hide the keyboard."""
-        if self._process and self._process.poll() is None:
-            self._process.send_signal(signal.SIGUSR2)
-
-    def _unhide(self):
-        """Unhide the keyboard."""
-        if self._process and self._process.poll() is None:
-            self._process.send_signal(signal.SIGUSR1)
+        """Hide the keyboard via D-Bus (onboard)."""
+        if not self._is_running():
+            return
+        try:
+            subprocess.Popen(
+                ["dbus-send", "--type=method_call",
+                 "--dest=org.onboard.Onboard",
+                 "/org/onboard/Onboard/Keyboard",
+                 "org.onboard.Onboard.Keyboard.Hide"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        except OSError:
+            pass
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.FocusIn:
             if isinstance(obj, QLineEdit):
-                if self._process and self._process.poll() is None:
-                    self._unhide()
-                else:
-                    self._show()
+                self._show()
         elif event.type() == QEvent.Type.FocusOut:
             if isinstance(obj, QLineEdit):
                 QTimer.singleShot(150, self._check_focus)
