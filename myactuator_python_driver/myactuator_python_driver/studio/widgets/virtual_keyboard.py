@@ -22,7 +22,27 @@ class VirtualKeyboard(QObject):
         self._kbd_cmd = self._find_keyboard()
 
         if self._kbd_cmd:
+            self._configure_onboard()
             QApplication.instance().installEventFilter(self)
+
+    @staticmethod
+    def _configure_onboard():
+        """Set onboard docking preferences via gsettings."""
+        settings = [
+            ("org.onboard.window", "docking-enabled", "true"),
+            ("org.onboard.window", "docking-edge", "'bottom'"),
+            ("org.onboard.window.landscape", "dock-expand", "true"),
+            ("org.onboard.window.landscape", "dock-height", "200"),
+        ]
+        for schema, key, value in settings:
+            try:
+                subprocess.Popen(
+                    ["gsettings", "set", schema, key, value],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except OSError:
+                pass
 
     @staticmethod
     def _find_keyboard() -> list[str] | None:
@@ -35,12 +55,16 @@ class VirtualKeyboard(QObject):
 
         if is_gnome:
             if shutil.which("onboard"):
-                return ["onboard", "--size=1024x200"]
+                return ["onboard", "--size=1024x200",
+                        "-x", "0", "-y", "400",
+                        "-l", "Phone", "-t", "Nightshade"]
 
         if shutil.which("wvkbd-mobintl"):
             return ["wvkbd-mobintl", "-H", "200", "-l", "full,special"]
         if shutil.which("onboard"):
-            return ["onboard", "--size=1024x200"]
+            return ["onboard", "--size=1024x200",
+                    "-x", "0", "-y", "400",
+                    "-l", "Phone", "-t", "Nightshade"]
         return None
 
     def _is_running(self) -> bool:
