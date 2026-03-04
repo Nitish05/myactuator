@@ -1,63 +1,74 @@
 """
 On-screen keyboard integration for touchscreen use.
 
-Launches the system 'onboard' on-screen keyboard when a QLineEdit gains
-focus, and shows it via D-Bus if it was hidden.
+Launches wvkbd (Wayland virtual keyboard) when a QLineEdit gains focus,
+and hides it when focus leaves all text inputs.
 """
 
 import subprocess
 import shutil
+import signal
 
-from PySide6.QtCore import QEvent, QObject
+from PySide6.QtCore import QEvent, QObject, QTimer
 from PySide6.QtWidgets import QLineEdit, QApplication
 
 
 class VirtualKeyboard(QObject):
-    """Launches and shows the system on-screen keyboard on QLineEdit focus."""
+    """Manages the system on-screen keyboard on QLineEdit focus."""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._process: subprocess.Popen | None = None
-        self._onboard_cmd = self._find_onboard()
+        self._kbd_cmd = self._find_keyboard()
 
-        if self._onboard_cmd:
+        if self._kbd_cmd:
             QApplication.instance().installEventFilter(self)
 
     @staticmethod
-    def _find_onboard() -> list[str] | None:
-        """Find the onboard command, trying distrobox-host-exec fallback."""
+    def _find_keyboard() -> list[str] | None:
+        """Find a virtual keyboard binary."""
+        if shutil.which("wvkbd-mobintl"):
+            return ["wvkbd-mobintl", "-H", "200", "-l", "full,special"]
         if shutil.which("onboard"):
             return ["onboard", "--size=1024x200"]
-        if shutil.which("distrobox-host-exec"):
-            return ["distrobox-host-exec", "onboard", "--size=1024x200"]
         return None
 
     def _show(self):
-        """Launch onboard or show it via D-Bus if already running but hidden."""
+        """Launch the keyboard if not already running."""
         if self._process and self._process.poll() is None:
-            # Process alive but maybe hidden — tell it to show via D-Bus
-            try:
-                subprocess.Popen(
-                    ["dbus-send", "--type=method_call", "--dest=org.onboard.Onboard",
-                     "/org/onboard/Onboard/Keyboard",
-                     "org.onboard.Onboard.Keyboard.Show"],
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-            except OSError:
-                pass
             return
         try:
             self._process = subprocess.Popen(
-                self._onboard_cmd,
+                self._kbd_cmd,
                 stdout=subprocess.DEVNULL,
                 stderr=subprocess.DEVNULL,
             )
         except OSError:
             pass
 
+    def _hide(self):
+        """Hide the keyboard."""
+        if self._process and self._process.poll() is None:
+            self._process.send_signal(signal.SIGUSR2)
+
+    def _unhide(self):
+        """Unhide the keyboard."""
+        if self._process and self._process.poll() is None:
+            self._process.send_signal(signal.SIGUSR1)
+
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.FocusIn:
             if isinstance(obj, QLineEdit):
-                self._show()
+                if self._process and self._process.poll() is None:
+                    self._unhide()
+                else:
+                    self._show()
+        elif event.type() == QEvent.Type.FocusOut:
+            if isinstance(obj, QLineEdit):
+                QTimer.singleShot(150, self._check_focus)
         return False
+
+    def _check_focus(self):
+        focused = QApplication.focusWidget()
+        if not isinstance(focused, QLineEdit):
+            self._hide()
