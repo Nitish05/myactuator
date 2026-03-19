@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from PySide6.QtCore import QObject, QThread, Signal
 
@@ -89,6 +89,9 @@ class RecordingManager(QObject):
 
         # Lock for thread safety
         self._lock = threading.Lock()
+
+        # Locked joints: joint_name -> position (held during playback)
+        self._locked_joints: Dict[str, float] = {}
 
     def _get_recordings_dir(self) -> Path:
         """Get the recordings directory path."""
@@ -315,6 +318,21 @@ class RecordingManager(QObject):
             if self._speed_idx > 0:
                 self._speed_idx -= 1
 
+    def set_locked_joint(self, joint_name: str, position: float):
+        """Lock a joint at a fixed position during playback."""
+        with self._lock:
+            self._locked_joints[joint_name] = position
+
+    def clear_locked_joint(self, joint_name: str):
+        """Unlock a joint so it follows playback again."""
+        with self._lock:
+            self._locked_joints.pop(joint_name, None)
+
+    def clear_all_locked_joints(self):
+        """Unlock all joints."""
+        with self._lock:
+            self._locked_joints.clear()
+
     def start_playback(self, recording: RecordingInfo) -> bool:
         """Start playback of a recording."""
         if self._playing or self._recording:
@@ -419,13 +437,30 @@ class RecordingManager(QObject):
                     if target_time > now:
                         time.sleep(target_time - now)
 
+                    # Apply locked-joint overrides
+                    with self._lock:
+                        locked = dict(self._locked_joints) if self._locked_joints else None
+
+                    if locked:
+                        pub_msg = JointState()
+                        pub_msg.header = msg.header
+                        pub_msg.name = list(msg.name)
+                        pub_msg.position = list(msg.position)
+                        pub_msg.velocity = list(msg.velocity)
+                        pub_msg.effort = list(msg.effort)
+                        for i, name in enumerate(pub_msg.name):
+                            if name in locked and i < len(pub_msg.position):
+                                pub_msg.position[i] = locked[name]
+                    else:
+                        pub_msg = msg
+
                     # Publish frame (timing critical)
                     if direct_pub is not None:
                         # Direct ROS publish - bypasses Qt thread crossing
-                        direct_pub.publish(msg)
+                        direct_pub.publish(pub_msg)
                     else:
                         # Fallback to Qt signal (slower)
-                        self.playback_frame.emit(msg)
+                        self.playback_frame.emit(pub_msg)
 
                     # Emit progress every 20 frames (~10Hz at 200Hz playback)
                     frame_idx += 1

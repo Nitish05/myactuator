@@ -30,7 +30,9 @@ class TriggerDialog(QDialog):
                  parent=None,
                  existing_trigger: Optional[HysteresisTorqueTrigger] = None,
                  position_callback: Optional[Callable[[], Dict[str, float]]] = None,
-                 default_joint: Optional[str] = None):
+                 default_joint: Optional[str] = None,
+                 playback_active: bool = False,
+                 lock_callback: Optional[Callable[[str, Optional[float]], None]] = None):
         super().__init__(parent)
         self._joint_names = joint_names
         self._recording_names = recording_names
@@ -40,6 +42,9 @@ class TriggerDialog(QDialog):
         self._result: Optional[HysteresisTorqueTrigger] = None
         self._threshold_set = False
         self._default_joint = default_joint
+        self._playback_active = playback_active
+        self._lock_callback = lock_callback
+        self._locked_joints: Dict[str, float] = {}
 
         self.setWindowTitle("Add Torque Trigger" if not existing_trigger else "Edit Trigger")
         self.setMinimumWidth(400)
@@ -111,6 +116,24 @@ class TriggerDialog(QDialog):
         self._threshold_value = 0.0
 
         layout.addWidget(joint_group)
+
+        # Lock Joint group (only shown during playback)
+        if self._playback_active:
+            lock_group = QGroupBox("Lock Joint During Playback")
+            lock_layout = QVBoxLayout(lock_group)
+
+            self._lock_btn = QPushButton(self._get_lock_button_text())
+            self._lock_btn.setCheckable(True)
+            self._lock_btn.setStyleSheet(self._get_lock_button_style(False))
+            self._lock_btn.clicked.connect(self._toggle_lock)
+            lock_layout.addWidget(self._lock_btn)
+
+            self._lock_status_label = QLabel("No joints locked")
+            self._lock_status_label.setStyleSheet("color: #757575; font-size: 11px;")
+            self._lock_status_label.setAlignment(Qt.AlignCenter)
+            lock_layout.addWidget(self._lock_status_label)
+
+            layout.addWidget(lock_group)
 
         # Torque - big +/- buttons
         torque_group = QGroupBox("Force to Apply")
@@ -214,6 +237,99 @@ class TriggerDialog(QDialog):
             self._threshold_set = False
             self._threshold_label.setText("Not set")
             self._threshold_label.setStyleSheet("font-size: 14px; color: #ff9800;")
+        if self._playback_active:
+            self._update_lock_display()
+
+    def _get_lock_button_text(self) -> str:
+        """Get lock button text based on current joint state."""
+        joint = self._joint_combo.currentText() if hasattr(self, '_joint_combo') else ""
+        if joint in self._locked_joints:
+            return f"Unlock {joint}"
+        return f"Lock {joint}"
+
+    @staticmethod
+    def _get_lock_button_style(checked: bool) -> str:
+        """Get lock button stylesheet."""
+        if checked:
+            return """
+                QPushButton {
+                    background-color: #e65100;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: bold;
+                    padding: 12px;
+                    border-radius: 6px;
+                }
+                QPushButton:hover { background-color: #f57c00; }
+            """
+        return """
+            QPushButton {
+                background-color: #37474f;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 12px;
+                border-radius: 6px;
+            }
+            QPushButton:hover { background-color: #455a64; }
+        """
+
+    def _toggle_lock(self):
+        """Toggle lock on the currently selected joint."""
+        joint = self._joint_combo.currentText()
+        if not joint:
+            return
+
+        if joint in self._locked_joints:
+            # Unlock
+            del self._locked_joints[joint]
+            if self._lock_callback:
+                self._lock_callback(joint, None)
+        else:
+            # Lock at current position
+            pos = self._joint_positions.get(joint)
+            if pos is not None:
+                self._locked_joints[joint] = pos
+                if self._lock_callback:
+                    self._lock_callback(joint, pos)
+
+        self._update_lock_display()
+
+    def _update_lock_display(self):
+        """Update lock button text/style and status label."""
+        if not hasattr(self, '_lock_btn'):
+            return
+
+        joint = self._joint_combo.currentText()
+        is_locked = joint in self._locked_joints
+        self._lock_btn.setChecked(is_locked)
+        self._lock_btn.setText(self._get_lock_button_text())
+        self._lock_btn.setStyleSheet(self._get_lock_button_style(is_locked))
+
+        if self._locked_joints:
+            parts = [f"{j}: {p:.4f} rad" for j, p in self._locked_joints.items()]
+            self._lock_status_label.setText("Locked: " + ", ".join(parts))
+            self._lock_status_label.setStyleSheet("color: #e65100; font-size: 11px;")
+        else:
+            self._lock_status_label.setText("No joints locked")
+            self._lock_status_label.setStyleSheet("color: #757575; font-size: 11px;")
+
+    def _clear_all_locks(self):
+        """Unlock all joints via callback."""
+        for joint in list(self._locked_joints):
+            if self._lock_callback:
+                self._lock_callback(joint, None)
+        self._locked_joints.clear()
+
+    def _on_playback_ended(self):
+        """Handle playback stopping while dialog is open."""
+        self._playback_active = False
+        self._clear_all_locks()
+        if hasattr(self, '_lock_btn'):
+            self._lock_btn.setEnabled(False)
+            self._lock_btn.setText("Playback ended")
+            self._lock_status_label.setText("Playback stopped — locks cleared")
+            self._lock_status_label.setStyleSheet("color: #757575; font-size: 11px;")
 
     def _capture_position(self):
         """Capture current position as threshold."""
@@ -269,6 +385,9 @@ class TriggerDialog(QDialog):
             )
             return
 
+        # Clear any locks before closing
+        self._clear_all_locks()
+
         # Create trigger (negate: user sees positive force, motor gets negative torque)
         self._result = HysteresisTorqueTrigger.create_falling(
             name=name,
@@ -279,6 +398,11 @@ class TriggerDialog(QDialog):
         )
         self.accept()
 
+    def reject(self):
+        """Handle cancel — clear locks before closing."""
+        self._clear_all_locks()
+        super().reject()
+
     def get_trigger(self) -> Optional[HysteresisTorqueTrigger]:
         """Get the configured trigger (after dialog accepts)."""
         return self._result
@@ -288,26 +412,32 @@ class TriggerDialog(QDialog):
                        recording_names: List[str],
                        parent=None,
                        position_callback: Optional[Callable[[], Dict[str, float]]] = None,
-                       default_joint: Optional[str] = None
+                       default_joint: Optional[str] = None,
+                       playback_active: bool = False,
+                       lock_callback: Optional[Callable[[str, Optional[float]], None]] = None
                        ) -> Optional[HysteresisTorqueTrigger]:
         """Show dialog and return new trigger, or None if cancelled."""
         dialog = TriggerDialog(joint_names, recording_names, parent,
                                position_callback=position_callback,
-                               default_joint=default_joint)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            return dialog.get_trigger()
-        return None
+                               default_joint=default_joint,
+                               playback_active=playback_active,
+                               lock_callback=lock_callback)
+        return dialog
 
     @staticmethod
     def edit_trigger(trigger: HysteresisTorqueTrigger,
                      joint_names: List[str],
                      recording_names: List[str],
                      parent=None,
-                     position_callback: Optional[Callable[[], Dict[str, float]]] = None
+                     position_callback: Optional[Callable[[], Dict[str, float]]] = None,
+                     playback_active: bool = False,
+                     lock_callback: Optional[Callable[[str, Optional[float]], None]] = None
                      ) -> Optional[HysteresisTorqueTrigger]:
         """Show dialog to edit existing trigger, or None if cancelled."""
         dialog = TriggerDialog(joint_names, recording_names, parent, trigger,
-                               position_callback=position_callback)
+                               position_callback=position_callback,
+                               playback_active=playback_active,
+                               lock_callback=lock_callback)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             return dialog.get_trigger()
         return None
