@@ -5,99 +5,8 @@ Main entry point for Motor Recording Studio.
 A PyQt6 desktop application for recording and playing back motor trajectories.
 """
 
-import os
-import signal
-import subprocess
 import sys
-import time
 from pathlib import Path
-
-# Entry points that should be killed before a fresh studio launch
-_ENTRY_POINTS = [
-    "driver_node",
-    "motor_studio",
-    "recorder_tui",
-    "setup_tui",
-    "calibrator_cli",
-    "calibrator_app",
-    "velocity_demo",
-]
-
-
-def _cleanup_ros_processes():
-    """Kill stale ROS 2 processes from previous sessions.
-
-    Mirrors the cleanup in scripts/motor-studio.sh so it works
-    regardless of how the studio is launched (ros2 run, direct, etc.).
-    """
-    own_pid = os.getpid()
-    pids_to_kill: list[int] = []
-
-    for entry in _ENTRY_POINTS:
-        try:
-            result = subprocess.run(
-                ["pgrep", "-f", entry],
-                capture_output=True, text=True, timeout=5,
-            )
-            for line in result.stdout.strip().splitlines():
-                try:
-                    pid = int(line)
-                    if pid != own_pid:
-                        pids_to_kill.append(pid)
-                except ValueError:
-                    continue
-        except Exception:
-            continue
-
-    if not pids_to_kill:
-        # Nothing to clean — still reset the daemon
-        try:
-            subprocess.run(
-                ["ros2", "daemon", "stop"],
-                capture_output=True, timeout=10,
-            )
-        except Exception:
-            pass
-        return
-
-    # SIGTERM first to allow graceful motor release
-    for pid in pids_to_kill:
-        try:
-            os.kill(pid, signal.SIGTERM)
-        except OSError:
-            pass
-
-    # Wait up to 2 seconds for processes to exit
-    deadline = time.monotonic() + 2.0
-    remaining = list(pids_to_kill)
-    while remaining and time.monotonic() < deadline:
-        time.sleep(0.1)
-        remaining = [p for p in remaining if _pid_alive(p)]
-
-    # SIGKILL stragglers
-    for pid in remaining:
-        try:
-            os.kill(pid, signal.SIGKILL)
-        except OSError:
-            pass
-
-    # Clear stale ROS 2 graph state
-    try:
-        subprocess.run(
-            ["ros2", "daemon", "stop"],
-            capture_output=True, timeout=10,
-        )
-    except Exception:
-        pass
-
-
-def _pid_alive(pid: int) -> bool:
-    """Return True if *pid* is still running."""
-    try:
-        os.kill(pid, 0)
-        return True
-    except OSError:
-        return False
 
 
 def main():
@@ -108,10 +17,7 @@ def main():
     logging.getLogger('rosbag2_storage_mcap').setLevel(logging.CRITICAL)
     logging.getLogger('rcl').setLevel(logging.CRITICAL)
 
-    # Kill stale ROS 2 processes before anything else
-    _cleanup_ros_processes()
-
-    # Import PySide6
+    # Import PyQt6
     try:
         from PySide6.QtWidgets import QApplication, QMessageBox
         from PySide6.QtCore import Qt
