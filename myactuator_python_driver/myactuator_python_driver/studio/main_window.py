@@ -390,6 +390,8 @@ class MainWindow(QMainWindow):
 
     def _stop_recording(self):
         """Stop recording."""
+        if not self._recording:
+            return
         self._recording_manager.stop_recording()
         self._recording = False
 
@@ -439,6 +441,8 @@ class MainWindow(QMainWindow):
 
     def _stop_playback(self):
         """Stop playback."""
+        if not self._playing:
+            return
         self._recording_manager.stop_playback()
         self._playing = False
 
@@ -552,8 +556,10 @@ class MainWindow(QMainWindow):
     def _emergency_stop(self):
         """Emergency stop."""
         self._ros_bridge.emergency_stop()
-        self._stop_playback()
-        self._stop_recording()
+        if self._playing:
+            self._stop_playback()
+        if self._recording:
+            self._stop_recording()
 
     def _set_zero(self):
         """Set current position as zero."""
@@ -664,6 +670,10 @@ class MainWindow(QMainWindow):
             self._stop_recording()
         if self._playing:
             self._stop_playback()
+
+        # Set motors to free mode so they go limp on exit
+        self._ros_bridge.set_mode("free")
+        time.sleep(0.2)
 
         # Stop ROS bridge
         self._ros_bridge.stop()

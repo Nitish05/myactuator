@@ -752,8 +752,15 @@ class MotorDriverNode(Node):
 
 
 def main(args=None):
+    import signal
+
+    def _sigterm_handler(signum, frame):
+        raise KeyboardInterrupt
+
+    signal.signal(signal.SIGTERM, _sigterm_handler)
+
     rclpy.init(args=args)
-    
+
     # Try to load config from default location
     config = None
     try:

@@ -170,6 +170,10 @@ class RosBridgeWorker(QObject):
             self._executor.shutdown()
         if self._node:
             self._node.destroy_node()
+        try:
+            rclpy.shutdown()
+        except Exception:
+            pass
 
     # === Methods called from GUI thread (via signal/slot or thread-safe) ===
 
@@ -190,9 +194,9 @@ class RosBridgeWorker(QObject):
             self.status_message.emit(f"Motors {'enabled' if enabled else 'disabled'}")
 
     def emergency_stop(self):
-        """Call emergency stop service."""
+        """Call emergency stop service (non-blocking)."""
         if self._node and self._running:
-            if self._estop_client.wait_for_service(timeout_sec=0.5):
+            if self._estop_client.service_is_ready():
                 self._estop_client.call_async(Trigger.Request())
                 self.status_message.emit("EMERGENCY STOP!")
             else:
@@ -297,7 +301,9 @@ class RosBridge(QObject):
             self._worker.stop()
         if self._thread:
             self._thread.quit()
-            self._thread.wait(3000)
+            if not self._thread.wait(5000):
+                self._thread.terminate()
+                self._thread.wait(2000)
             self._thread = None
             self._worker = None
 

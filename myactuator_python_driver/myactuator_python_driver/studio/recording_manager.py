@@ -79,6 +79,7 @@ class RecordingManager(QObject):
         self._loop = False
         self._speed_idx = 2  # 1.0x
         self._playback_thread: Optional[threading.Thread] = None
+        self._stop_emitted = False
 
         # Clock for timestamps
         self._clock = None
@@ -322,6 +323,7 @@ class RecordingManager(QObject):
         with self._lock:
             self._playing = True
             self._paused = False
+            self._stop_emitted = False
 
         self._playback_thread = threading.Thread(
             target=self._playback_worker,
@@ -336,8 +338,13 @@ class RecordingManager(QObject):
     def stop_playback(self):
         """Stop playback."""
         with self._lock:
+            if not self._playing and self._stop_emitted:
+                return
             self._playing = False
             self._paused = False
+            if self._stop_emitted:
+                return
+            self._stop_emitted = True
 
         self.playback_stopped.emit()
 
@@ -371,7 +378,11 @@ class RecordingManager(QObject):
                     messages.append((ts - first_ts, msg))
 
             if not messages:
-                self._playing = False
+                with self._lock:
+                    self._playing = False
+                    if self._stop_emitted:
+                        return
+                    self._stop_emitted = True
                 self.playback_stopped.emit()
                 return
 
@@ -430,6 +441,9 @@ class RecordingManager(QObject):
                 with self._lock:
                     if not self._loop:
                         self._playing = False
+                        if self._stop_emitted:
+                            return
+                        self._stop_emitted = True
                         self.playback_stopped.emit()
                         return
 
@@ -437,6 +451,9 @@ class RecordingManager(QObject):
             self.error_occurred.emit(f"Playback error: {e}")
             with self._lock:
                 self._playing = False
+                if self._stop_emitted:
+                    return
+                self._stop_emitted = True
             self.playback_stopped.emit()
 
     # === Recording Management ===

@@ -40,11 +40,35 @@ die() {
 
 cleanup() {
     echo "[$(timestamp)] Shutting down..."
+
+    # Send SIGINT to driver so its finally block runs (free motors, rclpy.shutdown)
     if [ -n "${DRIVER_PID:-}" ] && kill -0 "$DRIVER_PID" 2>/dev/null; then
-        kill "$DRIVER_PID" 2>/dev/null
-        wait "$DRIVER_PID" 2>/dev/null || true
+        kill -INT "$DRIVER_PID" 2>/dev/null
+        # Poll for up to 5 seconds
+        for i in $(seq 1 50); do
+            kill -0 "$DRIVER_PID" 2>/dev/null || break
+            sleep 0.1
+        done
+        # Force-kill if still alive
+        if kill -0 "$DRIVER_PID" 2>/dev/null; then
+            echo "[$(timestamp)] Driver did not exit, force-killing..."
+            kill -9 "$DRIVER_PID" 2>/dev/null
+            wait "$DRIVER_PID" 2>/dev/null || true
+        fi
     fi
-    sleep 0.3
+
+    # Bring down CAN interface
+    if ip link show "$CAN_INTERFACE" up >/dev/null 2>&1; then
+        echo "[$(timestamp)] Bringing down $CAN_INTERFACE..."
+        sudo ip link set down "$CAN_INTERFACE" 2>/dev/null || true
+    fi
+
+    # Kill any lingering slcand
+    pkill -f "slcand.*$CAN_INTERFACE" 2>/dev/null || true
+
+    # Kill orphaned ROS processes from this session
+    pkill -f "ros2.*daemon" 2>/dev/null || true
+
     echo "[$(timestamp)] Done."
 }
 
@@ -64,6 +88,27 @@ if [ -f /run/.containerenv ]; then
     CONTAINER_NAME=$(grep '^name=' /run/.containerenv 2>/dev/null | cut -d'"' -f2)
     echo "[$(timestamp)] Running inside distrobox container: ${CONTAINER_NAME:-unknown}"
 fi
+
+# --- Step 0: Clean up stale processes from previous runs ---
+echo "[$(timestamp)] Cleaning up stale processes..."
+
+# Kill orphaned driver_node / motor_studio Python processes
+pkill -f "driver_node" 2>/dev/null || true
+pkill -f "motor_studio" 2>/dev/null || true
+
+# Kill stale slcand
+pkill -f "slcand" 2>/dev/null || true
+
+# Bring down existing CAN interface
+if ip link show "$CAN_INTERFACE" >/dev/null 2>&1; then
+    sudo ip link set down "$CAN_INTERFACE" 2>/dev/null || true
+fi
+
+# Stop ROS 2 daemon to clear stale state
+ros2 daemon stop 2>/dev/null || true
+
+sleep 0.5
+echo "[$(timestamp)] Cleanup done."
 
 # --- Step 1: CAN Bus Setup ---
 echo "[$(timestamp)] Setting up CAN ($CAN_INTERFACE @ ${CAN_BITRATE}bps)..."
