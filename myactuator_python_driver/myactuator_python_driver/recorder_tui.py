@@ -584,7 +584,7 @@ class RecorderTUI:
                 line = (f"{trigger.joint_name}: "
                         f"enter={trigger.enter_threshold_rad:.2f} "
                         f"exit={trigger.exit_threshold_rad:.2f} "
-                        f"torque={trigger.torque_nm:.2f}Nm "
+                        f"force={abs(trigger.torque_nm):.2f}Nm "
                         f"({trigger.direction})")
 
                 if i == self._trigger_edit_idx:
@@ -600,6 +600,53 @@ class RecorderTUI:
         stdscr.addstr(row, 4, "a: Add trigger    d: Delete selected    c: Clear all")
         row += 1
         stdscr.addstr(row, 4, "UP/DOWN: Select   Enter/Esc: Close")
+
+    def _draw_torque_selector(self, stdscr, start_row, torque, joint_name, current_pos,
+                                 enter_threshold, exit_threshold, direction):
+        """Draw ASCII art +/- buttons and force value for torque selection."""
+        w = stdscr.getmaxyx()[1]
+
+        # Compact summary of what's been entered
+        stdscr.addstr(start_row, 2, f"Joint: {joint_name} (at {current_pos:.3f} rad)", curses.A_BOLD)
+        stdscr.addstr(start_row + 1, 2,
+                      f"Enter: {enter_threshold:.2f} rad | Exit: {exit_threshold:.2f} rad | Direction: {direction}",
+                      curses.A_DIM)
+
+        row = start_row + 3
+        stdscr.addstr(row, 2, "Force to apply:", curses.A_BOLD)
+        row += 2
+
+        # ASCII art buttons and value
+        # [-] button (red)
+        minus_col = 6
+        plus_col = min(42, w - 12)
+        val_col = (minus_col + 11 + plus_col) // 2
+
+        btn_lines = [
+            ".-------.",
+            "|       |",
+            "|   {}   |",
+            "|       |",
+            "'-------'",
+        ]
+
+        for i, line in enumerate(btn_lines):
+            # Minus button
+            txt = line.format("-") if "{}" in line else line
+            stdscr.addstr(row + i, minus_col, txt, curses.color_pair(4) | curses.A_BOLD)
+            # Plus button
+            txt = line.format("+") if "{}" in line else line
+            stdscr.addstr(row + i, plus_col, txt, curses.color_pair(2) | curses.A_BOLD)
+
+        # Value in center, bold green
+        val_str = f"{torque:.1f} Nm"
+        val_x = max(val_col - len(val_str) // 2, minus_col + 11)
+        stdscr.addstr(row + 2, val_x, val_str, curses.color_pair(2) | curses.A_BOLD)
+
+        row += 6
+        stdscr.addstr(row, 3, "UP/+: increase    DOWN/-: decrease    [/]: fine (0.1)", curses.A_DIM)
+        row += 1
+        stdscr.addstr(row, 3, "Enter: confirm    q/Esc: cancel", curses.A_DIM)
 
     def _add_trigger_dialog(self, stdscr):
         """Interactive dialog to add a new trigger."""
@@ -699,35 +746,48 @@ class RecorderTUI:
                 stdscr.addstr(row, 2, f"Direction: falling (torque when angle < {enter_threshold:.3f})", curses.color_pair(2))
             row += 2
 
-            # Torque
-            stdscr.addstr(row, 2, "Torque to apply (Nm):  ")
-            stdscr.refresh()
-            torque_str = stdscr.getstr(row, 25, 15).decode('utf-8').strip()
-            if not torque_str:
-                self._error_message = "Torque value required"
-                return
-            torque = float(torque_str)
-            row += 2
+            # Torque selector with +/- buttons
+            curses.noecho()
+            curses.curs_set(0)
+            stdscr.nodelay(True)
+            stdscr.timeout(50)
 
-            # Confirm
-            stdscr.addstr(row, 2, "Press Enter to confirm, or 'q' to cancel: ", curses.A_BOLD)
-            stdscr.refresh()
-            confirm = stdscr.getch()
-            if confirm == ord('q'):
-                self._status_message = "Cancelled"
-                return
+            torque = 2.0  # Default starting value
+            while True:
+                stdscr.clear()
+                stdscr.addstr(0, 2, "=== Add Torque Trigger ===", curses.A_BOLD)
+                self._draw_torque_selector(stdscr, 2, torque, joint_name, current_pos,
+                                           enter_threshold, exit_threshold, direction)
+                stdscr.refresh()
 
-            # Create trigger
+                k = stdscr.getch()
+                if k == -1:
+                    continue
+                elif k in (curses.KEY_UP, curses.KEY_RIGHT, ord('+')):
+                    torque = min(20.0, torque + 0.5)
+                elif k in (curses.KEY_DOWN, curses.KEY_LEFT, ord('-')):
+                    torque = max(0.5, torque - 0.5)
+                elif k == ord(']'):
+                    torque = min(20.0, torque + 0.1)
+                elif k == ord('['):
+                    torque = max(0.5, torque - 0.1)
+                elif k in (ord('\n'), ord('\r')):
+                    break
+                elif k in (ord('q'), 27):  # q or Esc
+                    self._status_message = "Cancelled"
+                    return
+
+            # Create trigger (negate torque: user sees positive, motor gets negative)
             trigger = HysteresisTorqueTrigger(
                 joint_name=joint_name,
                 enter_threshold_rad=enter_threshold,
                 exit_threshold_rad=exit_threshold,
-                torque_nm=torque,
+                torque_nm=-torque,
                 direction=direction
             )
 
             self._triggers.append(trigger)
-            self._status_message = f"Added trigger: {joint_name} -> {torque}Nm when {direction} past {enter_threshold:.3f} rad"
+            self._status_message = f"Added trigger: {joint_name} -> {torque:.1f}Nm when {direction} past {enter_threshold:.3f} rad"
 
         except ValueError as e:
             self._error_message = f"Invalid number: {e}"
@@ -949,7 +1009,7 @@ class RecorderTUI:
                     state = state_info.get('state', 'inactive')
                     if state == 'active':
                         stdscr.addstr(row, state_x + 2,
-                                      f"{trigger.joint_name}: TORQUE ({trigger.torque_nm:.1f}Nm)",
+                                      f"{trigger.joint_name}: TORQUE ({abs(trigger.torque_nm):.1f}Nm)",
                                       curses.color_pair(3) | curses.A_BOLD)
                     else:
                         stdscr.addstr(row, state_x + 2,
