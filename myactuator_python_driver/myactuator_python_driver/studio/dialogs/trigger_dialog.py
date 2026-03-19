@@ -10,7 +10,7 @@ from typing import Callable, Dict, List, Optional
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel,
-    QComboBox, QPushButton, QGroupBox, QLineEdit,
+    QComboBox, QPushButton, QGroupBox,
     QMessageBox
 )
 
@@ -69,20 +69,16 @@ class TriggerDialog(QDialog):
         info_label.setStyleSheet("color: #90caf9;")
         layout.addWidget(info_label)
 
-        # Name and Recording
-        name_group = QGroupBox("Trigger Settings")
-        name_layout = QFormLayout(name_group)
-
-        self._name_edit = QLineEdit()
-        self._name_edit.setPlaceholderText("e.g., Grasp trigger")
-        name_layout.addRow("Name:", self._name_edit)
+        # Recording selection
+        rec_group = QGroupBox("Trigger Settings")
+        rec_layout = QFormLayout(rec_group)
 
         self._recording_combo = QComboBox()
         self._recording_combo.addItem("(Any recording)")
         self._recording_combo.addItems(self._recording_names)
-        name_layout.addRow("Recording:", self._recording_combo)
+        rec_layout.addRow("Recording:", self._recording_combo)
 
-        layout.addWidget(name_group)
+        layout.addWidget(rec_group)
 
         # Joint and Position
         joint_group = QGroupBox("Joint & Threshold")
@@ -243,7 +239,6 @@ class TriggerDialog(QDialog):
 
     def _load_existing(self, trigger: HysteresisTorqueTrigger):
         """Load an existing trigger for editing."""
-        self._name_edit.setText(trigger.name)
         if trigger.recording_name:
             idx = self._recording_combo.findText(trigger.recording_name)
             if idx >= 0:
@@ -260,18 +255,16 @@ class TriggerDialog(QDialog):
 
     def _on_ok(self):
         """Handle OK button click."""
-        name = self._name_edit.text().strip()
         joint = self._joint_combo.currentText()
         torque = self._torque_value  # Positive value shown to user
         recording = self._recording_combo.currentText()
         if recording == "(Any recording)":
             recording = ""
 
-        # Validate
-        if not name:
-            QMessageBox.warning(self, "Error", "Please enter a trigger name.")
-            return
+        # Auto-generate name
+        name = f"{joint} trigger"
 
+        # Validate
         if not joint:
             QMessageBox.warning(self, "Error", "Please select a joint.")
             return
