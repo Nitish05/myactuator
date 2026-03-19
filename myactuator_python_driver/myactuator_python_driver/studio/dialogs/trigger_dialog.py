@@ -10,7 +10,7 @@ from typing import Callable, Dict, List, Optional
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QLabel,
-    QComboBox, QDoubleSpinBox, QPushButton, QGroupBox, QLineEdit,
+    QComboBox, QPushButton, QGroupBox, QLineEdit,
     QMessageBox
 )
 
@@ -124,21 +124,67 @@ class TriggerDialog(QDialog):
 
         layout.addWidget(joint_group)
 
-        # Torque
-        torque_group = QGroupBox("Torque to Apply")
-        torque_layout = QFormLayout(torque_group)
+        # Torque - big +/- buttons
+        torque_group = QGroupBox("Force to Apply")
+        torque_outer = QVBoxLayout(torque_group)
 
-        self._torque_spin = QDoubleSpinBox()
-        self._torque_spin.setRange(-50.0, 50.0)
-        self._torque_spin.setDecimals(2)
-        self._torque_spin.setSingleStep(0.5)
-        self._torque_spin.setSuffix(" Nm")
-        self._torque_spin.setValue(1.0)
-        torque_layout.addRow("Torque:", self._torque_spin)
+        # +/- buttons row with value in center
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(12)
 
-        torque_help = QLabel("Constant torque applied when position falls below threshold")
+        self._minus_btn = QPushButton("-")
+        self._minus_btn.setFixedSize(64, 64)
+        self._minus_btn.setStyleSheet("""
+            QPushButton {
+                font-size: 32px; font-weight: bold;
+                background-color: #c62828; color: white;
+                border-radius: 8px;
+            }
+            QPushButton:hover { background-color: #e53935; }
+            QPushButton:pressed { background-color: #b71c1c; }
+        """)
+        self._minus_btn.setAutoRepeat(True)
+        self._minus_btn.setAutoRepeatDelay(400)
+        self._minus_btn.setAutoRepeatInterval(100)
+        self._minus_btn.clicked.connect(lambda: self._adjust_torque(-0.5))
+        btn_row.addWidget(self._minus_btn)
+
+        btn_row.addStretch()
+
+        self._torque_value = 2.0
+        self._torque_label = QLabel(f"{self._torque_value:.1f} Nm")
+        self._torque_label.setAlignment(Qt.AlignCenter)
+        self._torque_label.setStyleSheet(
+            "font-size: 28px; font-weight: bold; color: #4caf50;"
+        )
+        btn_row.addWidget(self._torque_label)
+
+        btn_row.addStretch()
+
+        self._plus_btn = QPushButton("+")
+        self._plus_btn.setFixedSize(64, 64)
+        self._plus_btn.setStyleSheet("""
+            QPushButton {
+                font-size: 32px; font-weight: bold;
+                background-color: #2e7d32; color: white;
+                border-radius: 8px;
+            }
+            QPushButton:hover { background-color: #43a047; }
+            QPushButton:pressed { background-color: #1b5e20; }
+        """)
+        self._plus_btn.setAutoRepeat(True)
+        self._plus_btn.setAutoRepeatDelay(400)
+        self._plus_btn.setAutoRepeatInterval(100)
+        self._plus_btn.clicked.connect(lambda: self._adjust_torque(0.5))
+        btn_row.addWidget(self._plus_btn)
+
+        torque_outer.addLayout(btn_row)
+
+        torque_help = QLabel("Constant force applied when position falls below threshold\n"
+                             "Click buttons to adjust (0.5 Nm steps)")
+        torque_help.setAlignment(Qt.AlignCenter)
         torque_help.setStyleSheet("color: #757575; font-size: 10px;")
-        torque_layout.addRow("", torque_help)
+        torque_outer.addWidget(torque_help)
 
         layout.addWidget(torque_group)
 
@@ -190,6 +236,11 @@ class TriggerDialog(QDialog):
             self._threshold_label.setText(f"{self._threshold_value:.4f} rad")
             self._threshold_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #4caf50;")
 
+    def _adjust_torque(self, delta: float):
+        """Adjust torque value by delta, clamped to [0.5, 20.0]."""
+        self._torque_value = max(0.5, min(20.0, self._torque_value + delta))
+        self._torque_label.setText(f"{self._torque_value:.1f} Nm")
+
     def _load_existing(self, trigger: HysteresisTorqueTrigger):
         """Load an existing trigger for editing."""
         self._name_edit.setText(trigger.name)
@@ -203,14 +254,15 @@ class TriggerDialog(QDialog):
         self._threshold_set = True
         self._threshold_label.setText(f"{self._threshold_value:.4f} rad")
         self._threshold_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #4caf50;")
-        self._torque_spin.setValue(trigger.torque_nm)
+        self._torque_value = abs(trigger.torque_nm)
+        self._torque_label.setText(f"{self._torque_value:.1f} Nm")
         self._ok_btn.setText("Update Trigger")
 
     def _on_ok(self):
         """Handle OK button click."""
         name = self._name_edit.text().strip()
         joint = self._joint_combo.currentText()
-        torque = self._torque_spin.value()
+        torque = self._torque_value  # Positive value shown to user
         recording = self._recording_combo.currentText()
         if recording == "(Any recording)":
             recording = ""
@@ -232,12 +284,12 @@ class TriggerDialog(QDialog):
             )
             return
 
-        # Create trigger (always falling direction)
+        # Create trigger (negate: user sees positive force, motor gets negative torque)
         self._result = HysteresisTorqueTrigger.create_falling(
             name=name,
             joint_name=joint,
             threshold_rad=self._threshold_value,
-            torque_nm=torque,
+            torque_nm=-torque,
             recording_name=recording,
         )
         self.accept()

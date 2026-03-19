@@ -257,7 +257,7 @@ class PlaybackTab(QWidget):
             recording_info = f" [{trigger.recording_name}]" if trigger.recording_name else ""
             item = QListWidgetItem(
                 f"{name}: {trigger.joint_name} < {trigger.enter_threshold_rad:.3f} rad → "
-                f"{trigger.torque_nm:.1f} Nm{recording_info}{state_text}"
+                f"{abs(trigger.torque_nm):.1f} Nm{recording_info}{state_text}"
             )
 
             if state == "active":
