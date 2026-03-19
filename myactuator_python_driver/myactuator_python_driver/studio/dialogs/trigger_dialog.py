@@ -60,15 +60,6 @@ class TriggerDialog(QDialog):
         layout = QVBoxLayout(self)
         layout.setSpacing(16)
 
-        # Info
-        info_label = QLabel(
-            "Create a trigger that applies constant torque when the joint "
-            "position falls below a threshold during playback."
-        )
-        info_label.setWordWrap(True)
-        info_label.setStyleSheet("color: #90caf9;")
-        layout.addWidget(info_label)
-
         # Recording selection
         rec_group = QGroupBox("Trigger Settings")
         rec_layout = QFormLayout(rec_group)
@@ -100,8 +91,9 @@ class TriggerDialog(QDialog):
             QPushButton {
                 background-color: #1976d2;
                 color: white;
+                font-size: 16px;
                 font-weight: bold;
-                padding: 12px;
+                padding: 18px;
                 border-radius: 6px;
             }
             QPushButton:hover {
