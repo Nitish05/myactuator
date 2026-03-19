@@ -365,6 +365,8 @@ class MainWindow(QMainWindow):
             pub = self._ros_bridge.get_joint_ctrl_publisher()
             if pub:
                 self._recording_manager.set_direct_publisher(pub)
+            # Start in free mode
+            self._ros_bridge.set_mode("free")
         else:
             self._connection_label.setText("Disconnected")
             self._connection_label.setStyleSheet("color: #ef5350;")
@@ -395,8 +397,8 @@ class MainWindow(QMainWindow):
         self._recording_manager.stop_recording()
         self._recording = False
 
-        # Switch back to position mode
-        self._ros_bridge.set_mode("position")
+        # Stay in free mode
+        self._ros_bridge.set_mode("free")
 
     def _on_recording_started(self, name: str):
         """Handle recording started."""
@@ -494,6 +496,9 @@ class MainWindow(QMainWindow):
     def _show_trigger_dialog(self):
         """Show the trigger configuration dialog."""
         joint_names = self._joint_monitor.get_joint_names()
+
+        # Switch to free mode while configuring trigger
+        self._ros_bridge.set_mode("free")
 
         if not joint_names:
             QMessageBox.warning(

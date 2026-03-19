@@ -304,7 +304,7 @@ class RecorderTUI:
             del self._bag_writer
             self._bag_writer = None
 
-        self._set_mode("position")
+        self._set_mode("free")
         self._refresh_recordings()
         self._status_message = f"Recording saved ({self._record_frame_count} frames)"
 
