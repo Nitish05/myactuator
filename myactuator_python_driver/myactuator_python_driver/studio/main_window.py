@@ -143,7 +143,7 @@ class MainWindow(QMainWindow):
 
         self._monitor_dock_action = QAction("Joint Monitor", self)
         self._monitor_dock_action.setCheckable(True)
-        self._monitor_dock_action.setChecked(True)
+        self._monitor_dock_action.setChecked(False)
         view_menu.addAction(self._monitor_dock_action)
 
         view_menu.addSeparator()
@@ -608,10 +608,12 @@ class MainWindow(QMainWindow):
         self._easy_mode = False
         self._stack.setCurrentIndex(1)
         self._control_dock.setVisible(True)
-        self._monitor_dock.setVisible(True)
+        self._monitor_dock.setVisible(False)
         self._toolbar.setVisible(True)
         self.menuBar().setVisible(True)
         self._status_bar.setVisible(True)
+        # Default to Record tab instead of Monitor
+        self._tabs.setCurrentIndex(1)
 
     def _easy_play_recording(self, recording):
         """Handle play request from easy mode."""
