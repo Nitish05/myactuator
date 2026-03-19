@@ -30,9 +30,7 @@ class TriggerDialog(QDialog):
                  parent=None,
                  existing_trigger: Optional[HysteresisTorqueTrigger] = None,
                  position_callback: Optional[Callable[[], Dict[str, float]]] = None,
-                 default_joint: Optional[str] = None,
-                 playback_active: bool = False,
-                 lock_callback: Optional[Callable[[str, Optional[float]], None]] = None):
+                 default_joint: Optional[str] = None):
         super().__init__(parent)
         self._joint_names = joint_names
         self._recording_names = recording_names
@@ -42,9 +40,9 @@ class TriggerDialog(QDialog):
         self._result: Optional[HysteresisTorqueTrigger] = None
         self._threshold_set = False
         self._default_joint = default_joint
-        self._playback_active = playback_active
-        self._lock_callback = lock_callback
-        self._locked_joints: Dict[str, float] = {}
+        self._lock_set = False
+        self._lock_joint_name = ""
+        self._lock_position_rad = 0.0
 
         self.setWindowTitle("Add Torque Trigger" if not existing_trigger else "Edit Trigger")
         self.setMinimumWidth(400)
@@ -59,6 +57,14 @@ class TriggerDialog(QDialog):
         self._update_timer = QTimer(self)
         self._update_timer.timeout.connect(self._refresh_positions)
         self._update_timer.start(50)  # 20Hz updates
+
+    def _get_other_joint(self) -> str:
+        """Get the first joint that is NOT the currently selected trigger joint."""
+        selected = self._joint_combo.currentText()
+        for j in self._joint_names:
+            if j != selected:
+                return j
+        return ""
 
     def _setup_ui(self):
         """Set up the UI components."""
@@ -90,15 +96,18 @@ class TriggerDialog(QDialog):
         self._position_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #4caf50;")
         joint_layout.addRow("Current Position:", self._position_label)
 
-        # Capture button
-        self._capture_btn = QPushButton("📍 Capture Current Position as Threshold")
+        # Side-by-side: Capture Threshold + Lock Joint buttons
+        btn_row = QHBoxLayout()
+        btn_row.setSpacing(8)
+
+        self._capture_btn = QPushButton("Capture Threshold")
         self._capture_btn.setStyleSheet("""
             QPushButton {
                 background-color: #1976d2;
                 color: white;
-                font-size: 16px;
+                font-size: 14px;
                 font-weight: bold;
-                padding: 18px;
+                padding: 14px 8px;
                 border-radius: 6px;
             }
             QPushButton:hover {
@@ -106,7 +115,29 @@ class TriggerDialog(QDialog):
             }
         """)
         self._capture_btn.clicked.connect(self._capture_position)
-        joint_layout.addRow(self._capture_btn)
+        btn_row.addWidget(self._capture_btn)
+
+        other_joint = self._get_other_joint()
+        self._lock_btn = QPushButton(f"Lock {other_joint}" if other_joint else "Lock Joint")
+        self._lock_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #37474f;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                padding: 14px 8px;
+                border-radius: 6px;
+            }
+            QPushButton:hover {
+                background-color: #455a64;
+            }
+        """)
+        self._lock_btn.clicked.connect(self._capture_lock)
+        if not other_joint:
+            self._lock_btn.setEnabled(False)
+        btn_row.addWidget(self._lock_btn)
+
+        joint_layout.addRow(btn_row)
 
         # Threshold display
         self._threshold_label = QLabel("Not set")
@@ -115,33 +146,20 @@ class TriggerDialog(QDialog):
 
         self._threshold_value = 0.0
 
+        # Lock display
+        self._lock_label = QLabel("Not set")
+        self._lock_label.setStyleSheet("font-size: 14px; color: #757575;")
+        joint_layout.addRow("Lock:", self._lock_label)
+
         layout.addWidget(joint_group)
-
-        # Lock Joint group (only shown during playback)
-        if self._playback_active:
-            lock_group = QGroupBox("Lock Joint During Playback")
-            lock_layout = QVBoxLayout(lock_group)
-
-            self._lock_btn = QPushButton(self._get_lock_button_text())
-            self._lock_btn.setCheckable(True)
-            self._lock_btn.setStyleSheet(self._get_lock_button_style(False))
-            self._lock_btn.clicked.connect(self._toggle_lock)
-            lock_layout.addWidget(self._lock_btn)
-
-            self._lock_status_label = QLabel("No joints locked")
-            self._lock_status_label.setStyleSheet("color: #757575; font-size: 11px;")
-            self._lock_status_label.setAlignment(Qt.AlignCenter)
-            lock_layout.addWidget(self._lock_status_label)
-
-            layout.addWidget(lock_group)
 
         # Torque - big +/- buttons
         torque_group = QGroupBox("Force to Apply")
         torque_outer = QVBoxLayout(torque_group)
 
         # +/- buttons row with value in center
-        btn_row = QHBoxLayout()
-        btn_row.setSpacing(12)
+        torque_btn_row = QHBoxLayout()
+        torque_btn_row.setSpacing(12)
 
         self._minus_btn = QPushButton("-")
         self._minus_btn.setFixedSize(64, 64)
@@ -158,9 +176,9 @@ class TriggerDialog(QDialog):
         self._minus_btn.setAutoRepeatDelay(400)
         self._minus_btn.setAutoRepeatInterval(100)
         self._minus_btn.clicked.connect(lambda: self._adjust_torque(-0.5))
-        btn_row.addWidget(self._minus_btn)
+        torque_btn_row.addWidget(self._minus_btn)
 
-        btn_row.addStretch()
+        torque_btn_row.addStretch()
 
         self._torque_value = 2.0
         self._torque_label = QLabel(f"{self._torque_value:.1f} Nm")
@@ -168,9 +186,9 @@ class TriggerDialog(QDialog):
         self._torque_label.setStyleSheet(
             "font-size: 28px; font-weight: bold; color: #4caf50;"
         )
-        btn_row.addWidget(self._torque_label)
+        torque_btn_row.addWidget(self._torque_label)
 
-        btn_row.addStretch()
+        torque_btn_row.addStretch()
 
         self._plus_btn = QPushButton("+")
         self._plus_btn.setFixedSize(64, 64)
@@ -187,9 +205,9 @@ class TriggerDialog(QDialog):
         self._plus_btn.setAutoRepeatDelay(400)
         self._plus_btn.setAutoRepeatInterval(100)
         self._plus_btn.clicked.connect(lambda: self._adjust_torque(0.5))
-        btn_row.addWidget(self._plus_btn)
+        torque_btn_row.addWidget(self._plus_btn)
 
-        torque_outer.addLayout(btn_row)
+        torque_outer.addLayout(torque_btn_row)
 
         torque_help = QLabel("Constant force applied when position falls below threshold\n"
                              "Click buttons to adjust (0.5 Nm steps)")
@@ -237,99 +255,17 @@ class TriggerDialog(QDialog):
             self._threshold_set = False
             self._threshold_label.setText("Not set")
             self._threshold_label.setStyleSheet("font-size: 14px; color: #ff9800;")
-        if self._playback_active:
-            self._update_lock_display()
-
-    def _get_lock_button_text(self) -> str:
-        """Get lock button text based on current joint state."""
-        joint = self._joint_combo.currentText() if hasattr(self, '_joint_combo') else ""
-        if joint in self._locked_joints:
-            return f"Unlock {joint}"
-        return f"Lock {joint}"
-
-    @staticmethod
-    def _get_lock_button_style(checked: bool) -> str:
-        """Get lock button stylesheet."""
-        if checked:
-            return """
-                QPushButton {
-                    background-color: #e65100;
-                    color: white;
-                    font-size: 14px;
-                    font-weight: bold;
-                    padding: 12px;
-                    border-radius: 6px;
-                }
-                QPushButton:hover { background-color: #f57c00; }
-            """
-        return """
-            QPushButton {
-                background-color: #37474f;
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
-                padding: 12px;
-                border-radius: 6px;
-            }
-            QPushButton:hover { background-color: #455a64; }
-        """
-
-    def _toggle_lock(self):
-        """Toggle lock on the currently selected joint."""
-        joint = self._joint_combo.currentText()
-        if not joint:
-            return
-
-        if joint in self._locked_joints:
-            # Unlock
-            del self._locked_joints[joint]
-            if self._lock_callback:
-                self._lock_callback(joint, None)
+        # Update lock button text to show the other joint name
+        other = self._get_other_joint()
+        if other:
+            if self._lock_set and self._lock_joint_name == other:
+                self._lock_btn.setText(f"Unlock {other}")
+            else:
+                self._lock_btn.setText(f"Lock {other}")
+            self._lock_btn.setEnabled(True)
         else:
-            # Lock at current position
-            pos = self._joint_positions.get(joint)
-            if pos is not None:
-                self._locked_joints[joint] = pos
-                if self._lock_callback:
-                    self._lock_callback(joint, pos)
-
-        self._update_lock_display()
-
-    def _update_lock_display(self):
-        """Update lock button text/style and status label."""
-        if not hasattr(self, '_lock_btn'):
-            return
-
-        joint = self._joint_combo.currentText()
-        is_locked = joint in self._locked_joints
-        self._lock_btn.setChecked(is_locked)
-        self._lock_btn.setText(self._get_lock_button_text())
-        self._lock_btn.setStyleSheet(self._get_lock_button_style(is_locked))
-
-        if self._locked_joints:
-            parts = [f"{j}: {p:.4f} rad" for j, p in self._locked_joints.items()]
-            self._lock_status_label.setText("Locked: " + ", ".join(parts))
-            self._lock_status_label.setStyleSheet("color: #e65100; font-size: 11px;")
-        else:
-            self._lock_status_label.setText("No joints locked")
-            self._lock_status_label.setStyleSheet("color: #757575; font-size: 11px;")
-
-    def _clear_all_locks(self):
-        """Unlock all joints via callback."""
-        for joint in list(self._locked_joints):
-            if self._lock_callback:
-                self._lock_callback(joint, None)
-        self._locked_joints.clear()
-
-    def _on_playback_ended(self):
-        """Handle playback stopping while dialog is open."""
-        self._playback_active = False
-        self._clear_all_locks()
-        if hasattr(self, '_lock_btn'):
+            self._lock_btn.setText("Lock Joint")
             self._lock_btn.setEnabled(False)
-            self._lock_btn.setText("Playback ended")
-            self._lock_status_label.setText("Playback stopped — locks cleared")
-            self._lock_status_label.setStyleSheet("color: #757575; font-size: 11px;")
 
     def _capture_position(self):
         """Capture current position as threshold."""
@@ -339,6 +275,53 @@ class TriggerDialog(QDialog):
             self._threshold_set = True
             self._threshold_label.setText(f"{self._threshold_value:.4f} rad")
             self._threshold_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #4caf50;")
+
+    def _capture_lock(self):
+        """Capture or clear the lock on the other joint."""
+        other = self._get_other_joint()
+        if not other:
+            return
+
+        if self._lock_set and self._lock_joint_name == other:
+            # Clear lock
+            self._lock_set = False
+            self._lock_joint_name = ""
+            self._lock_position_rad = 0.0
+            self._lock_btn.setText(f"Lock {other}")
+            self._lock_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #37474f;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: bold;
+                    padding: 14px 8px;
+                    border-radius: 6px;
+                }
+                QPushButton:hover { background-color: #455a64; }
+            """)
+            self._lock_label.setText("Not set")
+            self._lock_label.setStyleSheet("font-size: 14px; color: #757575;")
+        else:
+            # Capture lock position
+            pos = self._joint_positions.get(other)
+            if pos is not None:
+                self._lock_set = True
+                self._lock_joint_name = other
+                self._lock_position_rad = pos
+                self._lock_btn.setText(f"Unlock {other}")
+                self._lock_btn.setStyleSheet("""
+                    QPushButton {
+                        background-color: #e65100;
+                        color: white;
+                        font-size: 14px;
+                        font-weight: bold;
+                        padding: 14px 8px;
+                        border-radius: 6px;
+                    }
+                    QPushButton:hover { background-color: #f57c00; }
+                """)
+                self._lock_label.setText(f"{other}: {pos:.4f} rad")
+                self._lock_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #e65100;")
 
     def _adjust_torque(self, delta: float):
         """Adjust torque value by delta, clamped to [0.5, 20.0]."""
@@ -360,6 +343,25 @@ class TriggerDialog(QDialog):
         self._torque_value = abs(trigger.torque_nm)
         self._torque_label.setText(f"{self._torque_value:.1f} Nm")
         self._ok_btn.setText("Update Trigger")
+        # Load lock if set
+        if trigger.lock_joint_name:
+            self._lock_set = True
+            self._lock_joint_name = trigger.lock_joint_name
+            self._lock_position_rad = trigger.lock_position_rad
+            self._lock_btn.setText(f"Unlock {trigger.lock_joint_name}")
+            self._lock_btn.setStyleSheet("""
+                QPushButton {
+                    background-color: #e65100;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: bold;
+                    padding: 14px 8px;
+                    border-radius: 6px;
+                }
+                QPushButton:hover { background-color: #f57c00; }
+            """)
+            self._lock_label.setText(f"{trigger.lock_joint_name}: {trigger.lock_position_rad:.4f} rad")
+            self._lock_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #e65100;")
 
     def _on_ok(self):
         """Handle OK button click."""
@@ -385,9 +387,6 @@ class TriggerDialog(QDialog):
             )
             return
 
-        # Clear any locks before closing
-        self._clear_all_locks()
-
         # Create trigger (negate: user sees positive force, motor gets negative torque)
         self._result = HysteresisTorqueTrigger.create_falling(
             name=name,
@@ -395,13 +394,10 @@ class TriggerDialog(QDialog):
             threshold_rad=self._threshold_value,
             torque_nm=-torque,
             recording_name=recording,
+            lock_joint_name=self._lock_joint_name if self._lock_set else "",
+            lock_position_rad=self._lock_position_rad if self._lock_set else 0.0,
         )
         self.accept()
-
-    def reject(self):
-        """Handle cancel — clear locks before closing."""
-        self._clear_all_locks()
-        super().reject()
 
     def get_trigger(self) -> Optional[HysteresisTorqueTrigger]:
         """Get the configured trigger (after dialog accepts)."""
@@ -412,32 +408,26 @@ class TriggerDialog(QDialog):
                        recording_names: List[str],
                        parent=None,
                        position_callback: Optional[Callable[[], Dict[str, float]]] = None,
-                       default_joint: Optional[str] = None,
-                       playback_active: bool = False,
-                       lock_callback: Optional[Callable[[str, Optional[float]], None]] = None
+                       default_joint: Optional[str] = None
                        ) -> Optional[HysteresisTorqueTrigger]:
         """Show dialog and return new trigger, or None if cancelled."""
         dialog = TriggerDialog(joint_names, recording_names, parent,
                                position_callback=position_callback,
-                               default_joint=default_joint,
-                               playback_active=playback_active,
-                               lock_callback=lock_callback)
-        return dialog
+                               default_joint=default_joint)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            return dialog.get_trigger()
+        return None
 
     @staticmethod
     def edit_trigger(trigger: HysteresisTorqueTrigger,
                      joint_names: List[str],
                      recording_names: List[str],
                      parent=None,
-                     position_callback: Optional[Callable[[], Dict[str, float]]] = None,
-                     playback_active: bool = False,
-                     lock_callback: Optional[Callable[[str, Optional[float]], None]] = None
+                     position_callback: Optional[Callable[[], Dict[str, float]]] = None
                      ) -> Optional[HysteresisTorqueTrigger]:
         """Show dialog to edit existing trigger, or None if cancelled."""
         dialog = TriggerDialog(joint_names, recording_names, parent, trigger,
-                               position_callback=position_callback,
-                               playback_active=playback_active,
-                               lock_callback=lock_callback)
+                               position_callback=position_callback)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             return dialog.get_trigger()
         return None

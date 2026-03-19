@@ -88,6 +88,8 @@ class MotorDriverNode(Node):
         # Per-joint torque override triggers (for hybrid playback)
         self._active_triggers: Dict[str, HysteresisTorqueTrigger] = {}  # joint_name -> trigger
         self._trigger_states: Dict[str, str] = {}  # joint_name -> "inactive"/"active"
+        # Joints locked at fixed positions by active triggers
+        self._lock_positions: Dict[str, float] = {}  # joint_name -> locked position
 
         # Initialize control values for configured joints
         for motor_cfg in self.config.motors:
@@ -364,10 +366,13 @@ class MotorDriverNode(Node):
                         # Get commanded position from playback
                         position = self._control_positions.get(joint_name, 0.0)
 
+                        # Check if this joint is locked at a fixed position by a trigger
+                        if joint_name in self._lock_positions:
+                            state = motor.send_position(self._lock_positions[joint_name])
                         # Check for per-joint torque override (hybrid playback)
                         # Use the RECORDED position (not real robot) to decide when to trigger
-                        trigger = self._active_triggers.get(joint_name)
-                        if trigger and self._evaluate_trigger(joint_name, position):
+                        elif (trigger := self._active_triggers.get(joint_name)) and \
+                                self._evaluate_trigger(joint_name, position):
                             # This joint is in torque override mode
                             state = motor.send_torque(trigger.torque_nm)
                         else:
@@ -639,12 +644,19 @@ class MotorDriverNode(Node):
                 # Clear existing triggers
                 self._active_triggers.clear()
                 self._trigger_states.clear()
+                self._lock_positions.clear()
 
                 # Set up new triggers
                 for trigger in config.triggers:
                     if trigger.joint_name in self.motors and trigger.enabled:
                         self._active_triggers[trigger.joint_name] = trigger
                         self._trigger_states[trigger.joint_name] = "inactive"
+                        # Set up lock position if configured
+                        if trigger.lock_joint_name and trigger.lock_joint_name in self.motors:
+                            self._lock_positions[trigger.lock_joint_name] = trigger.lock_position_rad
+                            self.get_logger().info(
+                                f"Lock configured for {trigger.lock_joint_name}: "
+                                f"hold at {trigger.lock_position_rad:.4f} rad")
                         self.get_logger().info(
                             f"Trigger configured for {trigger.joint_name}: "
                             f"enter={trigger.enter_threshold_rad:.2f}, "

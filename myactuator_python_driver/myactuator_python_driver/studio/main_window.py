@@ -445,7 +445,6 @@ class MainWindow(QMainWindow):
         """Stop playback."""
         if not self._playing:
             return
-        self._recording_manager.clear_all_locked_joints()
         self._recording_manager.stop_playback()
         self._playing = False
 
@@ -465,7 +464,6 @@ class MainWindow(QMainWindow):
 
     def _on_playback_stopped(self):
         """Handle playback stopped."""
-        self._recording_manager.clear_all_locked_joints()
         self._playback_tab.set_playing(False)
         self._easy_mode_widget.set_playing(False)
         self._recording_label.setText("Idle")
@@ -499,9 +497,8 @@ class MainWindow(QMainWindow):
         """Show the trigger configuration dialog."""
         joint_names = self._joint_monitor.get_joint_names()
 
-        # Only switch to free mode when NOT playing
-        if not self._playing:
-            self._ros_bridge.set_mode("free")
+        # Switch to free mode while configuring trigger
+        self._ros_bridge.set_mode("free")
 
         if not joint_names:
             QMessageBox.warning(
@@ -516,44 +513,19 @@ class MainWindow(QMainWindow):
 
         # Pass callback for live position updates
         last_joint = self._preferences.get("last_trigger_joint")
-        dialog = TriggerDialog.create_trigger(
+        trigger = TriggerDialog.create_trigger(
             joint_names, recording_names, self,
             position_callback=self._joint_monitor.get_joint_positions,
-            default_joint=last_joint,
-            playback_active=self._playing,
-            lock_callback=self._on_lock_joint if self._playing else None,
+            default_joint=last_joint
         )
-
-        # Connect playback_stopped so dialog can react if playback ends
-        if self._playing:
-            self._recording_manager.playback_stopped.connect(dialog._on_playback_ended)
-
-        result = dialog.exec()
-
-        # Disconnect signal after dialog closes
-        if self._playing:
-            try:
-                self._recording_manager.playback_stopped.disconnect(dialog._on_playback_ended)
-            except RuntimeError:
-                pass
-
-        if result == TriggerDialog.DialogCode.Accepted:
-            trigger = dialog.get_trigger()
-            if trigger:
-                # Save to persistent store
-                self._trigger_store.add(trigger)
-                # Remember the selected joint
-                self._preferences.set("last_trigger_joint", trigger.joint_name)
-                # Add to playback tab
-                self._playback_tab.add_trigger(trigger)
-                self._show_status_message(f"Trigger '{trigger.name}' saved")
-
-    def _on_lock_joint(self, joint_name: str, position):
-        """Handle lock/unlock joint from trigger dialog."""
-        if position is not None:
-            self._recording_manager.set_locked_joint(joint_name, position)
-        else:
-            self._recording_manager.clear_locked_joint(joint_name)
+        if trigger:
+            # Save to persistent store
+            self._trigger_store.add(trigger)
+            # Remember the selected joint
+            self._preferences.set("last_trigger_joint", trigger.joint_name)
+            # Add to playback tab
+            self._playback_tab.add_trigger(trigger)
+            self._show_status_message(f"Trigger '{trigger.name}' saved")
 
     # === Browse Handlers ===
 

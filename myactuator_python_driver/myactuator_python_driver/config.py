@@ -48,6 +48,8 @@ class HysteresisTorqueTrigger:
     enabled: bool = True
     name: str = ""  # Optional trigger name
     recording_name: str = ""  # Recording this trigger is paired with
+    lock_joint_name: str = ""  # Joint to hold at fixed position during trigger
+    lock_position_rad: float = 0.0  # Position to hold the locked joint at
 
     def __post_init__(self):
         if self.direction == "rising":
@@ -62,7 +64,9 @@ class HysteresisTorqueTrigger:
     @classmethod
     def create_falling(cls, name: str, joint_name: str, threshold_rad: float,
                        torque_nm: float, recording_name: str = "",
-                       hysteresis: float = 0.1) -> 'HysteresisTorqueTrigger':
+                       hysteresis: float = 0.1,
+                       lock_joint_name: str = "",
+                       lock_position_rad: float = 0.0) -> 'HysteresisTorqueTrigger':
         """Create a falling trigger (activates when position goes below threshold)."""
         return cls(
             name=name,
@@ -72,6 +76,8 @@ class HysteresisTorqueTrigger:
             torque_nm=torque_nm,
             direction="falling",
             recording_name=recording_name,
+            lock_joint_name=lock_joint_name,
+            lock_position_rad=lock_position_rad,
         )
 
 
