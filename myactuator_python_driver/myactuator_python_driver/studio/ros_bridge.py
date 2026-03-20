@@ -308,7 +308,9 @@ class RosBridge(QObject):
 
     def _on_joint_state(self, msg):
         """Handle joint state and update joint names."""
-        self._joint_names = list(msg.name)
+        names = list(msg.name)
+        if names != self._joint_names:
+            self._joint_names = names
         self.joint_state_received.emit(msg)
 
     def _on_mode_changed(self, mode: str):
