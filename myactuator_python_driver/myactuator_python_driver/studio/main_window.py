@@ -553,17 +553,13 @@ class MainWindow(QMainWindow):
         recording_names = [r.name for r in recordings]
 
         # Pass callback for live position updates
-        last_joint = self._preferences.get("last_trigger_joint")
         trigger = TriggerDialog.create_trigger(
             joint_names, recording_names, self,
             position_callback=self._joint_monitor.get_joint_positions,
-            default_joint=last_joint
         )
         if trigger:
             # Save to persistent store
             self._trigger_store.add(trigger)
-            # Remember the selected joint
-            self._preferences.set("last_trigger_joint", trigger.joint_name)
             # Add to playback tab
             self._playback_tab.add_trigger(trigger)
             self._show_status_message(f"Trigger '{trigger.name}' saved")
@@ -587,18 +583,14 @@ class MainWindow(QMainWindow):
         recording_names = [r.name for r in recordings]
 
         # Pass callback for live position updates
-        last_joint = self._preferences.get("last_trigger_joint")
         trigger = TriggerDialog.create_trigger(
             joint_names, recording_names, self,
             position_callback=self._joint_monitor.get_joint_positions,
-            default_joint=last_joint,
             default_recording=recording_name
         )
         if trigger:
             # Save to persistent store
             self._trigger_store.add(trigger)
-            # Remember the selected joint
-            self._preferences.set("last_trigger_joint", trigger.joint_name)
             # Add to playback tab
             self._playback_tab.add_trigger(trigger)
             self._show_status_message(f"Trigger '{trigger.name}' saved")
