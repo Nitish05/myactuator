@@ -295,10 +295,17 @@ class TriggersTab(QWidget):
         self._joint_names: List[str] = []
         self._setup_ui()
 
-        # Timer for live position updates on cards
+        # Timer for live position updates on cards (started/stopped via show/hide)
         self._update_timer = QTimer(self)
         self._update_timer.timeout.connect(self._refresh_positions)
+
+    def showEvent(self, event):
+        super().showEvent(event)
         self._update_timer.start(50)
+
+    def hideEvent(self, event):
+        self._update_timer.stop()
+        super().hideEvent(event)
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
