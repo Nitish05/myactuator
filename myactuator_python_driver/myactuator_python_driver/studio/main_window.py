@@ -769,9 +769,8 @@ class MainWindow(QMainWindow):
 
         # Set motors to free mode so they go limp on exit
         self._ros_bridge.set_mode("free")
-        time.sleep(0.2)
 
-        # Stop ROS bridge
+        # Stop ROS bridge (waits up to 5s for thread, plenty for free-mode msg)
         self._ros_bridge.stop()
 
         event.accept()
