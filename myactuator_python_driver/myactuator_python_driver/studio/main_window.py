@@ -412,17 +412,8 @@ class MainWindow(QMainWindow):
         self._show_status_message(f"Recording saved: {name} ({frame_count} frames)")
         self._refresh_recordings()
 
-        # Offer to add a trigger for this recording
-        reply = QMessageBox.question(
-            self,
-            "Recording Saved",
-            f"'{name}' saved ({frame_count} frames).\n\n"
-            "Would you like to add a torque trigger for this recording?",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
-        )
-        if reply == QMessageBox.StandardButton.Yes:
-            self._show_trigger_dialog_for_recording(name)
+        # Open trigger dialog directly — cancel to skip
+        self._show_trigger_dialog_for_recording(name)
 
     def _on_recording_frame(self, count: int):
         """Handle recording frame."""
@@ -586,8 +577,12 @@ class MainWindow(QMainWindow):
         self._playback_tab.set_triggers(self._trigger_store.get_all())
 
     def _delete_recording(self, recording):
-        """Delete a recording."""
+        """Delete a recording and its associated triggers."""
         if self._recording_manager.delete_recording(recording):
+            # Remove triggers tied to this recording
+            for t in list(self._trigger_store.get_all()):
+                if t.recording_name == recording.name:
+                    self._trigger_store.remove(t)
             self._browse_tab.remove_recording(recording)
             self._show_status_message(f"Deleted: {recording.name}")
             self._refresh_recordings()
