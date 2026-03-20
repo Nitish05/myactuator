@@ -280,16 +280,23 @@ class PlaybackTab(QWidget):
         if self._selected_recording:
             current_name = self._selected_recording.name
 
+        self._recording_combo.blockSignals(True)
         self._recording_combo.clear()
 
         for recording in recordings:
             self._recording_combo.addItem(recording.name, recording)
 
         # Restore selection if possible
+        restored = False
         for i in range(self._recording_combo.count()):
             if self._recording_combo.itemData(i).name == current_name:
                 self._recording_combo.setCurrentIndex(i)
+                restored = True
                 break
+        self._recording_combo.blockSignals(False)
+
+        # Fire handler once for the final selection
+        self._on_recording_changed(self._recording_combo.currentIndex())
 
     def set_playing(self, playing: bool):
         """Set playback state."""
