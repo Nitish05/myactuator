@@ -27,6 +27,7 @@ from .widgets.monitor_tab import MonitorTab
 from .widgets.record_tab import RecordTab
 from .widgets.playback_tab import PlaybackTab
 from .widgets.browse_tab import BrowseTab
+from .widgets.triggers_tab import TriggersTab
 from .widgets.easy_mode import EasyModeWidget
 from .widgets.virtual_keyboard import VirtualKeyboard
 from .dialogs.trigger_dialog import TriggerDialog
@@ -79,6 +80,7 @@ class MainWindow(QMainWindow):
         self._monitor_dock.setVisible(False)
         self._monitor_tab_dock.setVisible(False)
         self._playback_dock.setVisible(False)
+        self._triggers_dock.setVisible(False)
         self._toolbar.setVisible(False)
         self.menuBar().setVisible(False)
         self._status_bar.setVisible(False)
@@ -158,6 +160,11 @@ class MainWindow(QMainWindow):
         self._playback_dock_action.setChecked(False)
         view_menu.addAction(self._playback_dock_action)
 
+        self._triggers_dock_action = QAction("Triggers", self)
+        self._triggers_dock_action.setCheckable(True)
+        self._triggers_dock_action.setChecked(False)
+        view_menu.addAction(self._triggers_dock_action)
+
         view_menu.addSeparator()
 
         simple_mode_action = QAction("&Simple Mode", self)
@@ -220,9 +227,10 @@ class MainWindow(QMainWindow):
         self._browse_tab = BrowseTab()
         self._tabs.addTab(self._browse_tab, "Browse")
 
-        # Monitor and Playback widgets created here, docked in _setup_docks()
+        # Monitor, Playback, Triggers widgets created here, docked in _setup_docks()
         self._monitor_tab = MonitorTab()
         self._playback_tab = PlaybackTab()
+        self._triggers_tab = TriggersTab()
 
         self._stack.addWidget(self._tabs)
 
@@ -283,6 +291,19 @@ class MainWindow(QMainWindow):
         # Connect dock visibility to menu action
         self._playback_dock.visibilityChanged.connect(self._playback_dock_action.setChecked)
         self._playback_dock_action.triggered.connect(self._playback_dock.setVisible)
+
+        # Triggers dock (right)
+        self._triggers_dock = QDockWidget("Triggers", self)
+        self._triggers_dock.setWidget(self._triggers_tab)
+        self._triggers_dock.setFeatures(
+            QDockWidget.DockWidgetFeature.DockWidgetMovable |
+            QDockWidget.DockWidgetFeature.DockWidgetClosable
+        )
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self._triggers_dock)
+
+        # Connect dock visibility to menu action
+        self._triggers_dock.visibilityChanged.connect(self._triggers_dock_action.setChecked)
+        self._triggers_dock_action.triggered.connect(self._triggers_dock.setVisible)
 
     def _setup_status_bar(self):
         """Set up the status bar."""
@@ -345,6 +366,10 @@ class MainWindow(QMainWindow):
         self._playback_tab.triggers_changed.connect(self._on_triggers_changed)
         self._playback_tab.configure_triggers_requested.connect(self._show_trigger_dialog)
         self._playback_tab.trigger_removed.connect(self._on_trigger_removed)
+
+        # Triggers tab signals
+        self._triggers_tab.trigger_updated.connect(self._on_trigger_updated)
+        self._triggers_tab.trigger_removed.connect(self._on_trigger_removed)
 
         # Browse tab signals
         self._browse_tab.refresh_requested.connect(self._refresh_recordings)
@@ -533,6 +558,20 @@ class MainWindow(QMainWindow):
         """Handle trigger removal - remove from persistent store."""
         self._trigger_store.remove(trigger)
         self._show_status_message(f"Trigger '{trigger.name}' removed")
+        self._refresh_triggers()
+
+    def _on_trigger_updated(self, old_trigger, new_trigger):
+        """Handle trigger edit from triggers tab."""
+        self._trigger_store.update(old_trigger, new_trigger)
+        self._show_status_message(f"Trigger '{new_trigger.name}' updated")
+        # Sync playback tab
+        self._playback_tab.set_triggers(self._trigger_store.get_all())
+
+    def _refresh_triggers(self):
+        """Refresh trigger lists in all views."""
+        triggers = self._trigger_store.get_all()
+        self._playback_tab.set_triggers(triggers)
+        self._triggers_tab.set_triggers(triggers)
 
     def _show_trigger_dialog(self):
         """Show the trigger configuration dialog."""
@@ -560,8 +599,8 @@ class MainWindow(QMainWindow):
         if trigger:
             # Save to persistent store
             self._trigger_store.add(trigger)
-            # Add to playback tab
-            self._playback_tab.add_trigger(trigger)
+            # Sync all views
+            self._refresh_triggers()
             self._show_status_message(f"Trigger '{trigger.name}' saved")
 
     def _show_trigger_dialog_for_recording(self, recording_name: str):
@@ -591,8 +630,8 @@ class MainWindow(QMainWindow):
         if trigger:
             # Save to persistent store
             self._trigger_store.add(trigger)
-            # Add to playback tab
-            self._playback_tab.add_trigger(trigger)
+            # Sync all views
+            self._refresh_triggers()
             self._show_status_message(f"Trigger '{trigger.name}' saved")
 
     # === Browse Handlers ===
@@ -604,7 +643,15 @@ class MainWindow(QMainWindow):
         self._playback_tab.set_recordings(recordings)
         self._easy_mode_widget.set_recordings(recordings, self._trigger_store)
         # Load all saved triggers
-        self._playback_tab.set_triggers(self._trigger_store.get_all())
+        triggers = self._trigger_store.get_all()
+        self._playback_tab.set_triggers(triggers)
+        # Update triggers tab with position callback
+        joint_names = self._joint_monitor.get_joint_names()
+        if joint_names:
+            self._triggers_tab.set_position_callback(
+                self._joint_monitor.get_joint_positions, joint_names
+            )
+        self._triggers_tab.set_triggers(triggers)
 
     def _delete_recording(self, recording):
         """Delete a recording and its associated triggers."""
@@ -671,6 +718,7 @@ class MainWindow(QMainWindow):
         self._monitor_dock.setVisible(False)
         self._monitor_tab_dock.setVisible(False)
         self._playback_dock.setVisible(False)
+        self._triggers_dock.setVisible(False)
         self._toolbar.setVisible(False)
         self.menuBar().setVisible(False)
         self._status_bar.setVisible(False)
@@ -685,6 +733,7 @@ class MainWindow(QMainWindow):
         self._monitor_dock.setVisible(False)
         self._monitor_tab_dock.setVisible(False)
         self._playback_dock.setVisible(False)
+        self._triggers_dock.setVisible(False)
         self._toolbar.setVisible(True)
         self.menuBar().setVisible(True)
         self._status_bar.setVisible(True)
