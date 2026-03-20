@@ -487,7 +487,8 @@ class MainWindow(QMainWindow):
         self._recording_manager.stop_playback()
         self._playing = False
 
-        # Clear triggers
+        # Free motors immediately and clear triggers
+        self._ros_bridge.set_mode("free")
         self._ros_bridge.clear_trigger_config()
 
     def _toggle_pause(self):
@@ -507,7 +508,8 @@ class MainWindow(QMainWindow):
         self._easy_mode_widget.set_playing(False)
         self._recording_label.setText("Idle")
         self._playing = False
-        # Clear triggers when playback ends (natural stop or loop end)
+        # Free motors and clear triggers when playback ends (natural stop or loop end)
+        self._ros_bridge.set_mode("free")
         self._ros_bridge.clear_trigger_config()
 
     def _on_playback_progress(self, current_sec: float, total_sec: float):
