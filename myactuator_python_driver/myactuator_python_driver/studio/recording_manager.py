@@ -151,10 +151,8 @@ class RecordingManager(QObject):
             size_bytes = sum(f.stat().st_size for f in bag_path.iterdir() if f.is_file())
             size_mb = size_bytes / (1024 * 1024)
 
-            # Get joint names from first message
+            # Get joint names from first message (reuse the same reader)
             joint_names = []
-            reader = rosbag2_py.SequentialReader()
-            reader.open(storage_options, converter_options)
             while reader.has_next():
                 topic, data, _ = reader.read_next()
                 if topic == '/joint_states':
