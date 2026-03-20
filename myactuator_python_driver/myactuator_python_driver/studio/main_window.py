@@ -137,40 +137,14 @@ class MainWindow(QMainWindow):
         go_zero_action.triggered.connect(self._go_to_zero)
         control_menu.addAction(go_zero_action)
 
-        # View menu
-        view_menu = menubar.addMenu("&View")
-
-        self._control_dock_action = QAction("Control Panel", self)
-        self._control_dock_action.setCheckable(True)
-        self._control_dock_action.setChecked(False)
-        view_menu.addAction(self._control_dock_action)
-
-        self._monitor_dock_action = QAction("Joint Monitor", self)
-        self._monitor_dock_action.setCheckable(True)
-        self._monitor_dock_action.setChecked(False)
-        view_menu.addAction(self._monitor_dock_action)
-
-        self._monitor_tab_dock_action = QAction("Monitor", self)
-        self._monitor_tab_dock_action.setCheckable(True)
-        self._monitor_tab_dock_action.setChecked(False)
-        view_menu.addAction(self._monitor_tab_dock_action)
-
-        self._playback_dock_action = QAction("Playback", self)
-        self._playback_dock_action.setCheckable(True)
-        self._playback_dock_action.setChecked(False)
-        view_menu.addAction(self._playback_dock_action)
-
-        self._triggers_dock_action = QAction("Triggers", self)
-        self._triggers_dock_action.setCheckable(True)
-        self._triggers_dock_action.setChecked(False)
-        view_menu.addAction(self._triggers_dock_action)
-
-        view_menu.addSeparator()
+        # View menu — dock toggle actions are added in _setup_docks()
+        self._view_menu = menubar.addMenu("&View")
+        self._view_menu_separator = self._view_menu.addSeparator()
 
         simple_mode_action = QAction("&Simple Mode", self)
         simple_mode_action.setShortcut(QKeySequence("Ctrl+Shift+S"))
         simple_mode_action.triggered.connect(self._switch_to_easy)
-        view_menu.addAction(simple_mode_action)
+        self._view_menu.addAction(simple_mode_action)
 
         # Help menu
         help_menu = menubar.addMenu("&Help")
@@ -247,10 +221,7 @@ class MainWindow(QMainWindow):
             QDockWidget.DockWidgetFeature.DockWidgetClosable
         )
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self._control_dock)
-
-        # Connect dock visibility to menu action
-        self._control_dock.visibilityChanged.connect(self._control_dock_action.setChecked)
-        self._control_dock_action.triggered.connect(self._control_dock.setVisible)
+        self._view_menu.insertAction(self._view_menu_separator, self._control_dock.toggleViewAction())
 
         # Joint monitor dock (bottom)
         self._joint_monitor = JointMonitor()
@@ -261,10 +232,7 @@ class MainWindow(QMainWindow):
             QDockWidget.DockWidgetFeature.DockWidgetClosable
         )
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self._monitor_dock)
-
-        # Connect dock visibility to menu action
-        self._monitor_dock.visibilityChanged.connect(self._monitor_dock_action.setChecked)
-        self._monitor_dock_action.triggered.connect(self._monitor_dock.setVisible)
+        self._view_menu.insertAction(self._view_menu_separator, self._monitor_dock.toggleViewAction())
 
         # Monitor tab dock (bottom)
         self._monitor_tab_dock = QDockWidget("Monitor", self)
@@ -274,10 +242,7 @@ class MainWindow(QMainWindow):
             QDockWidget.DockWidgetFeature.DockWidgetClosable
         )
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self._monitor_tab_dock)
-
-        # Connect dock visibility to menu action
-        self._monitor_tab_dock.visibilityChanged.connect(self._monitor_tab_dock_action.setChecked)
-        self._monitor_tab_dock_action.triggered.connect(self._monitor_tab_dock.setVisible)
+        self._view_menu.insertAction(self._view_menu_separator, self._monitor_tab_dock.toggleViewAction())
 
         # Playback dock (right)
         self._playback_dock = QDockWidget("Playback", self)
@@ -287,10 +252,7 @@ class MainWindow(QMainWindow):
             QDockWidget.DockWidgetFeature.DockWidgetClosable
         )
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self._playback_dock)
-
-        # Connect dock visibility to menu action
-        self._playback_dock.visibilityChanged.connect(self._playback_dock_action.setChecked)
-        self._playback_dock_action.triggered.connect(self._playback_dock.setVisible)
+        self._view_menu.insertAction(self._view_menu_separator, self._playback_dock.toggleViewAction())
 
         # Triggers dock (right)
         self._triggers_dock = QDockWidget("Triggers", self)
@@ -300,10 +262,7 @@ class MainWindow(QMainWindow):
             QDockWidget.DockWidgetFeature.DockWidgetClosable
         )
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self._triggers_dock)
-
-        # Connect dock visibility to menu action
-        self._triggers_dock.visibilityChanged.connect(self._triggers_dock_action.setChecked)
-        self._triggers_dock_action.triggered.connect(self._triggers_dock.setVisible)
+        self._view_menu.insertAction(self._view_menu_separator, self._triggers_dock.toggleViewAction())
 
     def _setup_status_bar(self):
         """Set up the status bar."""
