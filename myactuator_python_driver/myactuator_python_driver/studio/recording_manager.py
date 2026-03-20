@@ -4,6 +4,7 @@ Recording manager for Motor Recording Studio.
 Handles reading and writing ROS 2 bags for motor trajectory recording and playback.
 """
 
+import queue
 import shutil
 import threading
 import time
@@ -72,6 +73,8 @@ class RecordingManager(QObject):
         self._record_start_time = 0.0
         self._record_frame_count = 0
         self._current_recording_name = ""
+        self._write_queue: Optional[queue.Queue] = None
+        self._writer_thread: Optional[threading.Thread] = None
 
         # Playback state
         self._playing = False
@@ -215,12 +218,17 @@ class RecordingManager(QObject):
                 )
             self._bag_writer.create_topic(topic_info)
 
+            self._write_queue = queue.Queue()
+            self._writer_thread = threading.Thread(
+                target=self._bag_writer_worker, daemon=True)
+
             with self._lock:
                 self._recording = True
                 self._record_start_time = time.time()
                 self._record_frame_count = 0
                 self._current_recording_name = name
 
+            self._writer_thread.start()
             self.recording_started.emit(name)
             return True
 
@@ -238,6 +246,14 @@ class RecordingManager(QObject):
             name = self._current_recording_name
             frame_count = self._record_frame_count
 
+        # Flush writer thread
+        if self._write_queue is not None:
+            self._write_queue.put(None)  # sentinel
+        if self._writer_thread is not None:
+            self._writer_thread.join(timeout=5.0)
+            self._writer_thread = None
+        self._write_queue = None
+
         if self._bag_writer:
             del self._bag_writer
             self._bag_writer = None
@@ -246,16 +262,13 @@ class RecordingManager(QObject):
         return name
 
     def record_frame(self, msg: JointState, timestamp_ns: int):
-        """Record a single frame."""
-        if not self._recording or self._bag_writer is None:
+        """Record a single frame (enqueues for background write)."""
+        if not self._recording or self._write_queue is None:
             return
 
         try:
-            self._bag_writer.write(
-                '/joint_states',
-                serialize_message(msg),
-                timestamp_ns
-            )
+            serialized = serialize_message(msg)
+            self._write_queue.put(('/joint_states', serialized, timestamp_ns))
             with self._lock:
                 self._record_frame_count += 1
                 count = self._record_frame_count
@@ -264,6 +277,18 @@ class RecordingManager(QObject):
 
         except Exception as e:
             self.error_occurred.emit(f"Record error: {e}")
+
+    def _bag_writer_worker(self):
+        """Background thread that drains the write queue into the bag."""
+        while True:
+            item = self._write_queue.get()
+            if item is None:
+                break
+            topic, data, ts = item
+            try:
+                self._bag_writer.write(topic, data, ts)
+            except Exception:
+                pass
 
     def get_record_duration(self) -> float:
         """Get current recording duration in seconds."""
