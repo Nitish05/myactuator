@@ -5,6 +5,7 @@ Main driver node for MyActuator RMD motors.
 Publishes /joint_states and subscribes to control topics.
 """
 
+import json
 import math
 import threading
 from typing import List, Dict, Optional
@@ -90,6 +91,7 @@ class MotorDriverNode(Node):
         self._trigger_states: Dict[str, str] = {}  # joint_name -> "inactive"/"active"
         # Joints locked at fixed positions by active triggers
         self._lock_positions: Dict[str, float] = {}  # joint_name -> locked position
+        self._last_trigger_state_dict: Dict = {}  # cache to avoid redundant publishes
 
         # Initialize control values for configured joints
         for motor_cfg in self.config.motors:
@@ -635,7 +637,6 @@ class MotorDriverNode(Node):
 
     def _trigger_config_callback(self, msg: String):
         """Handle playback trigger configuration from recorder TUI."""
-        import json
         try:
             data = json.loads(msg.data)
             config = PlaybackTriggerConfig.from_dict(data)
@@ -724,11 +725,10 @@ class MotorDriverNode(Node):
                 return True
 
     def _publish_trigger_states(self):
-        """Publish current trigger states for TUI feedback."""
+        """Publish current trigger states for TUI feedback (only on change)."""
         if not self._active_triggers:
             return
 
-        import json
         state_dict = {}
         for joint_name, trigger in self._active_triggers.items():
             state_dict[joint_name] = {
@@ -736,6 +736,10 @@ class MotorDriverNode(Node):
                 'torque_nm': trigger.torque_nm,
             }
 
+        if state_dict == self._last_trigger_state_dict:
+            return
+
+        self._last_trigger_state_dict = state_dict
         msg = String()
         msg.data = json.dumps(state_dict)
         self.trigger_state_pub.publish(msg)
