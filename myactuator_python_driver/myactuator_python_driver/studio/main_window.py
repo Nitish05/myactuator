@@ -92,6 +92,11 @@ class MainWindow(QMainWindow):
         toggle_fs_action.triggered.connect(self._toggle_fullscreen)
         self.addAction(toggle_fs_action)
 
+        # Persistent timer for clearing status messages
+        self._status_clear_timer = QTimer(self)
+        self._status_clear_timer.setSingleShot(True)
+        self._status_clear_timer.timeout.connect(self._clear_status_message)
+
         # Start ROS bridge
         self._ros_bridge.start()
 
@@ -729,18 +734,19 @@ class MainWindow(QMainWindow):
     def _show_status_message(self, message: str):
         """Show a status message."""
         self._message_label.setText(message)
-        # Clear after 5 seconds
-        QTimer.singleShot(5000, lambda: self._message_label.setText(""))
+        self._message_label.setStyleSheet("")
+        self._status_clear_timer.start(5000)
 
     def _show_error_message(self, message: str):
         """Show an error message."""
         self._message_label.setText(f"Error: {message}")
         self._message_label.setStyleSheet("color: #ef5350;")
-        # Clear after 5 seconds
-        QTimer.singleShot(5000, lambda: (
-            self._message_label.setText(""),
-            self._message_label.setStyleSheet("")
-        ))
+        self._status_clear_timer.start(5000)
+
+    def _clear_status_message(self):
+        """Clear the status message area."""
+        self._message_label.setText("")
+        self._message_label.setStyleSheet("")
 
     def _show_about(self):
         """Show about dialog."""
