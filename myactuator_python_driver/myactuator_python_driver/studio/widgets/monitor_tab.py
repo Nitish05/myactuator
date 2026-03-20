@@ -36,6 +36,11 @@ class PlotWidget(QWidget):
 
         self.setMinimumHeight(200)
 
+        # Repaint timer — 30Hz is plenty for visual updates
+        self._repaint_timer = QTimer(self)
+        self._repaint_timer.timeout.connect(self.update)
+        self._repaint_timer.start(33)
+
     def set_joints(self, joint_names: List[str]):
         """Set the joints to plot."""
         self._data.clear()
@@ -47,7 +52,6 @@ class PlotWidget(QWidget):
         for name, value in values.items():
             if name in self._data:
                 self._data[name].append(value)
-        self.update()
 
     def set_y_range(self, y_min: float, y_max: float):
         """Set the Y axis range."""
@@ -117,15 +121,15 @@ class PlotWidget(QWidget):
             color = self._colors[idx % len(self._colors)]
             painter.setPen(QPen(color, 2))
 
-            points = list(data)
+            n = len(data)
             x_step = plot_w / (self._max_points - 1) if self._max_points > 1 else 1
 
             prev_x = None
             prev_y = None
 
-            for i, value in enumerate(points):
+            for i, value in enumerate(data):
                 # X position based on age of point
-                x = margin + int((self._max_points - len(points) + i) * x_step)
+                x = margin + int((self._max_points - n + i) * x_step)
 
                 # Y position based on value
                 if y_range != 0:
