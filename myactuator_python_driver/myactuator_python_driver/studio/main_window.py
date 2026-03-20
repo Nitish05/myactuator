@@ -62,6 +62,10 @@ class MainWindow(QMainWindow):
         self._playing = False
         self._easy_mode = True
 
+        # Frequency tracking for recording
+        self._freq_last_time = 0.0
+        self._freq_last_count = 0
+
         # Setup UI
         self._setup_menu_bar()
         self._setup_toolbar()
@@ -302,6 +306,17 @@ class MainWindow(QMainWindow):
         self._message_label = QLabel("")
         self._status_bar.addPermanentWidget(self._message_label)
 
+        # Separator before freq
+        self._freq_sep = QLabel("|")
+        self._freq_sep.setVisible(False)
+        self._status_bar.addPermanentWidget(self._freq_sep)
+
+        # Topic frequency (visible only while recording)
+        self._freq_label = QLabel("")
+        self._freq_label.setStyleSheet("color: #ff9800; font-weight: bold;")
+        self._freq_label.setVisible(False)
+        self._status_bar.addPermanentWidget(self._freq_label)
+
     def _connect_signals(self):
         """Connect all signals."""
         # ROS bridge signals
@@ -429,11 +444,18 @@ class MainWindow(QMainWindow):
         """Handle recording started."""
         self._record_tab.set_recording(True, name)
         self._recording_label.setText(f"Recording: {name}")
+        self._freq_last_time = time.time()
+        self._freq_last_count = 0
+        self._freq_label.setText("-- Hz")
+        self._freq_label.setVisible(True)
+        self._freq_sep.setVisible(True)
 
     def _on_recording_stopped(self, name: str, frame_count: int):
         """Handle recording stopped."""
         self._record_tab.set_recording(False)
         self._recording_label.setText("Idle")
+        self._freq_label.setVisible(False)
+        self._freq_sep.setVisible(False)
         self._show_status_message(f"Recording saved: {name} ({frame_count} frames)")
         self._refresh_recordings()
 
@@ -443,6 +465,15 @@ class MainWindow(QMainWindow):
     def _on_recording_frame(self, count: int):
         """Handle recording frame."""
         self._record_tab.set_frame_count(count)
+
+        # Update frequency display every ~0.5s
+        now = time.time()
+        dt = now - self._freq_last_time
+        if dt >= 0.5:
+            hz = (count - self._freq_last_count) / dt
+            self._freq_label.setText(f"{hz:.0f} Hz")
+            self._freq_last_time = now
+            self._freq_last_count = count
 
     # === Playback Handlers ===
 
