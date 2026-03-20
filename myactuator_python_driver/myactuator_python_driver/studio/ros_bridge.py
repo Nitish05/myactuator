@@ -6,6 +6,7 @@ for thread-safe GUI updates.
 """
 
 import json
+import time
 import threading
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
@@ -127,7 +128,6 @@ class RosBridgeWorker(QObject):
 
     def _joint_state_cb(self, msg: JointState):
         """Handle incoming joint states."""
-        import time
         with self._lock:
             self._last_msg_time = time.time()
             if not self._connected:
@@ -150,7 +150,6 @@ class RosBridgeWorker(QObject):
 
     def _check_connection(self):
         """Check if we're still receiving messages."""
-        import time
         with self._lock:
             now = time.time()
             was_connected = self._connected
