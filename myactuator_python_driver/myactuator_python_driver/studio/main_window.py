@@ -101,8 +101,9 @@ class MainWindow(QMainWindow):
         self._status_clear_timer.setSingleShot(True)
         self._status_clear_timer.timeout.connect(self._clear_status_message)
 
-        # Start ROS bridge
+        # Start ROS bridge and wire recording manager for direct ROS-thread recording
         self._ros_bridge.start()
+        self._ros_bridge.set_recording_manager(self._recording_manager)
 
         # Initial data load
         QTimer.singleShot(500, self._refresh_recordings)
@@ -378,17 +379,12 @@ class MainWindow(QMainWindow):
     # === ROS Bridge Handlers ===
 
     def _on_joint_state(self, msg):
-        """Handle joint state update."""
+        """Handle joint state update (GUI-rate only; recording runs in ROS thread)."""
         # Update joint monitor
         self._joint_monitor.update_joint_state(msg)
 
         # Update monitor tab graph
         self._monitor_tab.update_joint_state(msg)
-
-        # Record frame if recording
-        if self._recording:
-            timestamp_ns = int(time.time() * 1e9)
-            self._recording_manager.record_frame(msg, timestamp_ns)
 
     def _on_mode_changed(self, mode: str):
         """Handle mode change."""

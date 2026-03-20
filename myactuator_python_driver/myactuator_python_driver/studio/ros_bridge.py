@@ -63,6 +63,7 @@ class RosBridgeWorker(QObject):
         self._connected = False
         self._last_msg_time = 0.0
         self._lock = threading.Lock()
+        self._recording_manager = None
 
     def start_ros(self):
         """Initialize ROS 2 and start spinning."""
@@ -126,13 +127,23 @@ class RosBridgeWorker(QObject):
         self._estop_client = self._node.create_client(
             Trigger, '/motor_driver/emergency_stop')
 
+    def set_recording_manager(self, mgr):
+        """Set recording manager for direct recording from ROS thread."""
+        self._recording_manager = mgr
+
     def _joint_state_cb(self, msg: JointState):
         """Handle incoming joint states."""
+        now = time.time()
         with self._lock:
-            self._last_msg_time = time.time()
+            self._last_msg_time = now
             if not self._connected:
                 self._connected = True
                 self.connection_status_changed.emit(True)
+
+        # Record directly in the ROS thread (bypasses GUI bottleneck)
+        mgr = self._recording_manager
+        if mgr is not None and mgr.is_recording:
+            mgr.record_frame(msg, int(now * 1e9))
 
         self.joint_state_received.emit(msg)
 
@@ -382,6 +393,11 @@ class RosBridge(QObject):
         """Clear trigger configuration."""
         if self._worker:
             self._worker.clear_trigger_config()
+
+    def set_recording_manager(self, mgr):
+        """Set recording manager for direct recording from ROS thread."""
+        if self._worker:
+            self._worker.set_recording_manager(mgr)
 
     def get_joint_ctrl_publisher(self):
         """Get the joint control publisher for direct publishing (bypasses Qt signals)."""

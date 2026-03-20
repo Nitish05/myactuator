@@ -271,7 +271,8 @@ class RecordingManager(QObject):
                 self._record_frame_count += 1
                 count = self._record_frame_count
 
-            self.recording_frame.emit(count)
+            if count % 50 == 0:
+                self.recording_frame.emit(count)
 
         except Exception as e:
             self.error_occurred.emit(f"Record error: {e}")
