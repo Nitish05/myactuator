@@ -37,9 +37,9 @@ class MainWindow(QMainWindow):
     Main application window.
 
     Layout:
-    - Left dock: Control Panel
-    - Bottom dock: Joint Monitor
-    - Central: Tab widget (Monitor, Record, Playback, Browse)
+    - Central: Tab widget (Record, Browse)
+    - Docks: Control Panel (left), Joint Monitor (bottom),
+             Monitor (bottom), Playback (right) — all hidden by default
     - Status bar: Mode, Connection, Recording status
     """
 
@@ -77,6 +77,8 @@ class MainWindow(QMainWindow):
         # Start in easy mode: hide advanced UI
         self._control_dock.setVisible(False)
         self._monitor_dock.setVisible(False)
+        self._monitor_tab_dock.setVisible(False)
+        self._playback_dock.setVisible(False)
         self._toolbar.setVisible(False)
         self.menuBar().setVisible(False)
         self._status_bar.setVisible(False)
@@ -138,13 +140,23 @@ class MainWindow(QMainWindow):
 
         self._control_dock_action = QAction("Control Panel", self)
         self._control_dock_action.setCheckable(True)
-        self._control_dock_action.setChecked(True)
+        self._control_dock_action.setChecked(False)
         view_menu.addAction(self._control_dock_action)
 
         self._monitor_dock_action = QAction("Joint Monitor", self)
         self._monitor_dock_action.setCheckable(True)
         self._monitor_dock_action.setChecked(False)
         view_menu.addAction(self._monitor_dock_action)
+
+        self._monitor_tab_dock_action = QAction("Monitor", self)
+        self._monitor_tab_dock_action.setCheckable(True)
+        self._monitor_tab_dock_action.setChecked(False)
+        view_menu.addAction(self._monitor_tab_dock_action)
+
+        self._playback_dock_action = QAction("Playback", self)
+        self._playback_dock_action.setCheckable(True)
+        self._playback_dock_action.setChecked(False)
+        view_menu.addAction(self._playback_dock_action)
 
         view_menu.addSeparator()
 
@@ -202,17 +214,15 @@ class MainWindow(QMainWindow):
         self._tabs = QTabWidget()
         self._tabs.setDocumentMode(True)
 
-        self._monitor_tab = MonitorTab()
-        self._tabs.addTab(self._monitor_tab, "Monitor")
-
         self._record_tab = RecordTab()
         self._tabs.addTab(self._record_tab, "Record")
 
-        self._playback_tab = PlaybackTab()
-        self._tabs.addTab(self._playback_tab, "Playback")
-
         self._browse_tab = BrowseTab()
         self._tabs.addTab(self._browse_tab, "Browse")
+
+        # Monitor and Playback widgets created here, docked in _setup_docks()
+        self._monitor_tab = MonitorTab()
+        self._playback_tab = PlaybackTab()
 
         self._stack.addWidget(self._tabs)
 
@@ -247,6 +257,32 @@ class MainWindow(QMainWindow):
         # Connect dock visibility to menu action
         self._monitor_dock.visibilityChanged.connect(self._monitor_dock_action.setChecked)
         self._monitor_dock_action.triggered.connect(self._monitor_dock.setVisible)
+
+        # Monitor tab dock (bottom)
+        self._monitor_tab_dock = QDockWidget("Monitor", self)
+        self._monitor_tab_dock.setWidget(self._monitor_tab)
+        self._monitor_tab_dock.setFeatures(
+            QDockWidget.DockWidgetFeature.DockWidgetMovable |
+            QDockWidget.DockWidgetFeature.DockWidgetClosable
+        )
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self._monitor_tab_dock)
+
+        # Connect dock visibility to menu action
+        self._monitor_tab_dock.visibilityChanged.connect(self._monitor_tab_dock_action.setChecked)
+        self._monitor_tab_dock_action.triggered.connect(self._monitor_tab_dock.setVisible)
+
+        # Playback dock (right)
+        self._playback_dock = QDockWidget("Playback", self)
+        self._playback_dock.setWidget(self._playback_tab)
+        self._playback_dock.setFeatures(
+            QDockWidget.DockWidgetFeature.DockWidgetMovable |
+            QDockWidget.DockWidgetFeature.DockWidgetClosable
+        )
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self._playback_dock)
+
+        # Connect dock visibility to menu action
+        self._playback_dock.visibilityChanged.connect(self._playback_dock_action.setChecked)
+        self._playback_dock_action.triggered.connect(self._playback_dock.setVisible)
 
     def _setup_status_bar(self):
         """Set up the status bar."""
@@ -595,7 +631,7 @@ class MainWindow(QMainWindow):
 
     def _load_for_playback(self, recording):
         """Load a recording for playback."""
-        self._tabs.setCurrentWidget(self._playback_tab)
+        self._playback_dock.setVisible(True)
         # The playback tab will be updated when recordings refresh
 
     # === Motor Control ===
@@ -639,6 +675,8 @@ class MainWindow(QMainWindow):
         self._stack.setCurrentIndex(0)
         self._control_dock.setVisible(False)
         self._monitor_dock.setVisible(False)
+        self._monitor_tab_dock.setVisible(False)
+        self._playback_dock.setVisible(False)
         self._toolbar.setVisible(False)
         self.menuBar().setVisible(False)
         self._status_bar.setVisible(False)
@@ -649,13 +687,14 @@ class MainWindow(QMainWindow):
         """Switch to advanced mode."""
         self._easy_mode = False
         self._stack.setCurrentIndex(1)
-        self._control_dock.setVisible(True)
+        self._control_dock.setVisible(False)
         self._monitor_dock.setVisible(False)
+        self._monitor_tab_dock.setVisible(False)
+        self._playback_dock.setVisible(False)
         self._toolbar.setVisible(True)
         self.menuBar().setVisible(True)
         self._status_bar.setVisible(True)
-        # Default to Record tab instead of Monitor
-        self._tabs.setCurrentIndex(1)
+        self._tabs.setCurrentIndex(0)
 
     def _easy_play_recording(self, recording):
         """Handle play request from easy mode."""
