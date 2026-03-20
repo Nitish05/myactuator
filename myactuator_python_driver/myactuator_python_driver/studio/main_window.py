@@ -412,6 +412,18 @@ class MainWindow(QMainWindow):
         self._show_status_message(f"Recording saved: {name} ({frame_count} frames)")
         self._refresh_recordings()
 
+        # Offer to add a trigger for this recording
+        reply = QMessageBox.question(
+            self,
+            "Recording Saved",
+            f"'{name}' saved ({frame_count} frames).\n\n"
+            "Would you like to add a torque trigger for this recording?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self._show_trigger_dialog_for_recording(name)
+
     def _on_recording_frame(self, count: int):
         """Handle recording frame."""
         self._record_tab.set_frame_count(count)
@@ -517,6 +529,41 @@ class MainWindow(QMainWindow):
             joint_names, recording_names, self,
             position_callback=self._joint_monitor.get_joint_positions,
             default_joint=last_joint
+        )
+        if trigger:
+            # Save to persistent store
+            self._trigger_store.add(trigger)
+            # Remember the selected joint
+            self._preferences.set("last_trigger_joint", trigger.joint_name)
+            # Add to playback tab
+            self._playback_tab.add_trigger(trigger)
+            self._show_status_message(f"Trigger '{trigger.name}' saved")
+
+    def _show_trigger_dialog_for_recording(self, recording_name: str):
+        """Show the trigger dialog with the recording pre-selected and locked."""
+        joint_names = self._joint_monitor.get_joint_names()
+
+        # Switch to free mode while configuring trigger
+        self._ros_bridge.set_mode("free")
+
+        if not joint_names:
+            QMessageBox.warning(
+                self, "No Joints",
+                "No joints detected. Make sure the driver is running and connected."
+            )
+            return
+
+        # Get recording names for pairing
+        recordings = self._recording_manager.get_recordings()
+        recording_names = [r.name for r in recordings]
+
+        # Pass callback for live position updates
+        last_joint = self._preferences.get("last_trigger_joint")
+        trigger = TriggerDialog.create_trigger(
+            joint_names, recording_names, self,
+            position_callback=self._joint_monitor.get_joint_positions,
+            default_joint=last_joint,
+            default_recording=recording_name
         )
         if trigger:
             # Save to persistent store
