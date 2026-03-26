@@ -7,6 +7,7 @@ from .playback_tab import PlaybackTab
 from .browse_tab import BrowseTab
 from .monitor_tab import MonitorTab
 from .easy_mode import EasyModeWidget
+from .stitch_tab import StitchTab
 
 __all__ = [
     'ControlPanel',
@@ -16,4 +17,5 @@ __all__ = [
     'BrowseTab',
     'MonitorTab',
     'EasyModeWidget',
+    'StitchTab',
 ]

@@ -26,6 +26,8 @@ except ImportError:
 
 import rosbag2_py
 
+from myactuator_python_driver.config import StitchSegment, StitchMetadata
+
 
 @dataclass
 class RecordingInfo:
@@ -55,6 +57,7 @@ class RecordingManager(QObject):
     playback_stopped = Signal()
     playback_progress = Signal(float, float)  # current_sec, total_sec
     playback_frame = Signal(object)  # JointState msg
+    segment_changed = Signal(str)  # source_recording_name (for stitched playback)
 
     error_occurred = Signal(str)
 
@@ -410,10 +413,16 @@ class RecordingManager(QObject):
                 self.playback_stopped.emit()
                 return
 
+            # Load stitch metadata for segment-aware trigger switching
+            stitch_meta = StitchMetadata.load(bag_path)
+            current_segment = None
+
             # Use direct publisher if available (bypasses Qt signal overhead)
             direct_pub = self._direct_publisher
 
             while True:
+                # Reset segment tracking on loop restart
+                current_segment = None
                 # Cache speed at start of each loop iteration
                 with self._lock:
                     speed = self.SPEEDS[self._speed_idx]
@@ -450,6 +459,13 @@ class RecordingManager(QObject):
                     else:
                         # Fallback to Qt signal (slower)
                         self.playback_frame.emit(msg)
+
+                    # Check for segment boundary (stitched recordings)
+                    if stitch_meta is not None:
+                        seg = stitch_meta.get_segment_at(rel_ts_ns)
+                        if seg is not None and seg is not current_segment:
+                            current_segment = seg
+                            self.segment_changed.emit(seg.source_recording)
 
                     # Emit progress every 20 frames (~10Hz at 200Hz playback)
                     frame_idx += 1
@@ -504,3 +520,113 @@ class RecordingManager(QObject):
         except Exception as e:
             self.error_occurred.emit(f"Rename failed: {e}")
             return False
+
+    # === Stitching ===
+
+    def get_stitch_metadata(self, recording: RecordingInfo) -> Optional[StitchMetadata]:
+        """Load stitch metadata if this is a stitched recording."""
+        return StitchMetadata.load(recording.path)
+
+    def stitch_recordings(
+        self,
+        recordings: List[RecordingInfo],
+        output_name: Optional[str] = None,
+        progress_callback: Optional[Callable[[int, int], None]] = None,
+    ) -> Optional[RecordingInfo]:
+        """Stitch multiple recordings into a single new recording.
+
+        Concatenates JointState messages from each source recording with
+        adjusted timestamps, and saves segment metadata for trigger switching.
+        """
+        from datetime import datetime as dt
+
+        if len(recordings) < 2:
+            return None
+
+        if output_name is None:
+            timestamp = dt.now().strftime("%Y%m%d_%H%M%S")
+            output_name = f"stitched_{timestamp}"
+
+        bag_path = self.recordings_dir / output_name
+
+        try:
+            # Create new bag
+            storage_options = rosbag2_py.StorageOptions(
+                uri=str(bag_path), storage_id='sqlite3')
+            converter_options = rosbag2_py.ConverterOptions('', '')
+
+            writer = rosbag2_py.SequentialWriter()
+            writer.open(storage_options, converter_options)
+
+            try:
+                topic_info = rosbag2_py.TopicMetadata(
+                    id=0,
+                    name='/joint_states',
+                    type='sensor_msgs/msg/JointState',
+                    serialization_format='cdr'
+                )
+            except TypeError:
+                topic_info = rosbag2_py.TopicMetadata(
+                    name='/joint_states',
+                    type='sensor_msgs/msg/JointState',
+                    serialization_format='cdr'
+                )
+            writer.create_topic(topic_info)
+
+            segments = []
+            cumulative_ns = 0
+
+            for i, rec in enumerate(recordings):
+                # Read all messages from source recording
+                reader = rosbag2_py.SequentialReader()
+                src_storage = rosbag2_py.StorageOptions(
+                    uri=str(rec.path), storage_id='sqlite3')
+                src_converter = rosbag2_py.ConverterOptions('', '')
+                reader.open(src_storage, src_converter)
+
+                first_ts = None
+                last_ts = None
+
+                while reader.has_next():
+                    topic, data, ts = reader.read_next()
+                    if topic == '/joint_states':
+                        if first_ts is None:
+                            first_ts = ts
+                        # Offset timestamp: relative within source + cumulative offset
+                        rel_ts = ts - first_ts
+                        new_ts = cumulative_ns + rel_ts
+                        writer.write('/joint_states', data, new_ts)
+                        last_ts = ts
+
+                # Calculate segment duration
+                if first_ts is not None and last_ts is not None:
+                    segment_duration = last_ts - first_ts
+                else:
+                    segment_duration = 0
+
+                segments.append(StitchSegment(
+                    source_recording=rec.name,
+                    start_ns=cumulative_ns,
+                    end_ns=cumulative_ns + segment_duration,
+                ))
+
+                cumulative_ns += segment_duration
+
+                if progress_callback:
+                    progress_callback(i + 1, len(recordings))
+
+            del writer  # close the bag
+
+            # Save stitch metadata
+            meta = StitchMetadata(segments=segments)
+            meta.save(bag_path)
+
+            # Load and return info for the new recording
+            return self._load_recording_info(bag_path)
+
+        except Exception as e:
+            self.error_occurred.emit(f"Stitch failed: {e}")
+            # Clean up partial output
+            if bag_path.exists():
+                shutil.rmtree(bag_path, ignore_errors=True)
+            return None

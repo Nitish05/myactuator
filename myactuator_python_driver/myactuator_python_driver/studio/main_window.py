@@ -4,6 +4,7 @@ Main window for Motor Recording Studio.
 QMainWindow with docks, tabs, menu bar, and status bar.
 """
 
+import threading
 import time
 from pathlib import Path
 
@@ -29,6 +30,7 @@ from .widgets.playback_tab import PlaybackTab
 from .widgets.browse_tab import BrowseTab
 from .widgets.triggers_tab import TriggersTab
 from .widgets.easy_mode import EasyModeWidget
+from .widgets.stitch_tab import StitchTab
 from .widgets.virtual_keyboard import VirtualKeyboard
 from .dialogs.trigger_dialog import TriggerDialog
 
@@ -207,6 +209,9 @@ class MainWindow(QMainWindow):
         self._browse_tab = BrowseTab()
         self._tabs.addTab(self._browse_tab, "Browse")
 
+        self._stitch_tab = StitchTab()
+        self._tabs.addTab(self._stitch_tab, "Stitch")
+
         # Monitor, Playback, Triggers widgets created here, docked in _setup_docks()
         self._monitor_tab = MonitorTab()
         self._playback_tab = PlaybackTab()
@@ -342,6 +347,10 @@ class MainWindow(QMainWindow):
         self._browse_tab.rename_requested.connect(self._rename_recording)
         self._browse_tab.recording_double_clicked.connect(self._load_for_playback)
 
+        # Stitch tab signals
+        self._stitch_tab.stitch_requested.connect(self._start_stitch)
+        self._stitch_tab.refresh_requested.connect(self._refresh_recordings)
+
         # Recording manager signals
         self._recording_manager.recording_started.connect(self._on_recording_started)
         self._recording_manager.recording_stopped.connect(self._on_recording_stopped)
@@ -350,6 +359,7 @@ class MainWindow(QMainWindow):
         self._recording_manager.playback_stopped.connect(self._on_playback_stopped)
         self._recording_manager.playback_progress.connect(self._on_playback_progress)
         self._recording_manager.playback_frame.connect(self._on_playback_frame)
+        self._recording_manager.segment_changed.connect(self._on_segment_changed)
         self._recording_manager.error_occurred.connect(self._show_error_message)
 
         # Easy mode signals
@@ -444,18 +454,27 @@ class MainWindow(QMainWindow):
 
     def _start_playback(self, recording):
         """Start playback."""
-        # Send trigger config first - only triggers for this recording
-        all_triggers = self._playback_tab.get_triggers()
-        # Filter: triggers with no recording_name (global) OR matching this recording
-        matching_triggers = [
-            t for t in all_triggers
-            if not t.recording_name or t.recording_name == recording.name
-        ]
+        # Check if this is a stitched recording — use first segment's triggers
+        stitch_meta = self._recording_manager.get_stitch_metadata(recording)
+        if stitch_meta and stitch_meta.segments:
+            first_source = stitch_meta.segments[0].source_recording
+            all_triggers = self._trigger_store.get_all()
+            matching_triggers = [
+                t for t in all_triggers
+                if not t.recording_name or t.recording_name == first_source
+            ]
+        else:
+            # Normal recording: triggers for this recording
+            all_triggers = self._playback_tab.get_triggers()
+            matching_triggers = [
+                t for t in all_triggers
+                if not t.recording_name or t.recording_name == recording.name
+            ]
+
         if matching_triggers:
             config = PlaybackTriggerConfig(triggers=matching_triggers)
             self._ros_bridge.set_trigger_config(config)
         else:
-            # Clear any triggers from previous playback
             self._ros_bridge.clear_trigger_config()
 
         # Switch to position mode
@@ -505,6 +524,54 @@ class MainWindow(QMainWindow):
     def _on_playback_frame(self, msg):
         """Handle playback frame - send to motors."""
         self._ros_bridge.send_joint_command(msg)
+
+    def _on_segment_changed(self, source_recording_name: str):
+        """Handle segment boundary crossing during stitched playback."""
+        all_triggers = self._trigger_store.get_all()
+        matching = [
+            t for t in all_triggers
+            if not t.recording_name or t.recording_name == source_recording_name
+        ]
+        if matching:
+            config = PlaybackTriggerConfig(triggers=matching)
+            self._ros_bridge.set_trigger_config(config)
+        else:
+            self._ros_bridge.clear_trigger_config()
+
+    # === Stitch Handlers ===
+
+    def _start_stitch(self, recordings: list, output_name: str):
+        """Start stitching recordings in a background thread."""
+        self._stitch_tab.set_stitching(True)
+        self._show_status_message("Stitching recordings...")
+
+        def _do_stitch():
+            try:
+                result = self._recording_manager.stitch_recordings(
+                    recordings,
+                    output_name if output_name else None,
+                    progress_callback=lambda cur, tot: QTimer.singleShot(
+                        0, lambda c=cur, t=tot: self._stitch_tab.set_stitch_progress(c, t)),
+                )
+                if result:
+                    QTimer.singleShot(0, lambda: self._on_stitch_complete(result))
+                else:
+                    QTimer.singleShot(0, lambda: self._on_stitch_failed("Stitch produced no output"))
+            except Exception as e:
+                QTimer.singleShot(0, lambda: self._on_stitch_failed(str(e)))
+
+        threading.Thread(target=_do_stitch, daemon=True).start()
+
+    def _on_stitch_complete(self, recording):
+        """Handle stitch completion."""
+        self._stitch_tab.set_stitching(False)
+        self._show_status_message(f"Stitched recording created: {recording.name}")
+        self._refresh_recordings()
+
+    def _on_stitch_failed(self, error: str):
+        """Handle stitch failure."""
+        self._stitch_tab.set_stitching(False)
+        self._show_error_message(f"Stitch failed: {error}")
 
     # === Trigger Handling ===
 
@@ -601,6 +668,7 @@ class MainWindow(QMainWindow):
         recordings = self._recording_manager.get_recordings()
         self._browse_tab.set_recordings(recordings)
         self._playback_tab.set_recordings(recordings)
+        self._stitch_tab.set_recordings(recordings)
         self._easy_mode_widget.set_recordings(recordings, self._trigger_store)
         # Load all saved triggers
         triggers = self._trigger_store.get_all()
@@ -701,12 +769,22 @@ class MainWindow(QMainWindow):
 
     def _easy_play_recording(self, recording):
         """Handle play request from easy mode."""
-        # Get matching triggers
-        all_triggers = self._trigger_store.get_all()
-        matching_triggers = [
-            t for t in all_triggers
-            if not t.recording_name or t.recording_name == recording.name
-        ]
+        # Check if stitched — use first segment's triggers
+        stitch_meta = self._recording_manager.get_stitch_metadata(recording)
+        if stitch_meta and stitch_meta.segments:
+            first_source = stitch_meta.segments[0].source_recording
+            all_triggers = self._trigger_store.get_all()
+            matching_triggers = [
+                t for t in all_triggers
+                if not t.recording_name or t.recording_name == first_source
+            ]
+        else:
+            all_triggers = self._trigger_store.get_all()
+            matching_triggers = [
+                t for t in all_triggers
+                if not t.recording_name or t.recording_name == recording.name
+            ]
+
         if matching_triggers:
             config = PlaybackTriggerConfig(triggers=matching_triggers)
             self._ros_bridge.set_trigger_config(config)

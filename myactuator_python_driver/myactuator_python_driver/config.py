@@ -4,6 +4,7 @@ Configuration module for MyActuator Python Driver.
 Defines dataclasses for motor and driver configuration with YAML support.
 """
 
+import json
 import os
 import yaml
 from dataclasses import dataclass, field, asdict
@@ -360,3 +361,50 @@ class StudioPreferences:
         """Set a preference value and save."""
         self._data[key] = value
         self.save()
+
+
+@dataclass
+class StitchSegment:
+    """A segment within a stitched recording."""
+    source_recording: str
+    start_ns: int
+    end_ns: int
+
+
+@dataclass
+class StitchMetadata:
+    """Metadata for a stitched recording, stored as segments.json in the bag directory."""
+    version: int = 1
+    segments: List[StitchSegment] = field(default_factory=list)
+
+    def get_segment_at(self, rel_ts_ns: int) -> Optional[StitchSegment]:
+        """Get the segment containing the given relative timestamp."""
+        for seg in self.segments:
+            if seg.start_ns <= rel_ts_ns < seg.end_ns:
+                return seg
+        return self.segments[-1] if self.segments else None
+
+    def to_dict(self) -> dict:
+        return {
+            'version': self.version,
+            'segments': [asdict(s) for s in self.segments],
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> 'StitchMetadata':
+        segments = [StitchSegment(**s) for s in data.get('segments', [])]
+        return cls(version=data.get('version', 1), segments=segments)
+
+    def save(self, bag_path: Path):
+        """Save stitch metadata to segments.json in the bag directory."""
+        with open(bag_path / 'segments.json', 'w') as f:
+            json.dump(self.to_dict(), f, indent=2)
+
+    @classmethod
+    def load(cls, bag_path: Path) -> Optional['StitchMetadata']:
+        """Load stitch metadata from a bag directory, or None if not stitched."""
+        segments_file = bag_path / 'segments.json'
+        if not segments_file.exists():
+            return None
+        with open(segments_file, 'r') as f:
+            return cls.from_dict(json.load(f))
