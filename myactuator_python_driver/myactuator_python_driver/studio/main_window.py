@@ -565,8 +565,11 @@ class MainWindow(QMainWindow):
     def _on_stitch_complete(self, recording):
         """Handle stitch completion."""
         self._stitch_tab.set_stitching(False)
-        self._show_status_message(f"Stitched recording created: {recording.name}")
         self._refresh_recordings()
+        QMessageBox.information(
+            self, "Stitch Complete",
+            f"Stitched recording created:\n{recording.name}"
+        )
 
     def _on_stitch_failed(self, error: str):
         """Handle stitch failure."""
