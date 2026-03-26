@@ -97,9 +97,7 @@ class StitchTab(QWidget):
         queue_layout.addLayout(order_row)
         panels.addWidget(queue_group, 1)
 
-        main_layout.addLayout(panels, 1)
-
-        # === Bottom: Output section ===
+        # === Top: Output section ===
         output_group = QGroupBox("Output")
         output_layout = QVBoxLayout(output_group)
         output_layout.setContentsMargins(8, 12, 8, 8)
@@ -110,6 +108,13 @@ class StitchTab(QWidget):
         self._name_edit = QLineEdit()
         self._name_edit.setPlaceholderText("Auto-generated if empty")
         name_row.addWidget(self._name_edit)
+
+        self._create_btn = QPushButton("Create Stitched Recording")
+        self._create_btn.setEnabled(False)
+        self._create_btn.setStyleSheet(
+            "QPushButton { font-weight: bold; font-size: 14px; padding: 12px; }"
+        )
+        name_row.addWidget(self._create_btn)
 
         refresh_btn = QPushButton("Refresh")
         refresh_btn.setFixedWidth(70)
@@ -131,14 +136,9 @@ class StitchTab(QWidget):
         self._progress.setVisible(False)
         output_layout.addWidget(self._progress)
 
-        self._create_btn = QPushButton("Create Stitched Recording")
-        self._create_btn.setEnabled(False)
-        self._create_btn.setStyleSheet(
-            "QPushButton { font-weight: bold; font-size: 14px; padding: 12px; }"
-        )
-        output_layout.addWidget(self._create_btn)
-
         main_layout.addWidget(output_group)
+
+        main_layout.addLayout(panels, 1)
 
     def _connect_signals(self):
         self._add_btn.clicked.connect(self._add_to_queue)
