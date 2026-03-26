@@ -547,33 +547,28 @@ class MainWindow(QMainWindow):
 
         def _do_stitch():
             try:
-                result = self._recording_manager.stitch_recordings(
+                self._recording_manager.stitch_recordings(
                     recordings,
                     output_name if output_name else None,
                     progress_callback=lambda cur, tot: QTimer.singleShot(
                         0, lambda c=cur, t=tot: self._stitch_tab.set_stitch_progress(c, t)),
                 )
-                if result:
-                    QTimer.singleShot(0, lambda: self._on_stitch_complete(result))
-                else:
-                    QTimer.singleShot(0, lambda: self._on_stitch_failed("Stitch produced no output"))
+                QTimer.singleShot(0, self._on_stitch_complete)
             except Exception as e:
                 QTimer.singleShot(0, lambda: self._on_stitch_failed(str(e)))
 
         threading.Thread(target=_do_stitch, daemon=True).start()
 
-    def _on_stitch_complete(self, recording):
+    def _on_stitch_complete(self):
         """Handle stitch completion."""
         self._stitch_tab.set_stitching(False)
         self._refresh_recordings()
-        QMessageBox.information(
-            self, "Stitch Complete",
-            f"Stitched recording created:\n{recording.name}"
-        )
+        self._show_status_message("Stitch successful")
 
     def _on_stitch_failed(self, error: str):
         """Handle stitch failure."""
         self._stitch_tab.set_stitching(False)
+        self._refresh_recordings()
         self._show_error_message(f"Stitch failed: {error}")
 
     # === Trigger Handling ===
