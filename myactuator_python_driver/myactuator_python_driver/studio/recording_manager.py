@@ -615,8 +615,7 @@ class RecordingManager(QObject):
                 if progress_callback:
                     progress_callback(i + 1, len(recordings))
 
-            writer.reset()  # flush SQLite3 database before reading back
-            del writer
+            del writer  # close the bag (destructor flushes SQLite3)
 
             # Save stitch metadata
             meta = StitchMetadata(segments=segments)
