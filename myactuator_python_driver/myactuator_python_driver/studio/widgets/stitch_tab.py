@@ -10,7 +10,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
     QPushButton, QListWidget, QListWidgetItem, QGroupBox,
-    QProgressBar, QAbstractItemView,
+    QAbstractItemView,
 )
 
 from myactuator_python_driver.studio.recording_manager import RecordingInfo
@@ -132,10 +132,6 @@ class StitchTab(QWidget):
         self._summary_label.setStyleSheet("color: #757575;")
         output_layout.addWidget(self._summary_label)
 
-        self._progress = QProgressBar()
-        self._progress.setVisible(False)
-        output_layout.addWidget(self._progress)
-
         main_layout.addWidget(output_group)
 
         main_layout.addLayout(panels, 1)
@@ -167,14 +163,6 @@ class StitchTab(QWidget):
         self._down_btn.setEnabled(not active)
         self._clear_btn.setEnabled(not active)
         self._name_edit.setEnabled(not active)
-        self._progress.setVisible(active)
-        if not active:
-            self._progress.setValue(0)
-
-    def set_stitch_progress(self, current: int, total: int):
-        """Update stitch progress bar."""
-        self._progress.setMaximum(total)
-        self._progress.setValue(current)
 
     def _add_to_queue(self):
         """Add selected recordings to the stitch queue."""

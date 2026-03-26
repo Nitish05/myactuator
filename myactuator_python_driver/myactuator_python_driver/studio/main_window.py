@@ -360,6 +360,7 @@ class MainWindow(QMainWindow):
         self._recording_manager.playback_progress.connect(self._on_playback_progress)
         self._recording_manager.playback_frame.connect(self._on_playback_frame)
         self._recording_manager.segment_changed.connect(self._on_segment_changed)
+        self._recording_manager.stitch_complete.connect(self._on_stitch_complete)
         self._recording_manager.error_occurred.connect(self._show_error_message)
 
         # Easy mode signals
@@ -546,30 +547,16 @@ class MainWindow(QMainWindow):
         self._show_status_message("Stitching recordings...")
 
         def _do_stitch():
-            try:
-                self._recording_manager.stitch_recordings(
-                    recordings,
-                    output_name if output_name else None,
-                    progress_callback=lambda cur, tot: QTimer.singleShot(
-                        0, lambda c=cur, t=tot: self._stitch_tab.set_stitch_progress(c, t)),
-                )
-                QTimer.singleShot(0, self._on_stitch_complete)
-            except Exception as e:
-                QTimer.singleShot(0, lambda: self._on_stitch_failed(str(e)))
+            self._recording_manager.stitch_recordings(
+                recordings, output_name if output_name else None)
 
         threading.Thread(target=_do_stitch, daemon=True).start()
 
     def _on_stitch_complete(self):
-        """Handle stitch completion."""
+        """Handle stitch completion (signal from RecordingManager)."""
         self._stitch_tab.set_stitching(False)
         self._refresh_recordings()
         self._show_status_message("Stitch successful")
-
-    def _on_stitch_failed(self, error: str):
-        """Handle stitch failure."""
-        self._stitch_tab.set_stitching(False)
-        self._refresh_recordings()
-        self._show_error_message(f"Stitch failed: {error}")
 
     # === Trigger Handling ===
 

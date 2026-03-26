@@ -58,6 +58,7 @@ class RecordingManager(QObject):
     playback_progress = Signal(float, float)  # current_sec, total_sec
     playback_frame = Signal(object)  # JointState msg
     segment_changed = Signal(str)  # source_recording_name (for stitched playback)
+    stitch_complete = Signal()  # emitted when stitching finishes (success or failure)
 
     error_occurred = Signal(str)
 
@@ -531,8 +532,7 @@ class RecordingManager(QObject):
         self,
         recordings: List[RecordingInfo],
         output_name: Optional[str] = None,
-        progress_callback: Optional[Callable[[int, int], None]] = None,
-    ) -> Optional[RecordingInfo]:
+    ):
         """Stitch multiple recordings into a single new recording.
 
         Concatenates JointState messages from each source recording with
@@ -612,26 +612,17 @@ class RecordingManager(QObject):
 
                 cumulative_ns += segment_duration
 
-                if progress_callback:
-                    progress_callback(i + 1, len(recordings))
-
             del writer  # close the bag (destructor flushes SQLite3)
 
             # Save stitch metadata
             meta = StitchMetadata(segments=segments)
             meta.save(bag_path)
 
-            # Load info for the new recording (retry — writer may need time to flush)
-            for _ in range(5):
-                info = self._load_recording_info(bag_path)
-                if info is not None:
-                    return info
-                time.sleep(0.2)
-            return self._load_recording_info(bag_path)
+            self.stitch_complete.emit()
 
         except Exception as e:
             self.error_occurred.emit(f"Stitch failed: {e}")
             # Clean up partial output
             if bag_path.exists():
                 shutil.rmtree(bag_path, ignore_errors=True)
-            return None
+            self.stitch_complete.emit()
