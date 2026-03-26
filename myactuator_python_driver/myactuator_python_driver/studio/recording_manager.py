@@ -621,7 +621,12 @@ class RecordingManager(QObject):
             meta = StitchMetadata(segments=segments)
             meta.save(bag_path)
 
-            # Load and return info for the new recording
+            # Load info for the new recording (retry — writer may need time to flush)
+            for _ in range(5):
+                info = self._load_recording_info(bag_path)
+                if info is not None:
+                    return info
+                time.sleep(0.2)
             return self._load_recording_info(bag_path)
 
         except Exception as e:
